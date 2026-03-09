@@ -73,7 +73,7 @@ export default function ShopPage() {
           <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
             <img alt="Carbon Shield Pro" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFk2GP4Ksj5CqZuw88k-9o5Se8ui9te7LH7hgYIlgmnIZUiTIymyYfxRhqnuDf1Ct75dJszCWn-ORhUjr5SKofdIKHae36thg4qi3MsCoaQ8YUaZtCti1e0I6_-FdJMMDiCqhPXOvy3ClXui-yNaCwEvuac3nn52T7TyB0Komns7kWRdhyXxQ5GjFOlSSyTvEgBXrFsFAiY9Ww9XEMt21gC5kzGusM2S28JVQ3UY3SIi6KhnsHSpFgmEeh071PkQvn9B-K2nuZtRg"/>
             <div className="absolute top-4 right-4">
-              <span className="bg-slate-900/60 backdrop-blur-sm text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-tighter uppercase">RFID Secure</span>
+              <span className="bg-white/80 dark:bg-slate-900/60 backdrop-blur-sm text-slate-900 dark:text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-tighter uppercase">RFID Secure</span>
             </div>
           </div>
           <div className="p-6 flex flex-col gap-3">
@@ -174,15 +174,15 @@ export default function ShopPage() {
         </Link>
       </div>
 
-      <div className="mt-24 p-8 md:p-12 rounded-3xl bg-slate-900 dark:bg-primary/5 border border-slate-800 dark:border-primary/20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
+      <div className="mt-24 p-8 md:p-12 rounded-3xl bg-primary relative overflow-hidden border border-primary/50 shadow-2xl shadow-primary/20">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/20 blur-[100px] -mr-32 -mt-32 rounded-full mix-blend-overlay"></div>
         <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
           <div>
             <h2 className="text-3xl font-bold mb-4 text-white">Join the inner circle.</h2>
-            <p className="text-slate-400 mb-6">Be the first to know about limited drops, engineering insights, and exclusive community events.</p>
+            <p className="text-white/80 mb-6">Be the first to know about limited drops, engineering insights, and exclusive community events.</p>
             <form className="flex flex-col sm:flex-row gap-3">
-              <input className="flex-1 px-6 py-4 rounded-xl bg-white/5 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-primary transition-all outline-none" placeholder="Enter your email" type="email"/>
-              <button className="px-8 py-4 bg-primary text-white font-bold rounded-xl shadow-[0_0_20px_rgba(13,89,242,0.4)] hover:bg-blue-600 transition-all">Subscribe</button>
+              <input className="flex-1 px-6 py-4 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-white transition-all outline-none placeholder:text-white/60" placeholder="Enter your email" type="email"/>
+              <button className="px-8 py-4 bg-white text-primary font-bold rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:bg-slate-50 transition-all" type="submit">Subscribe</button>
             </form>
           </div>
         </div>
