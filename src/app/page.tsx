@@ -42,7 +42,7 @@ export default function Home() {
                     <p className="text-primary text-xs font-bold uppercase tracking-widest">Premium Edition</p>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">Carbon-X Phantom</h3>
                   </div>
-                  <div className="text-2xl font-bold text-slate-900 dark:text-white">$129</div>
+                  <div className="text-2xl font-bold text-slate-900 dark:text-white">129 MAD</div>
                 </div>
               </div>
             </div>
@@ -76,7 +76,7 @@ export default function Home() {
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white">Leather Pro Slim</h4>
                     <p className="text-sm text-slate-500">Italian Full Grain</p>
                   </div>
-                  <span className="text-lg font-bold text-primary">$85</span>
+                  <span className="text-lg font-bold text-primary">85 MAD</span>
                 </div>
                 <button className="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm">
                   Add to Cart
@@ -98,7 +98,7 @@ export default function Home() {
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white">Nomad Carbon</h4>
                     <p className="text-sm text-slate-500">RFID Shielded</p>
                   </div>
-                  <span className="text-lg font-bold text-primary">$110</span>
+                  <span className="text-lg font-bold text-primary">110 MAD</span>
                 </div>
                 <button className="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm">
                   Add to Cart
@@ -120,7 +120,7 @@ export default function Home() {
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white">Titan Bifold</h4>
                     <p className="text-sm text-slate-500">Aerospace Aluminum</p>
                   </div>
-                  <span className="text-lg font-bold text-primary">$95</span>
+                  <span className="text-lg font-bold text-primary">95 MAD</span>
                 </div>
                 <button className="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm">
                   Add to Cart

@@ -27,7 +27,7 @@ export default function CartPage() {
                   <span className="font-bold w-4 text-center">1</span>
                   <button className="text-primary hover:opacity-70 flex items-center justify-center"><span className="material-symbols-outlined text-sm">add</span></button>
                 </div>
-                <p className="text-xl font-bold text-primary">$45.00</p>
+                <p className="text-xl font-bold text-primary">45.00 MAD</p>
               </div>
             </div>
           </div>
@@ -48,7 +48,7 @@ export default function CartPage() {
                   <span className="font-bold w-4 text-center">2</span>
                   <button className="text-primary hover:opacity-70 flex items-center justify-center"><span className="material-symbols-outlined text-sm">add</span></button>
                 </div>
-                <p className="text-xl font-bold text-primary">$120.00</p>
+                <p className="text-xl font-bold text-primary">120.00 MAD</p>
               </div>
             </div>
           </div>
@@ -69,7 +69,7 @@ export default function CartPage() {
                   <span className="font-bold w-4 text-center">1</span>
                   <button className="text-primary hover:opacity-70 flex items-center justify-center"><span className="material-symbols-outlined text-sm">add</span></button>
                 </div>
-                <p className="text-xl font-bold text-primary">$15.00</p>
+                <p className="text-xl font-bold text-primary">15.00 MAD</p>
               </div>
             </div>
           </div>
@@ -81,7 +81,7 @@ export default function CartPage() {
             <div className="space-y-4 mb-8">
               <div className="flex justify-between text-slate-500 dark:text-slate-400">
                 <span>Subtotal</span>
-                <span className="font-medium text-slate-900 dark:text-slate-100">$180.00</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">180.00 MAD</span>
               </div>
               <div className="flex justify-between text-slate-500 dark:text-slate-400">
                 <span>Shipping</span>
@@ -89,11 +89,11 @@ export default function CartPage() {
               </div>
               <div className="flex justify-between text-slate-500 dark:text-slate-400">
                 <span>Estimated Tax</span>
-                <span className="font-medium text-slate-900 dark:text-slate-100">$14.40</span>
+                <span className="font-medium text-slate-900 dark:text-slate-100">14.40 MAD</span>
               </div>
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-end">
                 <span className="text-lg font-bold">Total</span>
-                <span className="text-3xl font-black text-primary">$194.40</span>
+                <span className="text-3xl font-black text-primary">194.40 MAD</span>
               </div>
             </div>
 

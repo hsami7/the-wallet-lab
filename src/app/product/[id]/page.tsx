@@ -36,7 +36,7 @@ export default function ProductDetail() {
               </div>
             </div>
             <h1 className="text-5xl lg:text-6xl font-black tracking-tight mb-4">Aura Bifold <br/>Wallet</h1>
-            <p className="text-3xl font-light text-primary">$120.00</p>
+            <p className="text-3xl font-light text-primary">120.00 MAD</p>
           </div>
           
           <div className="space-y-6 mb-10">

@@ -56,7 +56,7 @@ export default function ShopPage() {
                 <h3 className="font-bold text-lg">The Apex Slim</h3>
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Italian Full-Grain</p>
               </div>
-              <span className="text-primary font-bold">$89.00</span>
+              <span className="text-primary font-bold">89.00 MAD</span>
             </div>
             <div className="flex gap-1">
               <div className="size-3 rounded-full bg-orange-900 border border-white/20"></div>
@@ -82,7 +82,7 @@ export default function ShopPage() {
                 <h3 className="font-bold text-lg">Carbon Shield Pro</h3>
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Aero Carbon Fiber</p>
               </div>
-              <span className="text-primary font-bold">$125.00</span>
+              <span className="text-primary font-bold">125.00 MAD</span>
             </div>
             <div className="flex gap-1">
               <div className="size-3 rounded-full bg-zinc-900 border border-white/20"></div>
@@ -104,7 +104,7 @@ export default function ShopPage() {
                 <h3 className="font-bold text-lg">The Nomad Zip</h3>
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Tumbled Calfskin</p>
               </div>
-              <span className="text-primary font-bold">$75.00</span>
+              <span className="text-primary font-bold">75.00 MAD</span>
             </div>
             <div className="flex gap-1">
               <div className="size-3 rounded-full bg-blue-900 border border-white/20"></div>
@@ -128,7 +128,7 @@ export default function ShopPage() {
                 <h3 className="font-bold text-lg">Titanium Grid</h3>
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Aerospace Grade</p>
               </div>
-              <span className="text-primary font-bold">$199.00</span>
+              <span className="text-primary font-bold">199.00 MAD</span>
             </div>
             <div className="flex gap-1">
               <div className="size-3 rounded-full bg-slate-400 border border-white/20"></div>
@@ -148,7 +148,7 @@ export default function ShopPage() {
                 <h3 className="font-bold text-lg">The Voyager</h3>
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Travel Companion</p>
               </div>
-              <span className="text-primary font-bold">$140.00</span>
+              <span className="text-primary font-bold">140.00 MAD</span>
             </div>
             <button className="mt-2 w-full py-3 bg-primary hover:bg-blue-600 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(13,89,242,0.3)] transition-all flex items-center justify-center gap-2">
               Add to Cart <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
@@ -165,7 +165,7 @@ export default function ShopPage() {
                 <h3 className="font-bold text-lg">Matrix Slim</h3>
                 <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Technical Fabric</p>
               </div>
-              <span className="text-primary font-bold">$55.00</span>
+              <span className="text-primary font-bold">55.00 MAD</span>
             </div>
             <button className="mt-2 w-full py-3 bg-primary hover:bg-blue-600 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(13,89,242,0.3)] transition-all flex items-center justify-center gap-2">
               Add to Cart <span className="material-symbols-outlined text-sm">add_shopping_cart</span>

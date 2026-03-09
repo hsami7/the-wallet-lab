@@ -111,7 +111,7 @@ export default function CheckoutPage() {
                   <p className="font-bold text-sm">Carbon Fiber Slim Wallet</p>
                   <p className="text-xs opacity-60">Matte Black / RFID Secure</p>
                 </div>
-                <p className="font-bold">$89.00</p>
+                <p className="font-bold">89.00 MAD</p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="h-16 w-16 bg-slate-200 dark:bg-slate-800 rounded overflow-hidden flex-shrink-0">
@@ -121,14 +121,14 @@ export default function CheckoutPage() {
                   <p className="font-bold text-sm">Leather Key Organizer</p>
                   <p className="text-xs opacity-60">Saddle Brown</p>
                 </div>
-                <p className="font-bold">$34.00</p>
+                <p className="font-bold">34.00 MAD</p>
               </div>
             </div>
 
             <div className="space-y-3 py-6 border-t border-b border-slate-200 dark:border-slate-800">
               <div className="flex justify-between text-sm">
                 <span className="opacity-60">Subtotal</span>
-                <span>$123.00</span>
+                <span>123.00 MAD</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="opacity-60">Shipping</span>
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="opacity-60">Tax (8%)</span>
-                <span>$9.84</span>
+                <span>9.84 MAD</span>
               </div>
             </div>
 
@@ -149,7 +149,7 @@ export default function CheckoutPage() {
 
             <div className="flex justify-between items-center mt-6 mb-8">
               <span className="text-lg font-bold">Total</span>
-              <span className="text-2xl font-bold text-primary">$132.84</span>
+              <span className="text-2xl font-bold text-primary">132.84 MAD</span>
             </div>
 
             <button className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
