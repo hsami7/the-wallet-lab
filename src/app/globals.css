@@ -16,6 +16,14 @@
   body {
     font-family: 'Space Grotesk', sans-serif;
   }
+  button, 
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  select,
+  a {
+    cursor: pointer !important;
+  }
 }
 
 @layer utilities {
