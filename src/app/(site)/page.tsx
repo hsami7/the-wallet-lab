@@ -70,7 +70,7 @@ export default function Home() {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5eNMB_FZkN6IP_lWAjqB9_O0cUe2AFlijwqg44--YQlC3ENO5JUU1YxxUlmMa4hfyt0OWuMJzK-VqP1I8TQQGCu70ENiu_ODwBkrRWmkloyekzbGR1nr_8symDkfwK5J2MSrC6tPAFhqgVchIZAA8NjhJY6WF6SEWKdKUuhdlSHppEhsQZu5zWp6Hj0T1kgIt_vPIbRgk7LoOr4KZi_a_3m_sEaMb3IZ7A-L4yiP4aqgZt8H0wEWnOubZhudKXTI1b-kDY1C78wA" 
                 />
               </div>
-              <div className="flex flex-col gap-4">
+              <div className="flex-1 flex flex-col gap-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white">Leather Pro Slim</h4>
@@ -78,7 +78,7 @@ export default function Home() {
                   </div>
                   <span className="text-lg font-bold text-primary">85 MAD</span>
                 </div>
-                <button className="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm">
+                <button className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display">
                   Add to Cart
                 </button>
               </div>
@@ -92,7 +92,7 @@ export default function Home() {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeaf7xc7bH7Lo5Ex5WOPItgR1KIQqspXLmr15oc7QNTjtL7L09EbnHt1_iCjWjDjHDyWzCsZH-15k9OhHJ_LPUOAZqkZFRFq4A5FkXBTRGlV1iinbt7m8SPHMidigX0RAxbk7fBBNDQsSz80BdKdgQCo6pMu6VCqSWiVi2NE2RD_-PiHS8wO_ov-OYnmKrcFZU_IGqmeNWmUvAKbobpONKk_qpmf6QXidK2lSb2iwimvKcaZTXY7UQ4LTLTQ7GWqL2xYVIBYpXKhE" 
                 />
               </div>
-              <div className="flex flex-col gap-4">
+              <div className="flex-1 flex flex-col gap-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white">Nomad Carbon</h4>
@@ -100,7 +100,7 @@ export default function Home() {
                   </div>
                   <span className="text-lg font-bold text-primary">110 MAD</span>
                 </div>
-                <button className="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm">
+                <button className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display">
                   Add to Cart
                 </button>
               </div>
@@ -114,7 +114,7 @@ export default function Home() {
                   src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq_5g3DHaNpypDbAVz9KXJ8a4EqZAVmagOcGDtyqVPjGt5qL5z_OEQpXoaPiRo6gT5sp2wdji5GiO4CwCr9TKtsk4VZVkbWmcXI-w2RtPXfLm5-qOebwcKR0CwVvXmvMr7-UEI_xbfjkLKA5v6p168noErEBNhHP1LGz3qkVMFB19N2kNo4_203hlMUHRqcdkeTRSWy8yq0uK_PW9M6nvnB7p9_2am5vv2EtXtaI_UhpDX7zuhZsZQHc8U-mvQGb9KVEoy6j80zIw" 
                 />
               </div>
-              <div className="flex flex-col gap-4">
+              <div className="flex-1 flex flex-col gap-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <h4 className="text-lg font-bold text-slate-900 dark:text-white">Titan Bifold</h4>
@@ -122,7 +122,7 @@ export default function Home() {
                   </div>
                   <span className="text-lg font-bold text-primary">95 MAD</span>
                 </div>
-                <button className="w-full py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm">
+                <button className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display">
                   Add to Cart
                 </button>
               </div>
