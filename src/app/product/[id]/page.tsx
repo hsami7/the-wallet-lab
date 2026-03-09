@@ -2,7 +2,7 @@ import React from "react";
 
 export default function ProductDetail() {
   return (
-    <>
+    <div className="max-w-7xl mx-auto px-6 md:px-20 py-12 md:py-24 w-full">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
         <div className="space-y-6">
           <div className="aspect-[4/5] w-full rounded-xl overflow-hidden bg-primary/5 group relative">
@@ -169,6 +169,6 @@ export default function ProductDetail() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
