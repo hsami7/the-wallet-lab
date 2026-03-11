@@ -38,6 +38,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
   const [form, setForm] = useState<ProductForm>(emptyForm);
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const filtered = products.filter((p) => {
     // Map UI filters to DB status
@@ -93,6 +94,37 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
     });
     setEditId(p.id);
     setShowModal(true);
+  }
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    setUploadingImage(true);
+    try {
+      // 1. Upload to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const filePath = `product-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+      setForm((prev) => ({ ...prev, image_url: publicUrl }));
+    } catch (err) {
+      console.error("Error uploading image:", err);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   async function saveProduct() {
@@ -316,9 +348,38 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                       <option value="out_of_stock">Out of Stock</option>
                     </select>
                   </Field>
-                  <Field label="Image URL">
-                    <input value={form.image_url} onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                      placeholder="https://example.com/photo.jpg" className={inputCls} />
+                  <Field label="Product Image">
+                    <div className="flex items-center gap-4">
+                      {form.image_url && (
+                        <div 
+                           className="size-16 rounded-lg bg-slate-100 dark:bg-slate-800 bg-cover bg-center border border-slate-200 dark:border-slate-700 shrink-0"
+                           style={{ backgroundImage: `url(${form.image_url})` }}
+                        />
+                      )}
+                      <div className="flex-1 relative">
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={uploadingImage}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" 
+                        />
+                        <div className={`flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg border border-dashed transition-colors
+                          ${uploadingImage ? 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400' : 'bg-primary/5 border-primary/20 text-primary hover:bg-primary/10'}`}>
+                          {uploadingImage ? (
+                            <>
+                              <span className="material-symbols-outlined text-sm animate-spin">refresh</span>
+                              <span className="text-sm font-medium">Uploading...</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-sm">upload</span>
+                              <span className="text-sm font-medium">Choose from Device</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                   </Field>
                 </div>
                 <div className="mt-4">
@@ -359,7 +420,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
               </button>
               <button 
                 onClick={saveProduct}
-                disabled={isLoading}
+                disabled={isLoading || uploadingImage}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
                 <span className="material-symbols-outlined text-lg">save</span>
                 {isLoading ? "Saving..." : editId ? "Save Changes" : "Add Product"}
