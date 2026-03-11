@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 const emptyForm = {
   name: "", sku: "", category: "Premium Carry", price: "", deliveryPrice: "0",
   stock: "", description: "", material: "", dimensions: "", weight: "",
-  status: "active", featured: false, image_url: "",
+  status: "active", featured: false, image_url: "", colors: "",
 };
 
 const stockColors: Record<string, string> = {
@@ -91,6 +91,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       status: p.status, 
       featured: false,
       image_url: p.image_url || "",
+      colors: p.colors ? (Array.isArray(p.colors) ? p.colors.join(", ") : p.colors) : "",
     });
     setEditId(p.id);
     setShowModal(true);
@@ -150,6 +151,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       category: form.category,
       sku: form.sku || null,
       image_url: form.image_url || null,
+      colors: form.colors.split(',').map(c => c.trim()).filter(Boolean),
     };
 
     try {
@@ -380,6 +382,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                         </div>
                       </div>
                     </div>
+                  </Field>
+                  <Field label="Colors (comma-separated)">
+                    <input value={form.colors} onChange={(e) => setForm({ ...form, colors: e.target.value })}
+                      placeholder="e.g. Black, Navy Blue, Silver" className={inputCls} />
                   </Field>
                 </div>
                 <div className="mt-4">
