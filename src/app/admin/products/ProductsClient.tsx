@@ -403,70 +403,101 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                     </div>
                   </Field>
                   <Field label="Product Colors">
-                    {/* List of currently added colors */}
-                    <div className="flex flex-wrap gap-4 mt-1 px-1 mb-4">
-                      {form.colors.length === 0 && <span className="text-xs text-slate-400">No colors added yet.</span>}
-                      {form.colors.map((c, idx) => (
-                        <div key={idx} className="relative group flex flex-col items-center gap-1">
-                          <div 
-                            className="size-8 rounded-full border border-slate-200 dark:border-white/10 shadow-sm"
-                            style={c.hex2 ? { background: `linear-gradient(135deg, ${c.hex1} 50%, ${c.hex2} 50%)` } : { backgroundColor: c.hex1 }}
-                            title={c.name}
-                          />
-                          <span className="text-[10px] text-slate-500 font-medium">{c.name}</span>
-                          <button 
-                            type="button"
-                            onClick={() => setForm(prev => ({ ...prev, colors: prev.colors.filter((_, i) => i !== idx) }))}
-                            className="absolute -top-1.5 -right-1.5 size-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <span className="material-symbols-outlined text-[10px] font-bold">close</span>
-                          </button>
+                    <div className="space-y-4">
+                      {/* Selected Colors Preview */}
+                      {form.colors.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl relative mt-2 pt-4">
+                          <span className="absolute -top-2.5 left-3 bg-white dark:bg-slate-900 px-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Added Colors</span>
+                          {form.colors.map((c, idx) => (
+                            <div key={idx} className="group relative flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full py-1.5 pl-2 pr-3 shadow-sm">
+                              <div 
+                                className="size-4 rounded-full shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                                style={c.hex2 ? { background: `linear-gradient(135deg, ${c.hex1} 50%, ${c.hex2} 50%)` } : { backgroundColor: c.hex1 }}
+                              />
+                              <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mr-2">{c.name}</span>
+                              <button 
+                                type="button"
+                                onClick={() => setForm(prev => ({ ...prev, colors: prev.colors.filter((_, i) => i !== idx) }))}
+                                className="absolute -top-1 -right-1 size-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-sm cursor-pointer hover:bg-red-600"
+                              >
+                                <span className="material-symbols-outlined text-[10px] font-bold">close</span>
+                              </button>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      )}
 
-                    {/* Form to add a new color */}
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Create New Color Option</p>
-                      <div className="flex flex-col gap-3">
-                        <input 
-                          value={newColorName}
-                          onChange={(e) => setNewColorName(e.target.value)}
-                          placeholder="Color Name (e.g. Navy Blue)" 
-                          className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-primary"
-                        />
-                        <div className="flex items-center gap-4">
-                          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
-                            <input type="checkbox" checked={isDualColor} onChange={(e) => setIsDualColor(e.target.checked)} className="accent-primary size-4" />
+                      {/* Add New Color UI */}
+                      <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 transition-colors focus-within:border-primary/30 focus-within:bg-primary/5">
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="text-xs font-bold text-slate-600 dark:text-slate-400">Add Color Variation</p>
+                          <label className="flex items-center gap-1.5 text-[11px] text-slate-500 font-bold uppercase tracking-wider cursor-pointer hover:text-primary transition-colors">
+                            <input type="checkbox" checked={isDualColor} onChange={(e) => setIsDualColor(e.target.checked)} className="accent-primary size-3.5 cursor-pointer" />
                             Two-tone Mix
                           </label>
                         </div>
-                        <div className="flex gap-2">
-                          <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                            <input type="color" value={newColorHex1} onChange={(e) => setNewColorHex1(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0" />
-                            <span className="text-xs text-slate-500 font-mono">{newColorHex1}</span>
-                          </div>
-                          {isDualColor && (
-                            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
-                              <input type="color" value={newColorHex2} onChange={(e) => setNewColorHex2(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0" />
-                              <span className="text-xs text-slate-500 font-mono">{newColorHex2}</span>
+                        
+                        <div className="flex items-start gap-4">
+                          {/* Live Preview Circle */}
+                          <div 
+                            className="size-11 rounded-full shadow-sm shrink-0 ring-4 ring-white dark:ring-slate-900 border border-slate-100 dark:border-slate-800 transition-all duration-300"
+                            style={isDualColor ? { background: `linear-gradient(135deg, ${newColorHex1} 50%, ${newColorHex2} 50%)` } : { backgroundColor: newColorHex1 }}
+                            title="Preview"
+                          />
+                          
+                          <div className="flex-1 space-y-3">
+                            <div className="flex items-center gap-2">
+                              {/* Color Pickers */}
+                              <div className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm shrink-0 cursor-pointer hover:border-primary transition-colors">
+                                <input type="color" value={newColorHex1} onChange={(e) => setNewColorHex1(e.target.value)} className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer z-10" />
+                                <div className="size-8 transition-colors" style={{ backgroundColor: newColorHex1 }} title="Base Color"></div>
+                              </div>
+                              
+                              {isDualColor && (
+                                <div className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm shrink-0 cursor-pointer hover:border-primary transition-all animate-in fade-in zoom-in duration-200">
+                                  <input type="color" value={newColorHex2} onChange={(e) => setNewColorHex2(e.target.value)} className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer z-10" />
+                                  <div className="size-8 transition-colors" style={{ backgroundColor: newColorHex2 }} title="Secondary Color"></div>
+                                </div>
+                              )}
+                              
+                              {/* Name Input */}
+                              <input 
+                                value={newColorName}
+                                onChange={(e) => setNewColorName(e.target.value)}
+                                placeholder="Color name (e.g. Midnight Black)" 
+                                className="flex-1 px-3 py-1.5 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm transition-all placeholder:text-slate-400"
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    if (!newColorName.trim()) return;
+                                    setForm(prev => ({ 
+                                      ...prev, 
+                                      colors: [...prev.colors, { name: newColorName, hex1: newColorHex1, hex2: isDualColor ? newColorHex2 : undefined }] 
+                                    }));
+                                    setNewColorName("");
+                                  }
+                                }}
+                              />
                             </div>
-                          )}
+                            
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                if (!newColorName.trim()) return;
+                                setForm(prev => ({ 
+                                  ...prev, 
+                                  colors: [...prev.colors, { name: newColorName, hex1: newColorHex1, hex2: isDualColor ? newColorHex2 : undefined }] 
+                                }));
+                                setNewColorName("");
+                              }}
+                              disabled={!newColorName.trim()}
+                              className="w-full h-8 flex items-center justify-center gap-2 bg-primary dark:bg-primary/90 text-white rounded-lg text-xs font-bold transition-all hover:bg-primary/80 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">add_circle</span>
+                              Add to Product
+                            </button>
+                          </div>
                         </div>
-                        <button 
-                          type="button"
-                          onClick={() => {
-                            if (!newColorName.trim()) return;
-                            setForm(prev => ({ 
-                              ...prev, 
-                              colors: [...prev.colors, { name: newColorName, hex1: newColorHex1, hex2: isDualColor ? newColorHex2 : undefined }] 
-                            }));
-                            setNewColorName("");
-                          }}
-                          className="w-full py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg text-xs font-bold transition-colors mt-1"
-                        >
-                          Add Color Option
-                        </button>
                       </div>
                     </div>
                   </Field>
