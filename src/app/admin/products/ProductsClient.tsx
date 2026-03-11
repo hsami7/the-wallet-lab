@@ -16,10 +16,10 @@ const emptyForm = {
 };
 
 const stockColors: Record<string, string> = {
-  "active":       "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  "low_stock":    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  "active": "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  "low_stock": "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   "out_of_stock": "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  "draft":        "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400",
+  "draft": "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-400",
 };
 
 type ProductForm = typeof emptyForm;
@@ -45,7 +45,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
-  
+
   // Custom Color Picker State
   const [newColorName, setNewColorName] = useState("");
   const [newColorHex1, setNewColorHex1] = useState("#000000");
@@ -60,24 +60,24 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       "Out of Stock": "out_of_stock",
       "Draft": "draft"
     };
-    
+
     const mappedFilter = statusMap[filter] || filter;
-    
+
     // For "Low Stock", we need to check if count < 10 and status is active or low_stock
     const isLowStockFilter = filter === "Low Stock";
     const matchesLowStock = p.inventory_count > 0 && p.inventory_count <= 10;
-    
+
     let matchFilter = true;
     if (filter !== "All") {
       if (isLowStockFilter) {
-         matchFilter = matchesLowStock;
+        matchFilter = matchesLowStock;
       } else {
         matchFilter = p.status === mappedFilter;
       }
     }
-    
-    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) || 
-                       (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
+
+    const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
+      (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
     return matchFilter && matchSearch;
   });
 
@@ -89,29 +89,21 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
 
   function openEdit(p: Record<string, any>) {
     setForm({
-      name: p.name, 
-      sku: p.sku || "", 
+      name: p.name,
+      sku: p.sku || "",
       category: p.category || "Premium Carry",
-      price: String(p.price), 
-      // Handle the fact that our DB might not have all these yet
+      price: String(p.price),
       deliveryPrice: "0",
-      stock: String(p.inventory_count), 
-      description: p.description || "", 
-      material: "", 
-      dimensions: "", 
+      stock: String(p.inventory_count),
+      description: p.description || "",
+      material: "",
+      dimensions: "",
       weight: "",
-      status: p.status, 
+      status: p.status,
       featured: false,
       image_url: p.image_url || "",
       colors: Array.isArray(p.colors) ? p.colors.map((c: any) => typeof c === 'string' ? { name: c, hex1: '#000000' } : c) : [],
     });
-    
-    // Reset color picker state
-    setNewColorName("");
-    setNewColorHex1("#000000");
-    setNewColorHex2("#ffffff");
-    setIsDualColor(false);
-    
     setEditId(p.id);
     setShowModal(true);
   }
@@ -119,7 +111,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     if (!e.target.files || e.target.files.length === 0) return;
     const file = e.target.files[0];
-    
+
     setUploadingImage(true);
     try {
       // 1. Upload to Supabase Storage
@@ -150,10 +142,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
   async function saveProduct() {
     if (!form.name || !form.price) return;
     setIsLoading(true);
-    
+
     const inventoryCount = Number(form.stock);
     let status = form.status;
-    
+
     // Auto-update status if it was active but stock is 0
     if (status === 'active' && inventoryCount === 0) {
       status = 'out_of_stock';
@@ -182,7 +174,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
           .eq('id', editId)
           .select()
           .single();
-          
+
         if (error) throw error;
         setProducts(prev => prev.map(p => p.id === editId ? data : p));
       } else {
@@ -192,7 +184,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
           .insert([productData])
           .select()
           .single();
-          
+
         if (error) throw error;
         setProducts(prev => [data, ...prev]);
       }
@@ -207,13 +199,13 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
 
   async function deleteProduct(id: string) {
     if (!confirm("Are you sure you want to delete this product?")) return;
-    
+
     try {
       const { error } = await supabase
         .from('products')
         .delete()
         .eq('id', id);
-        
+
       if (error) throw error;
       setProducts(prev => prev.filter(p => p.id !== id));
     } catch (err) {
@@ -221,7 +213,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       alert("Failed to delete product.");
     }
   }
-  
+
   // Helper to format status for display
   function getDisplayStatus(status: string, stock: number) {
     if (status === 'active' && stock > 0 && stock <= 10) return { label: 'Low Stock', color: stockColors['low_stock'] };
@@ -253,10 +245,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Active",     value: products.filter((p) => p.status === "active" && p.inventory_count > 10).length,     color: "text-green-600 dark:text-green-400" },
-          { label: "Low Stock",    value: products.filter((p) => p.status === "active" && p.inventory_count > 0 && p.inventory_count <= 10).length,    color: "text-yellow-600 dark:text-yellow-400" },
+          { label: "Active", value: products.filter((p) => p.status === "active" && p.inventory_count > 10).length, color: "text-green-600 dark:text-green-400" },
+          { label: "Low Stock", value: products.filter((p) => p.status === "active" && p.inventory_count > 0 && p.inventory_count <= 10).length, color: "text-yellow-600 dark:text-yellow-400" },
           { label: "Out of Stock", value: products.filter((p) => p.status === "out_of_stock" || (p.status === "active" && p.inventory_count === 0)).length, color: "text-red-600 dark:text-red-400" },
-          { label: "Total KUs",   value: products.length,                                             color: "text-primary" },
+          { label: "Total KUs", value: products.length, color: "text-primary" },
         ].map((s) => (
           <div key={s.label} className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
             <p className={`text-3xl font-bold ${s.color}`}>{s.value}</p>
@@ -295,7 +287,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
             <tbody>
               {filtered.map((product, i) => {
                 const displayStatus = getDisplayStatus(product.status, product.inventory_count);
-                
+
                 return (
                   <tr key={product.id} className={`${i < filtered.length - 1 ? "border-b border-slate-100 dark:border-slate-800" : ""} hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors`}>
                     <td className="px-6 py-4 font-mono text-xs text-slate-500 dark:text-slate-400">{product.sku || '—'}</td>
@@ -363,7 +355,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                       placeholder="e.g. Premium Carry" className={inputCls} />
                   </Field>
                   <Field label="Status">
-                     <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={inputCls}>
+                    <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className={inputCls}>
                       <option value="active">Active</option>
                       <option value="draft">Draft</option>
                       <option value="out_of_stock">Out of Stock</option>
@@ -372,18 +364,18 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                   <Field label="Product Image">
                     <div className="flex items-center gap-4">
                       {form.image_url && (
-                        <div 
-                           className="size-16 rounded-lg bg-slate-100 dark:bg-slate-800 bg-cover bg-center border border-slate-200 dark:border-slate-700 shrink-0"
-                           style={{ backgroundImage: `url(${form.image_url})` }}
+                        <div
+                          className="size-16 rounded-lg bg-slate-100 dark:bg-slate-800 bg-cover bg-center border border-slate-200 dark:border-slate-700 shrink-0"
+                          style={{ backgroundImage: `url(${form.image_url})` }}
                         />
                       )}
                       <div className="flex-1 relative">
-                        <input 
-                          type="file" 
+                        <input
+                          type="file"
                           accept="image/*"
                           onChange={handleImageUpload}
                           disabled={uploadingImage}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" 
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                         />
                         <div className={`flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg border border-dashed transition-colors
                           ${uploadingImage ? 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400' : 'bg-primary/5 border-primary/20 text-primary hover:bg-primary/10'}`}>
@@ -410,12 +402,12 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                           <span className="absolute -top-2.5 left-3 bg-white dark:bg-slate-900 px-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Added Colors</span>
                           {form.colors.map((c, idx) => (
                             <div key={idx} className="group relative flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full py-1.5 pl-2 pr-3 shadow-sm">
-                              <div 
+                              <div
                                 className="size-4 rounded-full shadow-sm ring-1 ring-black/5 dark:ring-white/10"
                                 style={c.hex2 ? { background: `linear-gradient(135deg, ${c.hex1} 50%, ${c.hex2} 50%)` } : { backgroundColor: c.hex1 }}
                               />
                               <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 mr-2">{c.name}</span>
-                              <button 
+                              <button
                                 type="button"
                                 onClick={() => setForm(prev => ({ ...prev, colors: prev.colors.filter((_, i) => i !== idx) }))}
                                 className="absolute -top-1 -right-1 size-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-sm cursor-pointer hover:bg-red-600"
@@ -436,15 +428,15 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                             Two-tone Mix
                           </label>
                         </div>
-                        
+
                         <div className="flex items-start gap-4">
                           {/* Live Preview Circle */}
-                          <div 
+                          <div
                             className="size-11 rounded-full shadow-sm shrink-0 ring-4 ring-white dark:ring-slate-900 border border-slate-100 dark:border-slate-800 transition-all duration-300"
                             style={isDualColor ? { background: `linear-gradient(135deg, ${newColorHex1} 50%, ${newColorHex2} 50%)` } : { backgroundColor: newColorHex1 }}
                             title="Preview"
                           />
-                          
+
                           <div className="flex-1 space-y-3">
                             <div className="flex items-center gap-2">
                               {/* Color Pickers */}
@@ -452,41 +444,30 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                                 <input type="color" value={newColorHex1} onChange={(e) => setNewColorHex1(e.target.value)} className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer z-10" />
                                 <div className="size-8 transition-colors" style={{ backgroundColor: newColorHex1 }} title="Base Color"></div>
                               </div>
-                              
+
                               {isDualColor && (
                                 <div className="relative group rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 shadow-sm shrink-0 cursor-pointer hover:border-primary transition-all animate-in fade-in zoom-in duration-200">
                                   <input type="color" value={newColorHex2} onChange={(e) => setNewColorHex2(e.target.value)} className="absolute inset-0 w-8 h-8 opacity-0 cursor-pointer z-10" />
                                   <div className="size-8 transition-colors" style={{ backgroundColor: newColorHex2 }} title="Secondary Color"></div>
                                 </div>
                               )}
-                              
+
                               {/* Name Input */}
-                              <input 
+                              <input
                                 value={newColorName}
                                 onChange={(e) => setNewColorName(e.target.value)}
-                                placeholder="Color name (e.g. Midnight Black)" 
+                                placeholder="Color name (e.g. Midnight Black)"
                                 className="flex-1 px-3 py-1.5 h-8 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm transition-all placeholder:text-slate-400"
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    if (!newColorName.trim()) return;
-                                    setForm(prev => ({ 
-                                      ...prev, 
-                                      colors: [...prev.colors, { name: newColorName, hex1: newColorHex1, hex2: isDualColor ? newColorHex2 : undefined }] 
-                                    }));
-                                    setNewColorName("");
-                                  }
-                                }}
                               />
                             </div>
-                            
-                            <button 
+
+                            <button
                               type="button"
                               onClick={() => {
                                 if (!newColorName.trim()) return;
-                                setForm(prev => ({ 
-                                  ...prev, 
-                                  colors: [...prev.colors, { name: newColorName, hex1: newColorHex1, hex2: isDualColor ? newColorHex2 : undefined }] 
+                                setForm(prev => ({
+                                  ...prev,
+                                  colors: [...prev.colors, { name: newColorName, hex1: newColorHex1, hex2: isDualColor ? newColorHex2 : undefined }]
                                 }));
                                 setNewColorName("");
                               }}
@@ -532,13 +513,13 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
 
             {/* Footer */}
             <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3 sticky bottom-0 bg-white dark:bg-slate-900">
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 disabled={isLoading}
                 className="px-5 py-2.5 rounded-xl text-sm font-medium border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={saveProduct}
                 disabled={isLoading || uploadingImage}
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50">
