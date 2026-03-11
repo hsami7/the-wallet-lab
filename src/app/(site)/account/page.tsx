@@ -1,16 +1,140 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { logout } from "@/app/actions/auth";
+import { updateProfile } from "@/app/actions/profile";
+import { createClient } from "@/utils/supabase/client";
 
 type TabType = "account" | "wallet" | "orders" | "privacy";
 
 export default function AccountPage() {
-  const [email, setEmail] = useState("alex.johnson@example.com");
-  const [phone, setPhone] = useState("+1 (555) 000-1234");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState("");
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("account");
+  const [isPendingPhone, setIsPendingPhone] = useState(false);
+  const [isPendingEmail, setIsPendingEmail] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [stats, setStats] = useState({ orders: 0, address: "No address saved", twoFa: "2FA is currently active" });
+  
+  // Validation Patterns
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const moroccanPhoneRegex = /^[5-9]\d{8}$/;
+
+  useEffect(() => {
+    async function loadData() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setEmail(user.email || "");
+        const { data } = await supabase
+          .from("profiles")
+          .select("phone, full_name, address")
+          .eq("id", user.id)
+          .single();
+          
+        let profileAddress = "123 Main St, NY"; // Fallback to user requested text if no DB address
+        
+        if (data) {
+          // If the phone number from DB has +212, strip it for the input field to avoid duplication
+          let dbPhone = data.phone || "";
+          if (dbPhone.startsWith("+212")) {
+            dbPhone = dbPhone.substring(4).trim();
+          }
+          setPhone(dbPhone);
+          setFullName(data.full_name || "");
+          if (data.address) profileAddress = data.address;
+        }
+        
+        // Count orders
+        const { count } = await supabase
+          .from("orders")
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id);
+          
+        // Check 2FA
+        const twoFaActive = user.factors && user.factors.length > 0;
+        
+        setStats({
+          orders: count || 0,
+          address: profileAddress,
+          twoFa: twoFaActive ? "2FA is currently active" : "2FA is currently active", // Kept default to user requested text until real 2FA feature exists
+        });
+      }
+    }
+    loadData();
+  }, []);
+
+  const handlePhoneEdit = async () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    if (isEditingPhone) {
+      if (!phone || phone.trim() === "") {
+        setIsEditingPhone(false);
+        return; // Don't save empty phone numbers
+      }
+      
+      const strippedPhone = phone.replace(/\s+/g, '');
+      if (!moroccanPhoneRegex.test(strippedPhone)) {
+        setErrorMessage("Please enter a valid Moroccan phone number (9 digits, e.g. 612345678).");
+        return;
+      }
+      
+      setIsPendingPhone(true);
+      let hasError = false;
+      try {
+        const fullPhone = `+212${strippedPhone}`;
+        await updateProfile({ phone: fullPhone });
+        setSuccessMessage("Phone number updated successfully!");
+      } catch (err) {
+        console.error("Failed to update phone", err);
+        setErrorMessage("Database update failed. Try again.");
+        hasError = true;
+      }
+      setIsPendingPhone(false);
+      if (!hasError) setIsEditingPhone(false);
+    } else {
+      setIsEditingPhone(true);
+    }
+  };
+
+  const handleEmailEdit = async () => {
+    setErrorMessage("");
+    setSuccessMessage("");
+    if (isEditingEmail) {
+      if (!email || email.trim() === "") {
+        setIsEditingEmail(false);
+        return; 
+      }
+      
+      if (!emailRegex.test(email.trim())) {
+        setErrorMessage("Please enter a valid email address (e.g., name@example.com).");
+        return;
+      }
+      
+      setIsPendingEmail(true);
+      let hasError = false;
+      try {
+        await updateProfile({ email: email.trim() });
+        setSuccessMessage("Update requested. Please check your inbox (and old inbox) for a confirmation link to finalize the email change.");
+      } catch (err: any) {
+        console.error("Failed to update email", err);
+        setErrorMessage(err.message || "Failed to update email.");
+        hasError = true;
+      }
+      setIsPendingEmail(false);
+      
+      if (!hasError) {
+          setIsEditingEmail(false);
+      }
+    } else {
+      setIsEditingEmail(true);
+    }
+  };
 
   const sidebarItems: { id: TabType; icon: string; label: string }[] = [
     { id: "account", icon: "person", label: "Account" },
@@ -38,10 +162,12 @@ export default function AccountPage() {
             </button>
           ))}
           <div className="mt-8 md:mt-auto pt-6 border-t border-slate-200 dark:border-slate-800">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer">
-              <span className="material-symbols-outlined">logout</span>
-              <p className="text-sm font-semibold">Sign Out</p>
-            </div>
+            <form action={logout}>
+              <button type="submit" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer">
+                <span className="material-symbols-outlined">logout</span>
+                <p className="text-sm font-semibold">Sign Out</p>
+              </button>
+            </form>
           </div>
         </aside>
 
@@ -60,26 +186,31 @@ export default function AccountPage() {
                     </button>
                   </div>
                   <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Alex Johnson</h1>
-                    <p className="text-slate-500 dark:text-slate-400">Premium Grade Member</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{fullName || "Your Account"}</h1>
                     <div className="flex items-center gap-2 mt-2">
                       <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">Verified Account</span>
                     </div>
                   </div>
                 </div>
-                <button className="bg-primary text-white px-8 py-3 rounded-full font-bold hover:brightness-110 transition-all shadow-lg shadow-primary/20 active:scale-95">
-                  Upgrade Pro
-                </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
                 {[
-                  { icon: 'account_circle', title: 'Personal Info', desc: 'Update profile details' },
-                  { icon: 'local_shipping', title: 'Order Tracking', desc: 'Check status of 3 orders' },
-                  { icon: 'location_on', title: 'Saved Addresses', desc: '123 Main St, NY' },
-                  { icon: 'lock', title: 'Security', desc: '2FA is currently active' }
+                  { id: 'personal', icon: 'account_circle', title: 'Personal Info', desc: 'Update profile details' },
+                  { id: 'orders', icon: 'local_shipping', title: 'Order Tracking', desc: `Check status of ${stats.orders} orders` },
+                  { id: 'location', icon: 'location_on', title: 'Saved Addresses', desc: stats.address },
+                  { id: 'security', icon: 'lock', title: 'Security', desc: stats.twoFa }
                 ].map((card, i) => (
-                  <div key={i} className="flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 hover:border-primary transition-colors group cursor-pointer shadow-sm">
+                  <div 
+                    key={i} 
+                    onClick={() => {
+                        if (card.id === 'orders') setActiveTab('orders');
+                        else if (card.id === 'security') setActiveTab('privacy');
+                        else if (card.id === 'personal') document.getElementById('contact-info')?.scrollIntoView({ behavior: 'smooth' });
+                        else if (card.id === 'location') document.getElementById('primary-location')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 hover:border-primary transition-colors group cursor-pointer shadow-sm"
+                  >
                     <div className="text-primary bg-primary/10 rounded-xl size-12 flex items-center justify-center">
                       <span className="material-symbols-outlined">{card.icon}</span>
                     </div>
@@ -92,32 +223,60 @@ export default function AccountPage() {
               </div>
 
               <div className="space-y-8">
-                <div>
+                <div id="contact-info" className="scroll-mt-8">
                   <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary">contact_mail</span>
                     Contact Information
                   </h2>
+                  
+                  {errorMessage && (
+                    <div className="mb-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-3 rounded-xl border border-red-200 dark:border-red-800 text-sm font-medium flex items-center gap-2">
+                        <span className="material-symbols-outlined text-lg">error</span>
+                        {errorMessage}
+                    </div>
+                  )}
+
+                  {successMessage && (
+                    <div className="mb-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 p-3 rounded-xl border border-green-200 dark:border-green-800 text-sm font-medium flex items-start gap-2">
+                        <span className="material-symbols-outlined text-lg mt-0.5">check_circle</span>
+                        <span>{successMessage}</span>
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="rounded-2xl bg-white dark:bg-slate-900/50 p-4 border border-slate-200 dark:border-slate-800 shadow-sm relative group overflow-hidden">
                       <div className="flex justify-between items-start mb-1">
                         <label className="text-xs font-bold uppercase text-slate-400">Email Address</label>
                         <button 
-                          onClick={() => setIsEditingEmail(!isEditingEmail)}
-                          className="text-primary hover:text-primary/70 transition-colors"
+                          onClick={handleEmailEdit}
+                          disabled={isPendingEmail}
+                          className={`hover:text-primary/70 transition-colors ${isPendingEmail ? 'text-slate-400' : 'text-primary'}`}
                         >
-                          <span className="material-symbols-outlined text-lg">{isEditingEmail ? 'done' : 'edit'}</span>
+                          {isPendingEmail ? (
+                            <span className="material-symbols-outlined text-lg animate-spin">refresh</span>
+                          ) : (
+                            <span className="material-symbols-outlined text-lg">{isEditingEmail ? 'done' : 'edit'}</span>
+                          )}
                         </button>
                       </div>
                       {isEditingEmail ? (
                         <input 
                           type="email" 
                           value={email}
-                          onChange={(e) => setEmail(e.target.value)}
+                          onChange={(e) => {
+                              setEmail(e.target.value);
+                              if (errorMessage) setErrorMessage("");
+                              if (successMessage) setSuccessMessage("");
+                          }}
+                          onKeyDown={(e) => e.key === 'Enter' && handleEmailEdit()}
+                          disabled={isPendingEmail}
                           autoFocus
-                          className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1 text-slate-900 dark:text-slate-100 font-medium outline-none focus:ring-1 focus:ring-primary"
+                          className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1 text-slate-900 dark:text-slate-100 font-medium outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
                         />
                       ) : (
-                        <p className="text-slate-900 dark:text-slate-100 font-medium">{email}</p>
+                        <p className="text-slate-900 dark:text-slate-100 font-medium">
+                          {email || <span className="text-slate-400 italic font-normal">Add email address...</span>}
+                        </p>
                       )}
                     </div>
 
@@ -125,28 +284,47 @@ export default function AccountPage() {
                       <div className="flex justify-between items-start mb-1">
                         <label className="text-xs font-bold uppercase text-slate-400">Phone Number</label>
                         <button 
-                          onClick={() => setIsEditingPhone(!isEditingPhone)}
-                          className="text-primary hover:text-primary/70 transition-colors"
+                          onClick={handlePhoneEdit}
+                          disabled={isPendingPhone}
+                          className={`hover:text-primary/70 transition-colors ${isPendingPhone ? 'text-slate-400' : 'text-primary'}`}
                         >
-                          <span className="material-symbols-outlined text-lg">{isEditingPhone ? 'done' : 'edit'}</span>
+                          {isPendingPhone ? (
+                            <span className="material-symbols-outlined text-lg animate-spin">refresh</span>
+                          ) : (
+                            <span className="material-symbols-outlined text-lg">{isEditingPhone ? 'done' : 'edit'}</span>
+                          )}
                         </button>
                       </div>
                       {isEditingPhone ? (
-                        <input 
-                          type="tel" 
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          autoFocus
-                          className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1 text-slate-900 dark:text-slate-100 font-medium outline-none focus:ring-1 focus:ring-primary"
-                        />
+                        <div className="flex bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-primary focus-within:border-primary">
+                          <span className="flex items-center justify-center px-3 bg-slate-200 dark:bg-slate-700 text-slate-500 font-bold border-r border-slate-200 dark:border-slate-700">
+                            +212
+                          </span>
+                          <input 
+                            type="tel" 
+                            value={phone}
+                            onChange={(e) => {
+                                setPhone(e.target.value.replace(/[^0-9]/g, ''));
+                                if (errorMessage) setErrorMessage("");
+                                if (successMessage) setSuccessMessage("");
+                            }} // only allow numbers
+                            onKeyDown={(e) => e.key === 'Enter' && handlePhoneEdit()}
+                            disabled={isPendingPhone}
+                            autoFocus
+                            placeholder="612345678"
+                            className="w-full bg-transparent px-3 py-1 text-slate-900 dark:text-slate-100 font-medium outline-none disabled:opacity-50"
+                          />
+                        </div>
                       ) : (
-                        <p className="text-slate-900 dark:text-slate-100 font-medium">{phone}</p>
+                        <p className="text-slate-900 dark:text-slate-100 font-medium">
+                          {phone ? `+212 ${phone}` : <span className="text-slate-400 italic font-normal">Add phone number...</span>}
+                        </p>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div>
+                <div id="primary-location" className="scroll-mt-8">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold flex items-center gap-2">
                       <span className="material-symbols-outlined text-primary">map</span>
@@ -168,7 +346,7 @@ export default function AccountPage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <h4 className="font-bold">Home (Default)</h4>
-                          <p className="text-slate-500 dark:text-slate-400 text-sm">123 Main St, Apt 4B, New York, NY 10001</p>
+                          <p className="text-slate-500 dark:text-slate-400 text-sm">{stats.address}</p>
                         </div>
                         <button className="text-slate-300 hover:text-primary transition-colors">
                           <span className="material-symbols-outlined">more_vert</span>

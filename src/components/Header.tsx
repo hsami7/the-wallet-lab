@@ -11,7 +11,9 @@ export default function Header() {
 
   useEffect(() => {
     setMounted(true);
-    
+  }, []);
+
+  useEffect(() => {
     let lastScrollY = window.scrollY;
     
     const handleScroll = () => {
