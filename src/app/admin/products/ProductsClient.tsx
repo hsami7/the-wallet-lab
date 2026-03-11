@@ -3,20 +3,16 @@
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
-const PRESET_COLORS = [
-  { name: "Black", hex: "#0f172a" },
-  { name: "Silver", hex: "#cbd5e1" },
-  { name: "Navy Blue", hex: "#1e3a8a" },
-  { name: "Brown", hex: "#78350f" },
-  { name: "Carbon", hex: "#334155" },
-  { name: "Olive", hex: "#3f6212" },
-  { name: "White", hex: "#ffffff" },
-];
+type ProductColor = {
+  name: string;
+  hex1: string;
+  hex2?: string;
+};
 
 const emptyForm = {
   name: "", sku: "", category: "Premium Carry", price: "", deliveryPrice: "0",
   stock: "", description: "", material: "", dimensions: "", weight: "",
-  status: "active", featured: false, image_url: "", colors: [] as string[],
+  status: "active", featured: false, image_url: "", colors: [] as ProductColor[],
 };
 
 const stockColors: Record<string, string> = {
@@ -49,6 +45,12 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  
+  // Custom Color Picker State
+  const [newColorName, setNewColorName] = useState("");
+  const [newColorHex1, setNewColorHex1] = useState("#000000");
+  const [newColorHex2, setNewColorHex2] = useState("#ffffff");
+  const [isDualColor, setIsDualColor] = useState(false);
 
   const filtered = products.filter((p) => {
     // Map UI filters to DB status
@@ -101,8 +103,15 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       status: p.status, 
       featured: false,
       image_url: p.image_url || "",
-      colors: p.colors ? (Array.isArray(p.colors) ? p.colors : [p.colors]) : [],
+      colors: Array.isArray(p.colors) ? p.colors.map((c: any) => typeof c === 'string' ? { name: c, hex1: '#000000' } : c) : [],
     });
+    
+    // Reset color picker state
+    setNewColorName("");
+    setNewColorHex1("#000000");
+    setNewColorHex2("#ffffff");
+    setIsDualColor(false);
+    
     setEditId(p.id);
     setShowModal(true);
   }
@@ -393,37 +402,72 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                       </div>
                     </div>
                   </Field>
-                  <Field label="Colors">
-                    <div className="flex flex-wrap gap-3 mt-1 px-1">
-                      {PRESET_COLORS.map((pc) => {
-                        const isSelected = form.colors.includes(pc.name);
-                        return (
-                          <button
-                            key={pc.name}
+                  <Field label="Product Colors">
+                    {/* List of currently added colors */}
+                    <div className="flex flex-wrap gap-4 mt-1 px-1 mb-4">
+                      {form.colors.length === 0 && <span className="text-xs text-slate-400">No colors added yet.</span>}
+                      {form.colors.map((c, idx) => (
+                        <div key={idx} className="relative group flex flex-col items-center gap-1">
+                          <div 
+                            className="size-8 rounded-full border border-slate-200 dark:border-white/10 shadow-sm"
+                            style={c.hex2 ? { background: `linear-gradient(135deg, ${c.hex1} 50%, ${c.hex2} 50%)` } : { backgroundColor: c.hex1 }}
+                            title={c.name}
+                          />
+                          <span className="text-[10px] text-slate-500 font-medium">{c.name}</span>
+                          <button 
                             type="button"
-                            onClick={() => {
-                              setForm(prev => ({
-                                ...prev,
-                                colors: isSelected 
-                                  ? prev.colors.filter(c => c !== pc.name)
-                                  : [...prev.colors, pc.name]
-                              }));
-                            }}
-                            className={`relative size-8 rounded-full transition-all flex items-center justify-center hover:scale-110 active:scale-95 cursor-pointer ring-2 ring-offset-2 dark:ring-offset-slate-900 ${isSelected ? 'ring-primary' : 'ring-transparent opacity-80 hover:opacity-100 hover:ring-slate-300 dark:hover:ring-slate-600'}`}
-                            title={pc.name}
+                            onClick={() => setForm(prev => ({ ...prev, colors: prev.colors.filter((_, i) => i !== idx) }))}
+                            className="absolute -top-1.5 -right-1.5 size-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            <span 
-                              className="w-full h-full rounded-full border border-slate-200 dark:border-white/10" 
-                              style={{ backgroundColor: pc.hex }}
-                            />
-                            {isSelected && (
-                              <span className="material-symbols-outlined absolute text-[16px] text-white drop-shadow-md z-10 font-bold" style={{ mixBlendMode: pc.name === 'White' || pc.name === 'Silver' ? 'difference' : 'normal' }}>
-                                check
-                              </span>
-                            )}
+                            <span className="material-symbols-outlined text-[10px] font-bold">close</span>
                           </button>
-                        );
-                      })}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Form to add a new color */}
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                      <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">Create New Color Option</p>
+                      <div className="flex flex-col gap-3">
+                        <input 
+                          value={newColorName}
+                          onChange={(e) => setNewColorName(e.target.value)}
+                          placeholder="Color Name (e.g. Navy Blue)" 
+                          className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:border-primary"
+                        />
+                        <div className="flex items-center gap-4">
+                          <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer select-none">
+                            <input type="checkbox" checked={isDualColor} onChange={(e) => setIsDualColor(e.target.checked)} className="accent-primary size-4" />
+                            Two-tone Mix
+                          </label>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                            <input type="color" value={newColorHex1} onChange={(e) => setNewColorHex1(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0" />
+                            <span className="text-xs text-slate-500 font-mono">{newColorHex1}</span>
+                          </div>
+                          {isDualColor && (
+                            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                              <input type="color" value={newColorHex2} onChange={(e) => setNewColorHex2(e.target.value)} className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0" />
+                              <span className="text-xs text-slate-500 font-mono">{newColorHex2}</span>
+                            </div>
+                          )}
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            if (!newColorName.trim()) return;
+                            setForm(prev => ({ 
+                              ...prev, 
+                              colors: [...prev.colors, { name: newColorName, hex1: newColorHex1, hex2: isDualColor ? newColorHex2 : undefined }] 
+                            }));
+                            setNewColorName("");
+                          }}
+                          className="w-full py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg text-xs font-bold transition-colors mt-1"
+                        >
+                          Add Color Option
+                        </button>
+                      </div>
                     </div>
                   </Field>
                 </div>
