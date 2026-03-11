@@ -18,18 +18,6 @@ export default function AdminHeader() {
   return (
     <header className="h-16 shrink-0 flex items-center justify-between px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
       <div className="flex items-center gap-4">
-        {/* Settings moved to the left */}
-        <Link
-          href="/admin/settings"
-          className="flex items-center gap-2 pr-4 text-slate-600 dark:text-slate-400 hover:text-primary transition-all group"
-          title="Settings"
-        >
-          <div className="size-9 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-            <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform duration-500">settings</span>
-          </div>
-          <span className="text-xs font-bold uppercase tracking-widest hidden sm:block">Settings</span>
-        </Link>
-
         {/* Search */}
         <div className="relative w-64 md:w-80">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
@@ -41,7 +29,15 @@ export default function AdminHeader() {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-2">
+        {/* Settings */}
+        <Link
+          href="/admin/settings"
+          className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors group"
+          title="Settings"
+        >
+          <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform duration-500">settings</span>
+        </Link>
         {/* Theme toggle */}
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
