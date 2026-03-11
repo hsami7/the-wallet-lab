@@ -3,10 +3,20 @@
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 
+const PRESET_COLORS = [
+  { name: "Black", hex: "#0f172a" },
+  { name: "Silver", hex: "#cbd5e1" },
+  { name: "Navy Blue", hex: "#1e3a8a" },
+  { name: "Brown", hex: "#78350f" },
+  { name: "Carbon", hex: "#334155" },
+  { name: "Olive", hex: "#3f6212" },
+  { name: "White", hex: "#ffffff" },
+];
+
 const emptyForm = {
   name: "", sku: "", category: "Premium Carry", price: "", deliveryPrice: "0",
   stock: "", description: "", material: "", dimensions: "", weight: "",
-  status: "active", featured: false, image_url: "", colors: "",
+  status: "active", featured: false, image_url: "", colors: [] as string[],
 };
 
 const stockColors: Record<string, string> = {
@@ -91,7 +101,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       status: p.status, 
       featured: false,
       image_url: p.image_url || "",
-      colors: p.colors ? (Array.isArray(p.colors) ? p.colors.join(", ") : p.colors) : "",
+      colors: p.colors ? (Array.isArray(p.colors) ? p.colors : [p.colors]) : [],
     });
     setEditId(p.id);
     setShowModal(true);
@@ -151,7 +161,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       category: form.category,
       sku: form.sku || null,
       image_url: form.image_url || null,
-      colors: form.colors.split(',').map(c => c.trim()).filter(Boolean),
+      colors: form.colors,
     };
 
     try {
@@ -383,9 +393,38 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                       </div>
                     </div>
                   </Field>
-                  <Field label="Colors (comma-separated)">
-                    <input value={form.colors} onChange={(e) => setForm({ ...form, colors: e.target.value })}
-                      placeholder="e.g. Black, Navy Blue, Silver" className={inputCls} />
+                  <Field label="Colors">
+                    <div className="flex flex-wrap gap-3 mt-1 px-1">
+                      {PRESET_COLORS.map((pc) => {
+                        const isSelected = form.colors.includes(pc.name);
+                        return (
+                          <button
+                            key={pc.name}
+                            type="button"
+                            onClick={() => {
+                              setForm(prev => ({
+                                ...prev,
+                                colors: isSelected 
+                                  ? prev.colors.filter(c => c !== pc.name)
+                                  : [...prev.colors, pc.name]
+                              }));
+                            }}
+                            className={`relative size-8 rounded-full transition-all flex items-center justify-center hover:scale-110 active:scale-95 cursor-pointer ring-2 ring-offset-2 dark:ring-offset-slate-900 ${isSelected ? 'ring-primary' : 'ring-transparent opacity-80 hover:opacity-100 hover:ring-slate-300 dark:hover:ring-slate-600'}`}
+                            title={pc.name}
+                          >
+                            <span 
+                              className="w-full h-full rounded-full border border-slate-200 dark:border-white/10" 
+                              style={{ backgroundColor: pc.hex }}
+                            />
+                            {isSelected && (
+                              <span className="material-symbols-outlined absolute text-[16px] text-white drop-shadow-md z-10 font-bold" style={{ mixBlendMode: pc.name === 'White' || pc.name === 'Silver' ? 'difference' : 'normal' }}>
+                                check
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </Field>
                 </div>
                 <div className="mt-4">
