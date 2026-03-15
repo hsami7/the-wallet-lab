@@ -34,6 +34,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [newTag, setNewTag] = useState("");
   const [featured, setFeatured] = useState(initialData?.featured || false);
+  const [categories, setCategories] = useState<any[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>(
     initialData?.colors && Array.isArray(initialData.colors)
       ? initialData.colors.map((c: any) => typeof c === 'string' ? { name: c, hex: '#000000' } : c)
@@ -60,6 +61,15 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       );
     }
   }, [initialData]);
+
+  // Fetch Categories
+  useEffect(() => {
+    async function fetchCats() {
+      const { data, error } = await supabase.from('categories').select('*').order('name');
+      if (!error && data) setCategories(data);
+    }
+    fetchCats();
+  }, [supabase]);
 
   const handleAddVariant = () => {
     setVariants([...variants, { name: "New Variant", hex: "#0d59f2" }]);
@@ -372,11 +382,19 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary appearance-none text-sm font-bold cursor-pointer"
                   >
-                    <option>Cardholders</option>
-                    <option>Bifolds</option>
-                    <option>Phone Wallets</option>
-                    <option>Limited Edition</option>
-                    <option>Premium Carry</option>
+                    {categories.length > 0 ? (
+                      categories.map((cat) => (
+                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      ))
+                    ) : (
+                      <>
+                        <option>Cardholders</option>
+                        <option>Bifolds</option>
+                        <option>Phone Wallets</option>
+                        <option>Limited Edition</option>
+                        <option>Premium Carry</option>
+                      </>
+                    )}
                   </select>
                   <span className="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">expand_more</span>
                 </div>
