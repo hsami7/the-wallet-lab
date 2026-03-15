@@ -2,11 +2,25 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useCart } from "@/context/CartContext";
 
 export function ProductDetailsClient({ product }: { product: any }) {
+  const { addItem } = useCart();
   const [selectedColor, setSelectedColor] = useState(
     product.colors && product.colors.length > 0 ? product.colors[0].color : null
   );
+
+  const handleAddToCart = () => {
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image",
+      description: product.category || "Premium Carry",
+      variant: selectedColor || undefined
+    });
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-20 pt-4 md:pt-8 pb-24">
@@ -98,6 +112,7 @@ export function ProductDetailsClient({ product }: { product: any }) {
 
           <div className="pt-8 border-t border-slate-200 dark:border-primary/10 flex flex-col gap-4">
             <button
+              onClick={handleAddToCart}
               disabled={product.inventory_count <= 0}
               className="w-full py-5 bg-primary hover:bg-blue-600 text-white font-black rounded-2xl shadow-[0_20px_40px_rgba(13,89,242,0.3)] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:bg-slate-400 disabled:shadow-none"
             >

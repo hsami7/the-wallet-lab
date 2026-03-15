@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: "Next Generation Wallet Lab",
 };
 
+import { CartProvider } from "@/context/CartContext";
+ 
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,10 +38,11 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <CartProvider>
+            {children}
+          </CartProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
-

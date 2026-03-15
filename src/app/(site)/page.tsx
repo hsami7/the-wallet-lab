@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCollections } from "@/app/actions/homepage";
 import { createClient } from "@/utils/supabase/server";
+import { FeaturedProductsClient } from "@/components/home/FeaturedProductsClient";
 
 export default async function Home() {
   const collections = await getCollections();
@@ -56,48 +57,7 @@ export default async function Home() {
               View All Series <span className="material-symbols-outlined">arrow_right_alt</span>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {featuredProducts && featuredProducts.length > 0 ? (
-              featuredProducts.map((product) => (
-                <Link key={product.id} href={`/product/${product.slug}`} className="group flex flex-col gap-6 p-6 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 hover:border-primary/50 transition-all">
-                  <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900">
-                    <img 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                      alt={product.name} 
-                      src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"} 
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">{product.name}</h4>
-                        <p className="text-sm text-slate-500">{product.category || "Premium Carry"}</p>
-                      </div>
-                      <span className="text-lg font-bold text-primary">{product.price.toFixed(2)} MAD</span>
-                    </div>
-                    {/* Colors */}
-                    <div className="flex gap-1.5">
-                      {product.colors && product.colors.slice(0, 3).map((variant: any, idx: number) => (
-                        <div 
-                          key={idx} 
-                          className="size-3 rounded-full border border-white/20"
-                          style={{ backgroundColor: variant.color }}
-                        ></div>
-                      ))}
-                    </div>
-                    <button className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display">
-                      Add to Cart
-                    </button>
-                  </div>
-                </Link>
-              ))
-            ) : (
-              <div className="col-span-full py-12 text-center text-slate-500">
-                No featured products available.
-              </div>
-            )}
-          </div>
+          <FeaturedProductsClient featuredProducts={featuredProducts || []} />
         </div>
       </section>
 
