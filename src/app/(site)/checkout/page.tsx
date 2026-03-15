@@ -2,37 +2,24 @@
 
 import Link from "next/link";
 import React, { useState } from "react";
+import { useCart } from "@/context/CartContext";
 
 export default function CheckoutPage() {
+  const { cart, updateQuantity, subtotal, discount, total, applyPromoCode, promoCode } = useCart();
   const [paymentMethod, setPaymentMethod] = useState("card");
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      name: "Carbon Fiber Slim Wallet",
-      description: "Matte Black / RFID Secure",
-      price: 89.0,
-      quantity: 1,
-      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDL8Ztuusoi-rXsc51XPekSMueIO9nY1bZUDn2_5sYl9OG3eIG87DEta52jHlQB_69m5bS7KwEyQIzQRqU_1YA6Bz6bUTDdYfXHN626TKsy-kQICOH62g7FMLFaInGiEdHyOd2sOaz8M4UNF8dyUgjd_S__zgAEXR8qlkGRSs_W2c01abzYieoynB6mjauv7j7LHgQ-1I-rtbZ7S4_52xdPnMTyrfn6xExpLSyyMBp9GHkEIhL5jXWeZEzuHdoA8wqIbtQKrvAGNcM"
-    },
-    {
-      id: 2,
-      name: "Leather Key Organizer",
-      description: "Saddle Brown",
-      price: 34.0,
-      quantity: 1,
-      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCS0m3cOfC0CqbzU12-wgkJYIjiXPWgvcB7N_h84n-itBfReNjsXPl1_rPh1rHO3zyGWzMPSE7MWUTGukTsmnRn37aZFc4Hsg27cLQ44Lu8leitnPVlDrsG6P_ox1djjBHBwCYj1d19maPVKcJwSkbwHZSZg5dMpO3uScY5CHSfbs8HDACk4liefJmPKGJwyakyLrDg_c-iIeGU85z8DWyegnBEivDsDvIiCblXztLLU0pZ3wW0fw-tbHzavFu7lOQBQfrj0xYHYyo"
-    }
-  ]);
+  const [promoInput, setPromoInput] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"idle" | "success" | "error">("idle");
 
-  const updateQuantity = (id: number, delta: number) => {
-    setItems(items.map(item => 
-      item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item
-    ));
+  const handleApplyPromo = () => {
+    if (applyPromoCode(promoInput)) {
+      setPromoStatus("success");
+    } else {
+      setPromoStatus("error");
+      setTimeout(() => setPromoStatus("idle"), 2000);
+    }
   };
 
-  const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const tax = subtotal * 0.08;
-  const total = subtotal + tax;
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-20 py-8 md:py-12 w-full">
       <div className="flex items-center gap-2 mb-8 text-sm font-medium">
@@ -166,23 +153,23 @@ export default function CheckoutPage() {
           <div className="bg-slate-100 dark:bg-slate-900 rounded-lg p-8 sticky top-28 border border-slate-200 dark:border-slate-800">
             <h3 className="text-xl font-bold mb-6">Order Summary</h3>
             <div className="space-y-4 mb-8">
-              {items.map(item => (
+              {cart.map(item => (
                 <div key={item.id} className="flex items-center gap-4">
-                  <div className="h-16 w-16 bg-slate-200 dark:bg-slate-800 rounded overflow-hidden flex-shrink-0">
+                  <div className="h-16 w-16 bg-slate-200 dark:bg-slate-800 rounded overflow-hidden flex-shrink-0 border border-slate-200 dark:border-primary/10">
                     <img className="h-full w-full object-cover" src={item.image} alt={item.name} loading="lazy" />
                   </div>
                   <div className="flex-1">
                     <p className="font-bold text-sm">{item.name}</p>
                     <div className="flex items-center gap-2 mt-1">
                       <button 
-                        onClick={() => updateQuantity(item.id, -1)}
+                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="size-5 flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 hover:text-primary transition-colors"
                       >
                         <span className="material-symbols-outlined text-xs">remove</span>
                       </button>
                       <span className="text-xs font-bold">{item.quantity}</span>
                       <button 
-                        onClick={() => updateQuantity(item.id, 1)}
+                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
                         className="size-5 flex items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-500 hover:text-primary transition-colors"
                       >
                         <span className="material-symbols-outlined text-xs">add</span>
@@ -197,22 +184,42 @@ export default function CheckoutPage() {
             <div className="space-y-3 py-6 border-t border-b border-slate-200 dark:border-slate-800">
               <div className="flex justify-between text-sm">
                 <span className="opacity-60">Subtotal</span>
-                <span>{subtotal.toFixed(2)} MAD</span>
+                <span className="font-medium">{subtotal.toFixed(2)} MAD</span>
               </div>
+              {discount > 0 && (
+                <div className="flex justify-between text-sm text-green-500">
+                  <span className="opacity-80">Discount ({promoCode})</span>
+                  <span className="font-medium">-{discount.toFixed(2)} MAD</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="opacity-60">Shipping</span>
                 <span className="text-emerald-500 font-medium">Free</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="opacity-60">Tax (8%)</span>
-                <span>{tax.toFixed(2)} MAD</span>
+                <span className="font-medium">{tax.toFixed(2)} MAD</span>
               </div>
             </div>
 
             <div className="relative mt-6">
-                <input className="w-full rounded-full border border-slate-200 dark:border-none bg-white dark:bg-slate-800/50 py-3 pl-4 pr-20 text-sm focus:ring-2 focus:ring-primary/20 outline-none" placeholder="Promo code" type="text"/>
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-bold text-primary hover:bg-primary hover:text-white transition-all">
-                    Apply
+                <input 
+                  value={promoInput}
+                  onChange={(e) => setPromoInput(e.target.value)}
+                  className={`w-full rounded-full border ${promoStatus === 'error' ? 'border-red-500' : 'border-slate-200'} dark:border-none bg-white dark:bg-slate-800/50 py-3 pl-4 pr-20 text-sm focus:ring-2 focus:ring-primary/20 outline-none`} 
+                  placeholder="Promo code" 
+                  type="text"
+                />
+                <button 
+                  onClick={handleApplyPromo}
+                  disabled={promoStatus === 'success'}
+                  className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
+                    promoStatus === 'success' 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
+                  }`}
+                >
+                  {promoStatus === 'success' ? 'Applied' : 'Apply'}
                 </button>
             </div>
 
