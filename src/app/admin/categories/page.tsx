@@ -1,5 +1,6 @@
-import { getCategories, createCategory, updateCategory, deleteCategory } from "@/app/actions/categories";
+import { getCategories, createCategory } from "@/app/actions/categories";
 import React from "react";
+import DeleteCategoryButton from "./DeleteCategoryButton";
 
 export default async function AdminCategoriesPage() {
   const categories = await getCategories();
@@ -82,16 +83,7 @@ export default async function AdminCategoriesPage() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-3">
-                          <form action={async () => {
-                            "use server";
-                            if (confirm(`Are you sure you want to delete "${cat.name}"?`)) {
-                              await deleteCategory(cat.id);
-                            }
-                          }}>
-                            <button type="submit" className="text-slate-400 hover:text-red-500 transition-colors">
-                              <span className="material-symbols-outlined text-lg">delete</span>
-                            </button>
-                          </form>
+                          <DeleteCategoryButton categoryId={cat.id} categoryName={cat.name} />
                         </div>
                       </td>
                     </tr>
