@@ -128,7 +128,7 @@ export default function CartPage() {
                   value={promoInput}
                   onChange={(e) => setPromoInput(e.target.value)}
                   className={`w-full rounded-full border ${promoStatus === 'error' ? 'border-red-500' : 'border-slate-200'} dark:border-none bg-slate-50 dark:bg-slate-800/50 py-3 pl-4 pr-20 text-sm focus:ring-2 focus:ring-primary/20 outline-none`} 
-                  placeholder="Promo code (SAVE10, LAB20)" 
+                  placeholder="Promo code" 
                   type="text"
                 />
                 <button 
