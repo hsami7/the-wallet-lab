@@ -41,7 +41,8 @@ export async function createCategory(formData: FormData) {
       .insert([{ name, slug, description }]);
 
     if (error) {
-      if (error.code === '42P01') {
+      const isMissingTable = error.code === '42P01' || error.message?.includes("schema cache") || error.message?.includes("not found");
+      if (isMissingTable) {
         throw new Error("Categories table not found. Please run the SQL setup script provided in the Category page or Walkthrough.");
       }
       throw new Error(error.message);
@@ -51,6 +52,10 @@ export async function createCategory(formData: FormData) {
     revalidatePath("/admin/products");
     revalidatePath("/shop");
   } catch (err: any) {
+    const isMissingTable = err.message?.includes("schema cache") || err.message?.includes("not found") || err.message?.includes("42P01");
+    if (isMissingTable) {
+      throw new Error("Categories table not found. Please run the SQL setup script provided in the Category page or Walkthrough.");
+    }
     throw new Error(err.message || "Failed to create category");
   }
 }
@@ -69,7 +74,8 @@ export async function updateCategory(id: string, formData: FormData) {
       .eq("id", id);
 
     if (error) {
-      if (error.code === '42P01') {
+      const isMissingTable = error.code === '42P01' || error.message?.includes("schema cache") || error.message?.includes("not found");
+      if (isMissingTable) {
         throw new Error("Categories table not found. Please run the SQL setup script provided in the Category page or Walkthrough.");
       }
       throw new Error(error.message);
@@ -79,6 +85,10 @@ export async function updateCategory(id: string, formData: FormData) {
     revalidatePath("/admin/products");
     revalidatePath("/shop");
   } catch (err: any) {
+    const isMissingTable = err.message?.includes("schema cache") || err.message?.includes("not found") || err.message?.includes("42P01");
+    if (isMissingTable) {
+      throw new Error("Categories table not found. Please run the SQL setup script provided in the Category page or Walkthrough.");
+    }
     throw new Error(err.message || "Failed to update category");
   }
 }
@@ -92,7 +102,8 @@ export async function deleteCategory(id: string) {
       .eq("id", id);
 
     if (error) {
-      if (error.code === '42P01') {
+      const isMissingTable = error.code === '42P01' || error.message?.includes("schema cache") || error.message?.includes("not found");
+      if (isMissingTable) {
         throw new Error("Categories table not found. Please run the SQL setup script provided in the Category page or Walkthrough.");
       }
       throw new Error(error.message);
@@ -102,6 +113,10 @@ export async function deleteCategory(id: string) {
     revalidatePath("/admin/products");
     revalidatePath("/shop");
   } catch (err: any) {
+    const isMissingTable = err.message?.includes("schema cache") || err.message?.includes("not found") || err.message?.includes("42P01");
+    if (isMissingTable) {
+      throw new Error("Categories table not found. Please run the SQL setup script provided in the Category page or Walkthrough.");
+    }
     throw new Error(err.message || "Failed to delete category");
   }
 }
