@@ -5,16 +5,18 @@ import React, { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
 export default function CartPage() {
-  const { cart, removeItem, updateQuantity, subtotal, discount, total, applyPromoCode, promoCode } = useCart();
+  const { cart, removeItem, updateQuantity, subtotal, discount, total, applyPromoCode, promoCode, promoError, isApplying } = useCart();
   const [promoInput, setPromoInput] = useState("");
   const [promoStatus, setPromoStatus] = useState<"idle" | "success" | "error">("idle");
 
-  const handleApplyPromo = () => {
-    if (applyPromoCode(promoInput)) {
+  const handleApplyPromo = async () => {
+    if (!promoInput) return;
+    const success = await applyPromoCode(promoInput);
+    if (success) {
       setPromoStatus("success");
     } else {
       setPromoStatus("error");
-      setTimeout(() => setPromoStatus("idle"), 2000);
+      setTimeout(() => setPromoStatus("idle"), 3000);
     }
   };
 
@@ -110,7 +112,7 @@ export default function CartPage() {
                 </div>
               )}
               <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                <span>Shipping</span>
+                <span>Delivery</span>
                 <span className="font-medium text-green-500">FREE</span>
               </div>
               <div className="flex justify-between text-slate-500 dark:text-slate-400">
@@ -133,16 +135,23 @@ export default function CartPage() {
                 />
                 <button 
                   onClick={handleApplyPromo}
-                  disabled={promoStatus === 'success'}
+                  disabled={promoStatus === 'success' || isApplying}
                   className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                     promoStatus === 'success' 
                       ? 'bg-green-500 text-white' 
                       : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
                   }`}
                 >
-                  {promoStatus === 'success' ? 'Applied' : 'Apply'}
+                  {isApplying ? (
+                    <span className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin block"></span>
+                  ) : promoStatus === 'success' ? 'Applied' : 'Apply'}
                 </button>
             </div>
+            {promoError && promoStatus === 'error' && (
+              <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mb-4 ml-4 animate-in fade-in slide-in-from-top-1">
+                {promoError}
+              </p>
+            )}
             
             <div className="space-y-4">
               <Link href="/checkout" className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/30">

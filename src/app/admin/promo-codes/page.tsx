@@ -1,30 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 type PromoCode = {
   id: string;
   code: string;
   type: "percentage" | "fixed";
   value: number;
-  minOrder: number;
-  maxUses: number;
-  usedCount: number;
-  expires: string;
+  min_order: number;
+  max_uses: number;
+  used_count: number;
+  expires_at: string;
   status: "Active" | "Expired" | "Paused";
 };
 
-const initialCodes: PromoCode[] = [
-  { id: "1", code: "LAUNCH20",   type: "percentage", value: 20, minOrder: 0,   maxUses: 500, usedCount: 342, expires: "2026-06-30", status: "Active"  },
-  { id: "2", code: "WELCOME50",  type: "fixed",      value: 50, minOrder: 300, maxUses: 200, usedCount: 198, expires: "2026-04-01", status: "Active"  },
-  { id: "3", code: "SUMMER15",   type: "percentage", value: 15, minOrder: 200, maxUses: 300, usedCount: 300, expires: "2026-08-31", status: "Paused"  },
-  { id: "4", code: "FLASH100",   type: "fixed",      value: 100,minOrder: 500, maxUses: 100, usedCount: 100, expires: "2026-02-14", status: "Expired" },
-  { id: "5", code: "VIP30",      type: "percentage", value: 30, minOrder: 800, maxUses: 50,  usedCount: 12,  expires: "2026-12-31", status: "Active"  },
-];
-
 const emptyForm = {
   code: "", type: "percentage" as "percentage" | "fixed",
-  value: "", minOrder: "", maxUses: "", expires: "",
+  value: "", min_order: "", max_uses: "", expires_at: "",
 };
 
 const statusColors: Record<string, string> = {
@@ -45,11 +38,28 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 export default function AdminPromoCodes() {
-  const [codes, setCodes] = useState<PromoCode[]>(initialCodes);
+  const [codes, setCodes] = useState<PromoCode[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    fetchCodes();
+  }, []);
+
+  async function fetchCodes() {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('promo_codes')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (data) setCodes(data);
+    setLoading(false);
+  }
 
   function openAdd() {
     setForm(emptyForm);
@@ -58,38 +68,65 @@ export default function AdminPromoCodes() {
   }
 
   function openEdit(c: PromoCode) {
-    setForm({ code: c.code, type: c.type, value: String(c.value), minOrder: String(c.minOrder), maxUses: String(c.maxUses), expires: c.expires });
+    setForm({ 
+      code: c.code, 
+      type: c.type, 
+      value: String(c.value), 
+      min_order: String(c.min_order), 
+      max_uses: String(c.max_uses), 
+      expires_at: c.expires_at ? new Date(c.expires_at).toISOString().split('T')[0] : "" 
+    });
     setEditId(c.id);
     setShowModal(true);
   }
 
-  function save() {
+  async function save() {
     if (!form.code || !form.value) return;
+    
+    const payload = {
+      code: form.code.toUpperCase(),
+      type: form.type,
+      value: Number(form.value),
+      min_order: Number(form.min_order) || 0,
+      max_uses: Number(form.max_uses) || 0,
+      expires_at: form.expires_at || null,
+    };
+
     if (editId) {
-      setCodes((prev) => prev.map((c) => c.id === editId ? {
-        ...c, code: form.code.toUpperCase(), type: form.type,
-        value: Number(form.value), minOrder: Number(form.minOrder),
-        maxUses: Number(form.maxUses), expires: form.expires,
-      } : c));
+      const { error } = await supabase
+        .from('promo_codes')
+        .update(payload)
+        .eq('id', editId);
+      if (error) console.error(error);
     } else {
-      setCodes((prev) => [...prev, {
-        id: String(Date.now()), code: form.code.toUpperCase(), type: form.type,
-        value: Number(form.value), minOrder: Number(form.minOrder),
-        maxUses: Number(form.maxUses), expires: form.expires,
-        usedCount: 0, status: "Active",
-      }]);
+      const { error } = await supabase
+        .from('promo_codes')
+        .insert([{ ...payload, used_count: 0, status: "Active" }]);
+      if (error) console.error(error);
     }
+    
+    fetchCodes();
     setShowModal(false);
   }
 
-  function toggleStatus(id: string) {
-    setCodes((prev) => prev.map((c) => c.id === id ? {
-      ...c, status: c.status === "Active" ? "Paused" : "Active",
-    } : c));
+  async function toggleStatus(c: PromoCode) {
+    const newStatus = c.status === "Active" ? "Paused" : "Active";
+    const { error } = await supabase
+      .from('promo_codes')
+      .update({ status: newStatus })
+      .eq('id', c.id);
+    
+    if (!error) fetchCodes();
   }
 
-  function deleteCode(id: string) {
-    setCodes((prev) => prev.filter((c) => c.id !== id));
+  async function deleteCode(id: string) {
+    if (!confirm("Are you sure you want to delete this code?")) return;
+    const { error } = await supabase
+      .from('promo_codes')
+      .delete()
+      .eq('id', id);
+    
+    if (!error) fetchCodes();
   }
 
   function copyCode(code: string) {
@@ -100,7 +137,7 @@ export default function AdminPromoCodes() {
 
   const active  = codes.filter((c) => c.status === "Active").length;
   const expired = codes.filter((c) => c.status === "Expired").length;
-  const totalUses = codes.reduce((s, c) => s + c.usedCount, 0);
+  const totalUses = codes.reduce((s, c) => s + c.used_count, 0);
 
   return (
     <div className="p-8">
@@ -149,8 +186,23 @@ export default function AdminPromoCodes() {
               </tr>
             </thead>
             <tbody>
-              {codes.map((c, i) => {
-                const usePct = c.maxUses > 0 ? Math.round((c.usedCount / c.maxUses) * 100) : 0;
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                    <div className="flex flex-col items-center gap-2">
+                       <span className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
+                       <span>Loading promo codes...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : codes.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                    No promo codes found. Create one to get started.
+                  </td>
+                </tr>
+              ) : codes.map((c, i) => {
+                const usePct = c.max_uses > 0 ? Math.round((c.used_count / c.max_uses) * 100) : 0;
                 return (
                   <tr key={c.id} className={`${i < codes.length - 1 ? "border-b border-slate-100 dark:border-slate-800" : ""} hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors`}>
                     <td className="px-6 py-4">
@@ -165,24 +217,26 @@ export default function AdminPromoCodes() {
                       {c.type === "percentage" ? `${c.value}% off` : `${c.value} MAD off`}
                     </td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                      {c.minOrder > 0 ? `${c.minOrder} MAD` : "None"}
+                      {c.min_order > 0 ? `${c.min_order} MAD` : "None"}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <span className="text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">{c.usedCount} / {c.maxUses}</span>
+                        <span className="text-slate-600 dark:text-slate-400 text-xs whitespace-nowrap">{c.used_count} / {c.max_uses || "∞"}</span>
                         <div className="w-20 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                           <div className={`h-full rounded-full ${usePct >= 90 ? "bg-red-500" : usePct >= 60 ? "bg-yellow-500" : "bg-primary"}`}
                             style={{ width: `${usePct}%` }} />
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs">{c.expires}</td>
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs">
+                      {c.expires_at ? new Date(c.expires_at).toLocaleDateString() : "Never"}
+                    </td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[c.status]}`}>{c.status}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <button onClick={() => toggleStatus(c.id)}
+                        <button onClick={() => toggleStatus(c)}
                           title={c.status === "Active" ? "Pause" : "Activate"}
                           className={`text-slate-400 transition-colors ${c.status === "Expired" ? "opacity-30 cursor-not-allowed" : "hover:text-yellow-500"}`}
                           disabled={c.status === "Expired"}>
@@ -236,16 +290,16 @@ export default function AdminPromoCodes() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Field label="Min. Order (MAD)">
-                  <input type="number" value={form.minOrder} onChange={(e) => setForm({ ...form, minOrder: e.target.value })}
+                  <input type="number" value={form.min_order} onChange={(e) => setForm({ ...form, min_order: e.target.value })}
                     placeholder="0 = no minimum" className={inputCls} />
                 </Field>
                 <Field label="Max Uses">
-                  <input type="number" value={form.maxUses} onChange={(e) => setForm({ ...form, maxUses: e.target.value })}
+                  <input type="number" value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })}
                     placeholder="0 = unlimited" className={inputCls} />
                 </Field>
               </div>
               <Field label="Expiry Date">
-                <input type="date" value={form.expires} onChange={(e) => setForm({ ...form, expires: e.target.value })} className={inputCls} />
+                <input type="date" value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} className={inputCls} />
               </Field>
             </div>
             <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">

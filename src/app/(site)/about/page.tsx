@@ -89,7 +89,7 @@ export default function AboutPage() {
             </div>
             <div className="flex flex-col items-center gap-2">
               <span className="material-symbols-outlined text-primary text-4xl">public</span>
-              <span className="font-bold">Global Shipping</span>
+              <span className="font-bold">Global Delivery</span>
             </div>
           </div>
         </div>

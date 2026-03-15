@@ -126,7 +126,7 @@ export function SettingsClient({ currentUserId, profiles }: { currentUserId?: st
                 <span className="material-symbols-outlined text-primary text-xl">local_shipping</span>
               </div>
               <div>
-                <h2 className="text-sm font-bold text-slate-900 dark:text-white">Shipping Rates</h2>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-white">Delivery Rates</h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400">Manage global delivery costs</p>
               </div>
             </div>

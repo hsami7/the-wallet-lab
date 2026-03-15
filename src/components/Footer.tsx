@@ -51,7 +51,7 @@ export default function Footer() {
         <div className="flex flex-col gap-6">
           <h4 className="text-slate-900 dark:text-white font-bold text-sm uppercase tracking-widest">Support</h4>
           <nav className="flex flex-col gap-3">
-            <Link href="#" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Shipping</Link>
+            <Link href="#" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Delivery</Link>
             <Link href="#" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Returns</Link>
             <Link href="#" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Warranty</Link>
             <Link href="#" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Contact</Link>

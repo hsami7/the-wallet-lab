@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
 
 export interface CartItem {
   id: string | number;
@@ -18,12 +19,15 @@ interface CartContextType {
   removeItem: (id: string | number) => void;
   updateQuantity: (id: string | number, quantity: number) => void;
   clearCart: () => void;
-  applyPromoCode: (code: string) => boolean;
+  applyPromoCode: (code: string) => Promise<boolean>;
+  clearPromoCode: () => void;
   subtotal: number;
   discount: number;
   total: number;
   itemCount: number;
   promoCode: string | null;
+  promoError: string | null;
+  isApplying: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -31,8 +35,12 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [promoCode, setPromoCode] = useState<string | null>(null);
+  const [promoData, setPromoData] = useState<any>(null);
+  const [promoError, setPromoError] = useState<string | null>(null);
+  const [isApplying, setIsApplying] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
+  const supabase = createClient();
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -65,14 +73,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Recalculate discount whenever promoCode or cart changes
   useEffect(() => {
-    if (promoCode === "SAVE10") {
-      setDiscount(cart.reduce((acc, item) => acc + item.price * item.quantity, 0) * 0.1);
-    } else if (promoCode === "LAB20") {
-      setDiscount(cart.reduce((acc, item) => acc + item.price * item.quantity, 0) * 0.2);
+    if (promoData) {
+      const currentSubtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+      
+      // Validate min order again in case cart changed
+      if (currentSubtotal < promoData.min_order) {
+        setDiscount(0);
+        return;
+      }
+
+      if (promoData.type === 'percentage') {
+        setDiscount(currentSubtotal * (promoData.value / 100));
+      } else {
+        setDiscount(Math.min(promoData.value, currentSubtotal));
+      }
     } else {
       setDiscount(0);
     }
-  }, [promoCode, cart]);
+  }, [promoData, cart]);
 
   const addItem = (item: CartItem) => {
     setCart((prevCart) => {
@@ -101,15 +119,62 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const clearCart = () => {
     setCart([]);
     setPromoCode(null);
+    setPromoData(null);
   };
 
-  const applyPromoCode = (code: string) => {
-    const validCodes = ["SAVE10", "LAB20"];
-    if (validCodes.includes(code.toUpperCase())) {
-      setPromoCode(code.toUpperCase());
+  const clearPromoCode = () => {
+    setPromoCode(null);
+    setPromoData(null);
+    setPromoError(null);
+  };
+
+  const applyPromoCode = async (code: string) => {
+    setIsApplying(true);
+    setPromoError(null);
+    
+    try {
+      const { data, error } = await supabase
+        .from('promo_codes')
+        .select('*')
+        .eq('code', code.toUpperCase())
+        .single();
+
+      if (error || !data) {
+        setPromoError("Invalid promo code");
+        return false;
+      }
+
+      if (data.status !== 'Active') {
+        setPromoError(`This code is ${data.status.toLowerCase()}`);
+        return false;
+      }
+
+      const now = new Date();
+      if (data.expires_at && new Date(data.expires_at) < now) {
+        setPromoError("This code has expired");
+        return false;
+      }
+
+      if (data.max_uses > 0 && data.used_count >= data.max_uses) {
+        setPromoError("This code has reached its usage limit");
+        return false;
+      }
+
+      const currentSubtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+      if (data.min_order > 0 && currentSubtotal < data.min_order) {
+        setPromoError(`Minimum order of ${data.min_order} MAD required`);
+        return false;
+      }
+
+      setPromoData(data);
+      setPromoCode(data.code);
       return true;
+    } catch (err) {
+      setPromoError("Verification failed. Please try again.");
+      return false;
+    } finally {
+      setIsApplying(false);
     }
-    return false;
   };
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
@@ -125,11 +190,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         updateQuantity,
         clearCart,
         applyPromoCode,
+        clearPromoCode,
         subtotal,
         discount,
         total,
         itemCount,
         promoCode,
+        promoError,
+        isApplying,
       }}
     >
       {children}

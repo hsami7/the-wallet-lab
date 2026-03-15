@@ -5,17 +5,19 @@ import React, { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
 export default function CheckoutPage() {
-  const { cart, updateQuantity, subtotal, discount, total, applyPromoCode, promoCode } = useCart();
+  const { cart, updateQuantity, subtotal, discount, total, applyPromoCode, promoCode, promoError, isApplying } = useCart();
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [promoInput, setPromoInput] = useState("");
   const [promoStatus, setPromoStatus] = useState<"idle" | "success" | "error">("idle");
 
-  const handleApplyPromo = () => {
-    if (applyPromoCode(promoInput)) {
+  const handleApplyPromo = async () => {
+    if (!promoInput) return;
+    const success = await applyPromoCode(promoInput);
+    if (success) {
       setPromoStatus("success");
     } else {
       setPromoStatus("error");
-      setTimeout(() => setPromoStatus("idle"), 2000);
+      setTimeout(() => setPromoStatus("idle"), 3000);
     }
   };
 
@@ -25,7 +27,7 @@ export default function CheckoutPage() {
       <div className="flex items-center gap-2 mb-8 text-sm font-medium">
         <Link href="/cart" className="text-slate-500 hover:text-primary transition-colors">Cart</Link>
         <span className="text-slate-400">/</span>
-        <Link href="#shipping" className="text-slate-500 hover:text-primary transition-colors">Shipping</Link>
+        <Link href="#delivery" className="text-slate-500 hover:text-primary transition-colors">Delivery</Link>
         <span className="text-slate-400">/</span>
         <Link href="#payment" className="text-primary hover:text-primary/80 transition-colors">Payment</Link>
       </div>
@@ -36,10 +38,10 @@ export default function CheckoutPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         <div className="lg:col-span-8 space-y-12">
-          <section id="shipping">
+          <section id="delivery">
             <div className="flex items-center gap-3 mb-6">
               <span className="material-symbols-outlined text-primary">local_shipping</span>
-              <h2 className="text-xl font-bold">Shipping Information</h2>
+              <h2 className="text-xl font-bold">Delivery Information</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <label className="flex flex-col gap-2">
@@ -193,7 +195,7 @@ export default function CheckoutPage() {
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="opacity-60">Shipping</span>
+                <span className="opacity-60">Delivery</span>
                 <span className="text-emerald-500 font-medium">Free</span>
               </div>
               <div className="flex justify-between text-sm">
@@ -212,16 +214,23 @@ export default function CheckoutPage() {
                 />
                 <button 
                   onClick={handleApplyPromo}
-                  disabled={promoStatus === 'success'}
+                  disabled={promoStatus === 'success' || isApplying}
                   className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                     promoStatus === 'success' 
                       ? 'bg-green-500 text-white' 
                       : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
                   }`}
                 >
-                  {promoStatus === 'success' ? 'Applied' : 'Apply'}
+                  {isApplying ? (
+                    <span className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin block"></span>
+                  ) : promoStatus === 'success' ? 'Applied' : 'Apply'}
                 </button>
             </div>
+            {promoError && promoStatus === 'error' && (
+              <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mt-2 ml-4 animate-in fade-in slide-in-from-top-1">
+                {promoError}
+              </p>
+            )}
 
             <div className="flex justify-between items-center mt-6 mb-8">
               <span className="text-lg font-bold">Total</span>
