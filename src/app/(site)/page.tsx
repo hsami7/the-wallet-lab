@@ -3,49 +3,61 @@ import Link from "next/link";
 export default function Home() {
   return (
     <>
-      <section className="relative px-6 lg:px-20 py-16 lg:py-24 @container">
-        <div className="flex flex-col lg:flex-row items-center gap-12 max-w-7xl mx-auto">
-          <div className="flex flex-col gap-8 flex-1">
-            <div className="inline-flex flex-wrap items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-widest uppercase w-fit">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-              New Carbon Drop V.2
+      <section className="grid grid-cols-1 md:grid-cols-3 w-full h-auto min-h-[600px]">
+        {/* Everyday Essentials */}
+        <div className="relative group overflow-hidden h-[600px] md:h-auto">
+          <img 
+            src="/collections/classic.png" 
+            alt="Everyday Essentials - Classic Style" 
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div className="absolute bottom-10 left-10 right-10 flex flex-col gap-4">
+            <div>
+              <p className="text-white/80 text-sm font-medium mb-1">Everyday Essentials</p>
+              <h2 className="text-white text-4xl font-bold tracking-tight">Classic style</h2>
             </div>
-            <h1 className="text-slate-900 dark:text-slate-100 text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight">
-              Wallet <span className="text-primary italic">Engineering</span> for the Digital Native
-            </h1>
-            <p className="text-slate-600 dark:text-slate-400 text-lg lg:text-xl max-w-xl leading-relaxed">
-              Experience the future of carry. Engineered with aerospace-grade carbon fiber and full-grain leather textures. Built for the modern nomad.
-            </p>
-            <div className="flex flex-wrap gap-4">
-              <Link href="/shop" className="px-8 py-4 bg-primary text-white rounded-full font-bold text-lg hover:scale-105 transition-transform shadow-xl shadow-primary/25 cursor-pointer">
-                Shop Collection
-              </Link>
-              <Link href="/about" className="px-8 py-4 bg-slate-800 text-white rounded-full font-bold text-lg border border-slate-700 hover:bg-slate-700 transition-colors cursor-pointer">
-                Explore Tech
-              </Link>
-            </div>
+            <Link href="/shop" className="w-fit px-8 py-3 border border-white/50 text-white hover:bg-white hover:text-black transition-all rounded-sm text-sm font-semibold uppercase tracking-wider backdrop-blur-sm">
+              Shop Now
+            </Link>
           </div>
-          <div className="flex-1 relative w-full aspect-square lg:aspect-auto">
-            <div className="absolute inset-0 bg-primary/20 blur-[120px] rounded-full"></div>
-            <div className="relative w-full h-[400px] lg:h-[600px] bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden group">
-              <div className="absolute inset-0 carbon-pattern opacity-40"></div>
-              <div 
-                className="h-full w-full bg-cover bg-center transition-transform duration-700 group-hover:scale-110" 
-                style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDRrn7KxPfgAAMj7QURg3SEuJ5XGj0mvJtzji-lpqKzqFzVPzxQvE3f1JFAZw_ddO943jAoOm5ED99UXFpXLWNnn6jtIPL9guXK_qzm1lom5R96zuOhDwTEnAAUu3noO0RZQsvBhTyDKDwdXq51KKSTHeA_elID1dmkJl5HIjf8emFP2tTehQUlqOmBG9QKNeAZ9u2rmbHGK3OMP0w3PlmXbrUv-67OXRYugJbYslzmkouFscnbgjU8-t9c0l4expr119FpYoIcftc')" }}
-              />
-              <div className="absolute bottom-6 left-6 right-6 p-6 rounded-xl bg-white/80 dark:bg-slate-950/60 backdrop-blur-md border border-slate-200 dark:border-white/10">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-primary text-xs font-bold uppercase tracking-widest">Premium Edition</p>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">Carbon-X Phantom</h3>
-                  </div>
-                  <div className="text-2xl font-bold text-slate-900 dark:text-white">129 MAD</div>
-                </div>
-              </div>
+        </div>
+
+        {/* Winter Collection */}
+        <div className="relative group overflow-hidden h-[600px] md:h-auto border-y md:border-y-0 md:border-x border-white/10">
+          <img 
+            src="/collections/winter.png" 
+            alt="Winter Collection - Cozy Looks" 
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div className="absolute bottom-10 left-10 right-10 flex flex-col gap-4">
+            <div>
+              <p className="text-white/80 text-sm font-medium mb-1">Winter Collection</p>
+              <h2 className="text-white text-4xl font-bold tracking-tight">Cozy looks for any season</h2>
             </div>
+            <Link href="/shop" className="w-fit px-8 py-3 border border-white/50 text-white hover:bg-white hover:text-black transition-all rounded-sm text-sm font-semibold uppercase tracking-wider backdrop-blur-sm">
+              Discover more
+            </Link>
+          </div>
+        </div>
+
+        {/* Premium Accessories */}
+        <div className="relative group overflow-hidden h-[600px] md:h-auto">
+          <img 
+            src="/collections/accessories.png" 
+            alt="Premium Accessories - Timeless Accessory" 
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+          <div className="absolute bottom-10 left-10 right-10 flex flex-col gap-4">
+            <div>
+              <p className="text-white/80 text-sm font-medium mb-1">Premium Accessories</p>
+              <h2 className="text-white text-4xl font-bold tracking-tight">Timeless accessory</h2>
+            </div>
+            <Link href="/shop" className="w-fit px-8 py-3 border border-white/50 text-white hover:bg-white hover:text-black transition-all rounded-sm text-sm font-semibold uppercase tracking-wider backdrop-blur-sm">
+              Shop Now
+            </Link>
           </div>
         </div>
       </section>
