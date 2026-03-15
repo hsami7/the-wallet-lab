@@ -19,6 +19,10 @@ export async function getCategories(): Promise<Category[]> {
     .order("name", { ascending: true });
 
   if (error) {
+    // 42P01 is the Postgres error code for "relation does not exist"
+    if (error.code === '42P01') {
+      return [];
+    }
     console.error("Error fetching categories:", error);
     return [];
   }

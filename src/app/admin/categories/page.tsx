@@ -104,11 +104,39 @@ export default async function AdminCategoriesPage() {
           </div>
           
           {categories.length === 0 && (
-            <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-xl flex items-center gap-3 text-amber-800 dark:text-amber-400">
-              <span className="material-symbols-outlined">info</span>
-              <p className="text-xs">
-                To start managing your categories, please ensure the <code>categories</code> table is created and seeded in Supabase.
+            <div className="mt-6 p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+              <div className="flex items-center gap-3 text-amber-600 dark:text-amber-400 mb-4">
+                <span className="material-symbols-outlined">database</span>
+                <p className="text-sm font-bold uppercase tracking-widest">Setup Required</p>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+                To enable category management, please run the following SQL script in your **Supabase SQL Editor**. This will create the necessary table and add initial categories.
               </p>
+              <div className="bg-slate-900 rounded-xl p-4 overflow-x-auto border border-white/5 shadow-inner">
+                <pre className="text-[11px] font-mono text-slate-300 leading-relaxed">
+{`create table categories (
+  id uuid default gen_random_uuid() primary key,
+  name text unique not null,
+  slug text unique not null,
+  description text,
+  created_at timestamp with time zone default now()
+);
+
+insert into categories (name, slug)
+values 
+('Cardholders', 'cardholders'),
+('Bifolds', 'bifolds'),
+('Phone Wallets', 'phone-wallets'),
+('Limited Edition', 'limited-edition'),
+('Premium Carry', 'premium-carry');
+
+alter table categories enable row level security;
+create policy "Allow public read access" on categories for select using (true);
+create policy "Allow authenticated full access" on categories 
+using (auth.role() = 'authenticated') 
+with check (auth.role() = 'authenticated');`}
+                </pre>
+              </div>
             </div>
           )}
         </div>
