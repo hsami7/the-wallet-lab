@@ -170,6 +170,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     try {
       const productData = {
         name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
         description,
         price: Number(price),
         inventory_count: Number(stock),
@@ -264,7 +265,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
               
               {primaryImage ? (
                 <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-slate-100 dark:border-white/5 group bg-slate-50 dark:bg-black/20">
-                  <img src={primaryImage} className="w-full h-full object-contain" alt="Primary Preview" />
+                  <img src={primaryImage} className="w-full h-full object-contain" alt="Primary Preview" loading="lazy" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                     <label className="size-12 rounded-full bg-white text-slate-900 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
                       <span className="material-symbols-outlined">edit</span>
@@ -397,7 +398,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                     <div className="flex gap-3">
                       {variant.imageUrl ? (
                         <div className="size-10 rounded-xl bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 overflow-hidden relative group/thumb shadow-sm">
-                          <img src={variant.imageUrl} className="w-full h-full object-cover" alt={variant.name} />
+                          <img src={variant.imageUrl} className="w-full h-full object-cover" alt={variant.name} loading="lazy" />
                           <label className="absolute inset-0 bg-primary/60 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity cursor-pointer">
                             <span className="material-symbols-outlined text-white text-sm">edit</span>
                             <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(idx, e)} />

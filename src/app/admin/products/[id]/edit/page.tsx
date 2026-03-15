@@ -2,9 +2,9 @@ import { createClient } from "@/utils/supabase/server";
 import ProductForm from "../../ProductForm";
 import { notFound } from "next/navigation";
 
-export default async function EditProductPage({ params }: { params: { id: string } }) {
+export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = await createClient();
-  const { id } = params;
+  const { id } = await params;
 
   const { data: product, error } = await supabase
     .from("products")

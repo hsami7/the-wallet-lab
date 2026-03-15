@@ -13,7 +13,7 @@ export default async function ShopPage() {
   const safeProducts = products || [];
 
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-20 py-12 md:py-24 w-full">
+    <div className="max-w-7xl mx-auto px-6 md:px-20 pt-4 md:pt-8 pb-24 w-full">
       <div className="mb-12">
         <h1 className="text-5xl md:text-6xl font-black mb-4 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-primary/60">
           PREMIUM CARRY
@@ -56,19 +56,20 @@ export default async function ShopPage() {
           </div>
         ) : (
           safeProducts.map((product) => (
-            <Link key={product.id} href={`/product/${product.id}`} className="group relative flex flex-col bg-white dark:bg-slate-900/50 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:border-primary transition-all duration-300">
+            <Link key={product.id} href={`/product/${product.slug}`} className="group relative flex flex-col bg-white dark:bg-slate-900/50 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:border-primary transition-all duration-300">
               <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
                 <img 
                   alt={product.name} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                   src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"}
+                  loading="lazy"
                 />
-                {product.status === 'out_of_stock' && (
+                {product.track_inventory && product.inventory_count <= 0 && (
                   <div className="absolute top-4 left-4">
                     <span className="bg-slate-900/80 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-tighter uppercase backdrop-blur-sm">Sold Out</span>
                   </div>
                 )}
-                {product.status === 'active' && product.inventory_count < 10 && product.inventory_count > 0 && (
+                {product.track_inventory && product.inventory_count > 0 && product.inventory_count <= (product.min_stock_level || 5) && (
                    <div className="absolute top-4 left-4">
                     <span className="bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-tighter uppercase">Low Stock</span>
                   </div>
@@ -85,11 +86,23 @@ export default async function ShopPage() {
                   </div>
                   <span className="text-primary font-bold">{product.price.toFixed(2)} MAD</span>
                 </div>
-                {/* Mocking colors until we implement a variations table */}
-                <div className="flex gap-1 mb-6">
-                  <div className="size-3 rounded-full bg-slate-900 border border-white/20"></div>
-                  <div className="size-3 rounded-full bg-slate-400 border border-white/20"></div>
+                
+                {/* Dynamic colors from product.colors jsonb */}
+                <div className="flex gap-1.5 mb-6">
+                  {product.colors && product.colors.length > 0 ? (
+                    product.colors.map((variant: any, idx: number) => (
+                      <div 
+                        key={idx} 
+                        className="size-3.5 rounded-full border border-white/20 shadow-sm"
+                        style={{ backgroundColor: variant.color }}
+                        title={variant.name}
+                      ></div>
+                    ))
+                  ) : (
+                    <div className="size-3.5 rounded-full bg-slate-400 border border-white/20"></div>
+                  )}
                 </div>
+
                 <button className="mt-auto w-full py-3 bg-primary hover:bg-blue-600 text-white font-bold rounded-lg shadow-[0_0_20px_rgba(13,89,242,0.3)] transition-all flex items-center justify-center gap-2">
                   Add to Cart <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
                 </button>

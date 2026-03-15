@@ -1,9 +1,17 @@
 import Link from "next/link";
 import { getCollections } from "@/app/actions/homepage";
+import { createClient } from "@/utils/supabase/server";
 
 export default async function Home() {
   const collections = await getCollections();
+  const supabase = await createClient();
   
+  const { data: featuredProducts } = await supabase
+    .from("products")
+    .select("*")
+    .eq("featured", true)
+    .limit(3);
+
   const defaultCollections = [
     { label: 'Everyday Essentials', heading: 'Classic style', image_url: '/collections/classic.png', button_text: 'Shop Now', button_link: '/shop' },
     { label: 'Winter Collection', heading: 'Cozy looks for any season', image_url: '/collections/winter.png', button_text: 'Discover more', button_link: '/shop' },
@@ -21,6 +29,7 @@ export default async function Home() {
               src={col.image_url} 
               alt={`${col.label} - ${col.heading}`} 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
             <div className="absolute bottom-10 left-10 right-10 flex flex-col gap-4">
@@ -48,71 +57,46 @@ export default async function Home() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="group flex flex-col gap-6 p-6 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 hover:border-primary/50 transition-all">
-              <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900">
-                <img 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                  alt="Minimalist slim black leather wallet" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5eNMB_FZkN6IP_lWAjqB9_O0cUe2AFlijwqg44--YQlC3ENO5JUU1YxxUlmMa4hfyt0OWuMJzK-VqP1I8TQQGCu70ENiu_ODwBkrRWmkloyekzbGR1nr_8symDkfwK5J2MSrC6tPAFhqgVchIZAA8NjhJY6WF6SEWKdKUuhdlSHppEhsQZu5zWp6Hj0T1kgIt_vPIbRgk7LoOr4KZi_a_3m_sEaMb3IZ7A-L4yiP4aqgZt8H0wEWnOubZhudKXTI1b-kDY1C78wA" 
-                />
-              </div>
-              <div className="flex-1 flex flex-col gap-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Leather Pro Slim</h4>
-                    <p className="text-sm text-slate-500">Italian Full Grain</p>
+            {featuredProducts && featuredProducts.length > 0 ? (
+              featuredProducts.map((product) => (
+                <Link key={product.id} href={`/product/${product.slug}`} className="group flex flex-col gap-6 p-6 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 hover:border-primary/50 transition-all">
+                  <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900">
+                    <img 
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                      alt={product.name} 
+                      src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"} 
+                      loading="lazy"
+                    />
                   </div>
-                  <span className="text-lg font-bold text-primary">85 MAD</span>
-                </div>
-                <button className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-            
-            <div className="group flex flex-col gap-6 p-6 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 hover:border-primary/50 transition-all">
-              <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900">
-                <img 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                  alt="Carbon fiber tactical minimalist wallet" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAeaf7xc7bH7Lo5Ex5WOPItgR1KIQqspXLmr15oc7QNTjtL7L09EbnHt1_iCjWjDjHDyWzCsZH-15k9OhHJ_LPUOAZqkZFRFq4A5FkXBTRGlV1iinbt7m8SPHMidigX0RAxbk7fBBNDQsSz80BdKdgQCo6pMu6VCqSWiVi2NE2RD_-PiHS8wO_ov-OYnmKrcFZU_IGqmeNWmUvAKbobpONKk_qpmf6QXidK2lSb2iwimvKcaZTXY7UQ4LTLTQ7GWqL2xYVIBYpXKhE" 
-                />
-              </div>
-              <div className="flex-1 flex flex-col gap-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Nomad Carbon</h4>
-                    <p className="text-sm text-slate-500">RFID Shielded</p>
+                  <div className="flex-1 flex flex-col gap-4">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h4 className="text-lg font-bold text-slate-900 dark:text-white">{product.name}</h4>
+                        <p className="text-sm text-slate-500">{product.category || "Premium Carry"}</p>
+                      </div>
+                      <span className="text-lg font-bold text-primary">{product.price.toFixed(2)} MAD</span>
+                    </div>
+                    {/* Colors */}
+                    <div className="flex gap-1.5">
+                      {product.colors && product.colors.slice(0, 3).map((variant: any, idx: number) => (
+                        <div 
+                          key={idx} 
+                          className="size-3 rounded-full border border-white/20"
+                          style={{ backgroundColor: variant.color }}
+                        ></div>
+                      ))}
+                    </div>
+                    <button className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display">
+                      Add to Cart
+                    </button>
                   </div>
-                  <span className="text-lg font-bold text-primary">110 MAD</span>
-                </div>
-                <button className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display">
-                  Add to Cart
-                </button>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center text-slate-500">
+                No featured products available.
               </div>
-            </div>
-
-            <div className="group flex flex-col gap-6 p-6 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 hover:border-primary/50 transition-all">
-              <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900">
-                <img 
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                  alt="Metal bifold wallet with modern aesthetic" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuAq_5g3DHaNpypDbAVz9KXJ8a4EqZAVmagOcGDtyqVPjGt5qL5z_OEQpXoaPiRo6gT5sp2wdji5GiO4CwCr9TKtsk4VZVkbWmcXI-w2RtPXfLm5-qOebwcKR0CwVvXmvMr7-UEI_xbfjkLKA5v6p168noErEBNhHP1LGz3qkVMFB19N2kNo4_203hlMUHRqcdkeTRSWy8yq0uK_PW9M6nvnB7p9_2am5vv2EtXtaI_UhpDX7zuhZsZQHc8U-mvQGb9KVEoy6j80zIw" 
-                />
-              </div>
-              <div className="flex-1 flex flex-col gap-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-lg font-bold text-slate-900 dark:text-white">Titan Bifold</h4>
-                    <p className="text-sm text-slate-500">Aerospace Aluminum</p>
-                  </div>
-                  <span className="text-lg font-bold text-primary">95 MAD</span>
-                </div>
-                <button className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </section>

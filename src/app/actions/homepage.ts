@@ -57,3 +57,42 @@ export async function updateCollection(id: string, formData: FormData) {
   revalidatePath("/admin/collections");
   return { success: true };
 }
+export async function updateCollections(collectionsData: Array<{id?: string, slot_index: number, label: string, heading: string, image_url: string, button_text: string, button_link: string}>) {
+  const supabase = await createClient();
+  
+  for (const col of collectionsData) {
+    if (col.id) {
+      const { error } = await supabase
+        .from("homepage_collections")
+        .update({
+          label: col.label,
+          heading: col.heading,
+          image_url: col.image_url,
+          button_text: col.button_text,
+          button_link: col.button_link,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", col.id);
+      
+      if (error) throw new Error(`Slot ${col.slot_index + 1}: ${error.message}`);
+    } else {
+      // Create if it doesn't exist for that slot
+      const { error } = await supabase
+        .from("homepage_collections")
+        .insert({
+          slot_index: col.slot_index,
+          label: col.label,
+          heading: col.heading,
+          image_url: col.image_url,
+          button_text: col.button_text,
+          button_link: col.button_link,
+        });
+      
+      if (error) throw new Error(`Slot ${col.slot_index + 1}: ${error.message}`);
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/collections");
+  return { success: true };
+}

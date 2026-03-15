@@ -55,10 +55,14 @@ export default function CartPage() {
         <div className="lg:col-span-2 space-y-6">
           {items.map(item => (
             <div key={item.id} className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div 
-                className="bg-slate-200 dark:bg-slate-800 aspect-square bg-cover rounded-lg size-24 sm:size-32" 
-                style={{ backgroundImage: `url('${item.image}')` }}
-              ></div>
+              <div className="bg-slate-200 dark:bg-slate-800 aspect-square rounded-lg size-24 sm:size-32 overflow-hidden relative">
+                <img 
+                  src={item.image} 
+                  alt={item.name} 
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                />
+              </div>
               <div className="flex flex-1 flex-col gap-1 w-full">
                 <div className="flex justify-between items-start">
                   <h3 className="text-xl font-bold">{item.name}</h3>

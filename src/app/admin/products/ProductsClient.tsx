@@ -34,22 +34,31 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
     return matchFilter && matchSearch;
   });
 
-  async function deleteProduct(id: string) {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+  async function handleProductDelete(id: string) {
+    const isConfirmed = window.confirm("Are you sure you want to delete this product?");
+    if (!isConfirmed) return;
+    
+    console.log("Deleting product ID:", id);
     try {
       const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
       setProducts((prev) => prev.filter((p) => p.id !== id));
-    } catch (err) {
+      alert("Product deleted successfully.");
+    } catch (err: any) {
       console.error("Failed to delete product:", err);
-      alert("Failed to delete product.");
+      // The provided code snippet for the catch block was syntactically incorrect
+      // and contained references to variables (slug, product) not defined in this scope.
+      // It also included JSX return statements which are not valid within this function.
+      // Assuming the intent was to provide more detailed error feedback,
+      // a simplified alert with the error message is used to maintain syntactic correctness.
+      alert(`Failed to delete product: ${err.message || "Unknown error"}. Please check connection.`);
     }
   }
 
   function getDisplayStatus(status: string, stock: number) {
     if (status === "active" && stock > 0 && stock <= 10) return { label: "Low Stock",    color: statusColors["low_stock"] };
-    if (status === "active")    return { label: "In Stock",    color: statusColors["active"] };
-    if (status === "out_of_stock") return { label: "Out of Stock", color: statusColors["out_of_stock"] };
+    if (status === "active" && stock > 0)    return { label: "In Stock",    color: statusColors["active"] };
+    if (status === "out_of_stock" || (status === "active" && stock === 0)) return { label: "Out of Stock", color: statusColors["out_of_stock"] };
     if (status === "draft")     return { label: "Draft",       color: statusColors["draft"] };
     return { label: status, color: statusColors["draft"] };
   }
@@ -152,7 +161,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                       <div className="flex items-center gap-3">
                         <div className="size-10 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
                           {mainImage ? (
-                            <img src={mainImage} className="w-full h-full object-cover" alt={product.name} />
+                            <img src={mainImage} className="w-full h-full object-cover" alt={product.name} loading="lazy" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
                               <span className="material-symbols-outlined text-slate-400 text-[18px]">image</span>
@@ -193,8 +202,12 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                           <span className="material-symbols-outlined text-lg">edit</span>
                         </Link>
                         <button
-                          onClick={() => deleteProduct(product.id)}
-                          className="text-slate-400 hover:text-red-500 transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleProductDelete(product.id);
+                          }}
+                          className="text-slate-400 hover:text-red-500 transition-colors p-1"
                         >
                           <span className="material-symbols-outlined text-lg">delete</span>
                         </button>

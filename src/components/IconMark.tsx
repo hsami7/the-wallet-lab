@@ -85,7 +85,7 @@ export const IconMark: React.FC<IconMarkProps> = ({
             />
             <path d="M30,65 L70,65 M36,75 L64,75" stroke="#0d59f2" strokeWidth="5" strokeDasharray="6,6" strokeLinecap="round" />
             <path d="M72,5 L35,80" stroke="#0d59f2" strokeWidth="4" strokeLinecap="round" />
-            <path d="M73,3 L76,9" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+            <path d="M73,3 L76,9" stroke="#ffffff" strokeWidth="2" strokeLinecap="round" />
           </svg>
         );
     }
