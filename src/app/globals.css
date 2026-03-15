@@ -16,7 +16,8 @@
   body {
     font-family: 'Space Grotesk', sans-serif;
   }
-  button, 
+
+  button,
   [role="button"],
   input[type="submit"],
   input[type="button"],

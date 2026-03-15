@@ -35,7 +35,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [newTag, setNewTag] = useState("");
   const [featured, setFeatured] = useState(initialData?.featured || false);
   const [variants, setVariants] = useState<ProductVariant[]>(
-    initialData?.colors && Array.isArray(initialData.colors) 
+    initialData?.colors && Array.isArray(initialData.colors)
       ? initialData.colors.map((c: any) => typeof c === 'string' ? { name: c, hex: '#000000' } : c)
       : []
   );
@@ -176,7 +176,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             <span className="material-symbols-outlined text-[14px]">chevron_right</span>
             <span className="text-primary">{isEditing ? "Edit Product" : "Add New"}</span>
           </nav>
-          <h2 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             {isEditing ? "Edit Product" : "Add New Product"}
           </h2>
           <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
@@ -184,14 +184,14 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
-          <button 
+          <button
             onClick={() => handleSave('draft')}
             disabled={isLoading}
             className="flex-1 md:flex-none px-6 py-3 rounded-2xl border-2 border-slate-200 dark:border-white/10 font-bold text-sm hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-slate-600 dark:text-slate-300"
           >
             Save Draft
           </button>
-          <button 
+          <button
             onClick={() => handleSave('active')}
             disabled={isLoading}
             className="flex-1 md:flex-none px-8 py-3 rounded-2xl bg-primary text-white font-bold text-sm shadow-xl shadow-primary/30 hover:translate-y-[-2px] active:translate-y-0 transition-all flex items-center justify-center gap-2"
@@ -220,21 +220,21 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             <div className="space-y-6">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Product Title</label>
-                <input 
+                <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-6 py-4 focus:ring-0 focus:border-primary outline-none transition-all placeholder:text-slate-400 text-sm font-semibold" 
-                  placeholder="e.g. The Nebula Cardholder" 
-                  type="text" 
+                  className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-6 py-4 focus:ring-0 focus:border-primary outline-none transition-all placeholder:text-slate-400 text-sm font-semibold"
+                  placeholder="e.g. The Nebula Cardholder"
+                  type="text"
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Description</label>
-                <textarea 
+                <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-6 py-4 focus:ring-0 focus:border-primary outline-none transition-all placeholder:text-slate-400 text-sm font-medium resize-none" 
-                  placeholder="Describe the aesthetic, materials, and vibe..." 
+                  className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-6 py-4 focus:ring-0 focus:border-primary outline-none transition-all placeholder:text-slate-400 text-sm font-medium resize-none"
+                  placeholder="Describe the aesthetic, materials, and vibe..."
                   rows={5}
                 ></textarea>
               </div>
@@ -250,12 +250,12 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                 </span>
                 Color Variants
               </h3>
-              <button 
+              <button
                 onClick={handleAddVariant}
                 type="button"
                 className="text-xs font-bold text-primary flex items-center gap-1.5 hover:opacity-80 uppercase tracking-widest transition-opacity"
               >
-                <span className="material-symbols-outlined text-lg">add_circle</span> 
+                <span className="material-symbols-outlined text-lg">add_circle</span>
                 Add Variant
               </button>
             </div>
@@ -263,20 +263,20 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             <div className="space-y-4">
               {variants.map((variant, idx) => (
                 <div key={idx} className="p-6 bg-slate-50/50 dark:bg-[#101622]/50 rounded-2xl border border-slate-100 dark:border-white/5 grid grid-cols-1 md:grid-cols-12 gap-6 relative group transition-colors hover:border-slate-200 dark:hover:border-white/10">
-                  <button 
+                  <button
                     onClick={() => handleRemoveVariant(idx)}
                     className="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition-colors"
                   >
                     <span className="material-symbols-outlined text-lg font-bold">cancel</span>
                   </button>
-                  
+
                   <div className="md:col-span-4">
                     <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 mb-2">Variant Name</label>
-                    <input 
+                    <input
                       value={variant.name}
                       onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
-                      className="w-full bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold shadow-sm" 
-                      type="text" 
+                      className="w-full bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold shadow-sm"
+                      type="text"
                     />
                   </div>
 
@@ -284,22 +284,22 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                     <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 mb-2">Hex Code</label>
                     <div className="flex items-center gap-3">
                       <div className="relative size-10 shrink-0">
-                        <input 
-                          type="color" 
+                        <input
+                          type="color"
                           value={variant.hex}
                           onChange={(e) => handleVariantChange(idx, 'hex', e.target.value)}
-                          className="absolute inset-0 size-full opacity-0 cursor-pointer z-10" 
+                          className="absolute inset-0 size-full opacity-0 cursor-pointer z-10"
                         />
-                        <div 
-                          className="size-full rounded-lg border-2 border-white dark:border-slate-800 shadow-sm transition-transform group-hover:scale-105" 
+                        <div
+                          className="size-full rounded-lg border-2 border-white dark:border-slate-800 shadow-sm transition-transform group-hover:scale-105"
                           style={{ backgroundColor: variant.hex }}
                         ></div>
                       </div>
-                      <input 
+                      <input
                         value={variant.hex}
                         onChange={(e) => handleVariantChange(idx, 'hex', e.target.value)}
-                        className="w-full bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm font-mono" 
-                        type="text" 
+                        className="w-full bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm font-mono"
+                        type="text"
                       />
                     </div>
                   </div>
@@ -321,7 +321,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                           <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(idx, e)} />
                         </label>
                       )}
-                      
+
                       <label className="flex-1 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center gap-2 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group/add">
                         <span className="material-symbols-outlined text-slate-400 text-lg group-hover/add:text-primary transition-colors">upload</span>
                         <span className="text-[10px] font-bold text-slate-400 group-hover/add:text-primary transition-colors uppercase tracking-widest">
@@ -355,19 +355,19 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Price (MAD)</label>
                 <div className="relative group">
                   <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold">#</span>
-                  <input 
+                  <input
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl pl-10 pr-6 py-3.5 outline-none focus:border-primary text-sm font-bold transition-all" 
-                    type="number" 
-                    placeholder="0.00" 
+                    className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl pl-10 pr-6 py-3.5 outline-none focus:border-primary text-sm font-bold transition-all"
+                    type="number"
+                    placeholder="0.00"
                   />
                 </div>
               </div>
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Category</label>
                 <div className="relative">
-                  <select 
+                  <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary appearance-none text-sm font-bold cursor-pointer"
@@ -390,37 +390,37 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
             <div className="space-y-6">
               <div>
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">SKU Base</label>
-                <input 
+                <input
                   value={sku}
                   onChange={(e) => setSku(e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-bold uppercase" 
-                  placeholder="WLT-NEB-24" 
-                  type="text" 
+                  className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-bold uppercase"
+                  placeholder="WLT-NEB-24"
+                  type="text"
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Stock Qty</label>
-                  <input 
+                  <input
                     value={stock}
                     onChange={(e) => setStock(Number(e.target.value))}
-                    className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-bold" 
-                    type="number" 
+                    className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-bold"
+                    type="number"
                   />
                 </div>
                 <div>
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Min Alert</label>
-                  <input 
+                  <input
                     value={minStock}
                     onChange={(e) => setMinStock(Number(e.target.value))}
-                    className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-bold text-red-500" 
-                    type="number" 
+                    className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-bold text-red-500"
+                    type="number"
                   />
                 </div>
               </div>
               <div className="flex items-center justify-between p-5 bg-primary/5 dark:bg-primary/10 rounded-2xl border border-primary/10">
                 <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">Track Inventory</span>
-                <button 
+                <button
                   onClick={() => setTrackInventory(!trackInventory)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${trackInventory ? 'bg-primary' : 'bg-slate-300 dark:bg-white/10'}`}
                 >
@@ -444,17 +444,17 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                     </span>
                   ))}
                 </div>
-                <input 
+                <input
                   value={newTag}
                   onChange={(e) => setNewTag(e.target.value)}
                   onKeyDown={handleAddTag}
-                  className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-semibold" 
-                  placeholder="Press Enter to add tag..." 
-                  type="text" 
+                  className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-semibold"
+                  placeholder="Press Enter to add tag..."
+                  type="text"
                 />
               </div>
-              
-              <div 
+
+              <div
                 className="flex items-center gap-4 py-4 px-5 rounded-2xl border-2 border-transparent hover:border-primary/20 hover:bg-primary/5 transition-all cursor-pointer group"
                 onClick={() => setFeatured(!featured)}
               >
