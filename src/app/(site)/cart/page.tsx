@@ -5,10 +5,20 @@ import React, { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
 export default function CartPage() {
-  const { cart, removeItem, updateQuantity, subtotal } = useCart();
+  const { cart, removeItem, updateQuantity, subtotal, discount, total, applyPromoCode, promoCode } = useCart();
+  const [promoInput, setPromoInput] = useState("");
+  const [promoStatus, setPromoStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const handleApplyPromo = () => {
+    if (applyPromoCode(promoInput)) {
+      setPromoStatus("success");
+    } else {
+      setPromoStatus("error");
+      setTimeout(() => setPromoStatus("idle"), 2000);
+    }
+  };
 
   const tax = subtotal * 0.08;
-  const total = subtotal + tax;
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-20 pt-0 pb-24 w-full">
       <div className="mb-10 mt-12">

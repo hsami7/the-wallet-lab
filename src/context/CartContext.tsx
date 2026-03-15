@@ -98,11 +98,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const clearCart = () => {
-    setCart([]);
+  const applyPromoCode = (code: string) => {
+    const validCodes = ["SAVE10", "LAB20"];
+    if (validCodes.includes(code.toUpperCase())) {
+      setPromoCode(code.toUpperCase());
+      return true;
+    }
+    return false;
   };
 
   const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const total = subtotal - discount + (subtotal > 0 ? subtotal * 0.08 : 0);
   const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
@@ -113,8 +119,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeItem,
         updateQuantity,
         clearCart,
+        applyPromoCode,
         subtotal,
+        discount,
+        total,
         itemCount,
+        promoCode,
       }}
     >
       {children}
