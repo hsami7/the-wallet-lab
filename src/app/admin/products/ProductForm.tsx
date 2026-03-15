@@ -21,6 +21,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isUploadingPrimary, setIsUploadingPrimary] = useState(false);
 
   // Form State
   const [name, setName] = useState(initialData?.name || "");
@@ -34,6 +35,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [newTag, setNewTag] = useState("");
   const [featured, setFeatured] = useState(initialData?.featured || false);
+  const [primaryImage, setPrimaryImage] = useState(initialData?.image_url || "");
   const [categories, setCategories] = useState<any[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>(
     initialData?.colors && Array.isArray(initialData.colors)
@@ -54,6 +56,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setTrackInventory(initialData.track_inventory !== false);
       setTags(initialData.tags || []);
       setFeatured(initialData.featured || false);
+      setPrimaryImage(initialData.image_url || "");
       setVariants(
         initialData.colors && Array.isArray(initialData.colors)
           ? initialData.colors.map((c: any) => typeof c === 'string' ? { name: c, hex: '#000000' } : c)
@@ -97,6 +100,35 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
 
   const handleRemoveTag = (tag: string) => {
     setTags(tags.filter(t => t !== tag));
+  };
+
+  const handlePrimaryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPrimary(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `primary-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(filePath);
+
+      setPrimaryImage(publicUrl);
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Failed to upload primary image.");
+    } finally {
+      setIsUploadingPrimary(false);
+    }
   };
 
   const handleFileUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,8 +181,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         featured,
         status,
         colors: variants,
-        // For backwards compatibility or simplified preview
-        image_url: variants[0]?.imageUrl || null,
+        image_url: primaryImage || variants[0]?.imageUrl || null,
         updated_at: new Date().toISOString()
       };
 
@@ -219,6 +250,53 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column */}
         <div className="lg:col-span-8 space-y-8">
+          {/* Product Media */}
+          <section className="bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/5 rounded-3xl p-8 shadow-sm">
+            <h3 className="text-lg font-bold mb-8 flex items-center gap-3">
+              <span className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                <span className="material-symbols-outlined text-xl">image</span>
+              </span>
+              Product Media
+            </h3>
+            
+            <div className="space-y-4">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Primary Product Image</label>
+              
+              {primaryImage ? (
+                <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-slate-100 dark:border-white/5 group bg-slate-50 dark:bg-black/20">
+                  <img src={primaryImage} className="w-full h-full object-contain" alt="Primary Preview" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                    <label className="size-12 rounded-full bg-white text-slate-900 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                      <span className="material-symbols-outlined">edit</span>
+                      <input type="file" className="hidden" accept="image/*" onChange={handlePrimaryUpload} />
+                    </label>
+                    <button 
+                      onClick={() => setPrimaryImage("")}
+                      className="size-12 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform"
+                    >
+                      <span className="material-symbols-outlined">delete</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <label className="flex flex-col items-center justify-center aspect-video rounded-2xl border-4 border-dashed border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group">
+                  <div className="size-16 rounded-2xl bg-white dark:bg-white/10 shadow-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                    {isUploadingPrimary ? (
+                      <span className="animate-spin border-4 border-primary/30 border-t-primary rounded-full size-8"></span>
+                    ) : (
+                      <span className="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+                    )}
+                  </div>
+                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">
+                    {isUploadingPrimary ? "Uploading..." : "Upload Primary Image"}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-2 font-medium">PNG, JPG or WEBP up to 5MB</p>
+                  <input type="file" className="hidden" accept="image/*" onChange={handlePrimaryUpload} />
+                </label>
+              )}
+            </div>
+          </section>
+
           {/* Basic Information */}
           <section className="bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/5 rounded-3xl p-8 shadow-sm">
             <h3 className="text-lg font-bold mb-8 flex items-center gap-3">
