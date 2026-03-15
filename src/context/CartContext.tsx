@@ -98,6 +98,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const clearCart = () => {
+    setCart([]);
+    setPromoCode(null);
+  };
+
   const applyPromoCode = (code: string) => {
     const validCodes = ["SAVE10", "LAB20"];
     if (validCodes.includes(code.toUpperCase())) {
