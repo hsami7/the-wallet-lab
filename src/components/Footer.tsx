@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React from "react";
 import { usePathname } from "next/navigation";
+import { Logo } from "./Logo";
 
 export default function Footer() {
   const pathname = usePathname();
@@ -11,10 +12,9 @@ export default function Footer() {
     <footer className="bg-slate-50 dark:bg-slate-950 px-6 lg:px-20 pt-20 pb-10 border-t border-slate-200 dark:border-slate-800/50">
       <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12 mb-20">
         <div className="col-span-2 flex flex-col gap-6">
-          <div className="flex items-center gap-2 text-primary">
-            <span className="material-symbols-outlined text-3xl">layers</span>
-            <h2 className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">The Wallet Lab</h2>
-          </div>
+          <Link href="/" className="flex items-center gap-2">
+            <Logo size={180} />
+          </Link>
           <p className="text-slate-600 dark:text-slate-500 max-w-xs text-sm leading-relaxed">
             Redefining how you carry essentials for the digital world. Modern engineering, timeless craftsmanship.
           </p>

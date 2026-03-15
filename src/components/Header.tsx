@@ -3,6 +3,7 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { Logo } from "./Logo";
 
 export default function Header() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -36,9 +37,8 @@ export default function Header() {
   return (
     <header className={`sticky top-0 z-50 w-full border-b border-slate-200/50 dark:border-slate-800/80 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-6 lg:px-20 py-4 flex items-center justify-between transition-all duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full'}`}>
       <div className="flex items-center gap-10">
-        <Link href="/" className="flex items-center gap-2 text-primary">
-          <span className="material-symbols-outlined text-3xl">layers</span>
-          <h2 className="text-slate-900 dark:text-slate-100 text-xl font-bold tracking-tight">The Wallet Lab</h2>
+        <Link href="/" className="flex items-center gap-2">
+          <Logo size={180} />
         </Link>
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/shop" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">Shop</Link>

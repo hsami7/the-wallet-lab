@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/actions/auth";
+import { Logo } from "@/components/Logo";
 
 const navItems = [
   { href: "/admin",             label: "Overview",    icon: "dashboard" },
@@ -30,13 +31,7 @@ export default function AdminSidebar({
       {/* Brand */}
       <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
         <Link href="/" className="flex items-center gap-3">
-          <div className="size-10 bg-primary rounded-xl flex items-center justify-center text-white shrink-0">
-            <span className="material-symbols-outlined text-xl">account_balance_wallet</span>
-          </div>
-          <div>
-            <p className="text-slate-900 dark:text-slate-100 font-bold text-sm leading-tight">The Wallet Lab</p>
-            <p className="text-slate-500 dark:text-slate-400 text-xs">Admin Portal</p>
-          </div>
+          <Logo size={140} />
         </Link>
       </div>
 
