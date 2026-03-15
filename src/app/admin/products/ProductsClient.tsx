@@ -57,11 +57,20 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Products</h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-          Manage your aesthetic collection and inventory.
-        </p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Products</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+            Manage your aesthetic collection and inventory.
+          </p>
+        </div>
+        <Link
+          href="/admin/products/new"
+          className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
+        >
+          <span className="material-symbols-outlined text-lg">add</span>
+          Add New Product
+        </Link>
       </div>
 
       {/* Stats */}
@@ -205,16 +214,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
           </table>
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
           <span>Showing {filtered.length} of {products.length} products</span>
-          <Link
-            href="/admin/products/new"
-            className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity"
-          >
-            <span className="material-symbols-outlined text-sm">add</span>
-            Add New Product
-          </Link>
         </div>
       </div>
     </div>
