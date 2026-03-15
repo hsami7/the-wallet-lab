@@ -13,21 +13,19 @@ export type Category = {
 
 export async function getCategories(): Promise<Category[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("categories")
-    .select("*")
-    .order("name", { ascending: true });
+  try {
+    const { data, error } = await supabase
+      .from("categories")
+      .select("*")
+      .order("name", { ascending: true });
 
-  if (error) {
-    // 42P01 is the Postgres error code for "relation does not exist"
-    if (error.code === '42P01') {
+    if (error) {
       return [];
     }
-    console.error("Error fetching categories:", error);
+    return data as Category[];
+  } catch (err) {
     return [];
   }
-
-  return data as Category[];
 }
 
 export async function createCategory(formData: FormData) {
@@ -48,7 +46,6 @@ export async function createCategory(formData: FormData) {
   revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
   revalidatePath("/shop");
-  return { success: true };
 }
 
 export async function updateCategory(id: string, formData: FormData) {
@@ -70,7 +67,6 @@ export async function updateCategory(id: string, formData: FormData) {
   revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
   revalidatePath("/shop");
-  return { success: true };
 }
 
 export async function deleteCategory(id: string) {
@@ -87,5 +83,4 @@ export async function deleteCategory(id: string) {
   revalidatePath("/admin/categories");
   revalidatePath("/admin/products");
   revalidatePath("/shop");
-  return { success: true };
 }

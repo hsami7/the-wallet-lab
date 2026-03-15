@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const notifications = [
   { icon: "shopping_cart",   title: "New order #ORD-4822",          desc: "Jean Dupont placed an order",       time: "2m ago",  unread: true  },
@@ -14,6 +14,11 @@ const notifications = [
 export default function AdminHeader() {
   const { theme, setTheme } = useTheme();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <header className="h-16 shrink-0 flex items-center justify-between px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
@@ -45,7 +50,7 @@ export default function AdminHeader() {
           title="Toggle theme"
         >
           <span className="material-symbols-outlined text-[20px]">
-            {theme === "dark" ? "light_mode" : "dark_mode"}
+            {mounted && theme === "dark" ? "light_mode" : "dark_mode"}
           </span>
         </button>
 
