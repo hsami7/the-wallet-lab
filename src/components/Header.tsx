@@ -6,31 +6,60 @@ import { useTheme } from "next-themes";
 import { Logo } from "./Logo";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
- 
+import { createClient } from "@/utils/supabase/client";
+
 export default function Header() {
   const { resolvedTheme, setTheme } = useTheme();
   const { itemCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
+
+    // Fetch user session
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        // Try full_name from metadata, fall back to email prefix
+        const name =
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          user.email?.split("@")[0] ||
+          null;
+        setUserName(name);
+      }
+    });
+
+    // Listen for auth state changes (login/logout)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const name =
+          session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.name ||
+          session.user.email?.split("@")[0] ||
+          null;
+        setUserName(name);
+      } else {
+        setUserName(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
-    
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
-      // Hide when scrolling down past 100px, show when scrolling up
       if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
       }
-      
       lastScrollY = currentScrollY;
     };
 
@@ -50,12 +79,16 @@ export default function Header() {
           <Link href="/contact" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">Contact Us</Link>
         </nav>
       </div>
+
       <div className="flex items-center gap-4">
+        {/* Search bar commented out */}
         {/* <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 border border-slate-200 dark:border-slate-700/50">
           <span className="material-symbols-outlined text-slate-400 text-sm">search</span>
           <input className="bg-transparent border-none focus:ring-0 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 w-32 lg:w-48 outline-none" placeholder="Search tech..." />
         </div> */}
-        <button 
+
+        {/* Theme toggle */}
+        <button
           onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
           className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-primary hover:text-white dark:hover:bg-primary transition-all"
         >
@@ -64,9 +97,11 @@ export default function Header() {
           ) : mounted ? (
             <span className="material-symbols-outlined text-xl">dark_mode</span>
           ) : (
-             <div className="size-5"></div>
+            <div className="size-5" />
           )}
         </button>
+
+        {/* Wishlist */}
         <Link href="/wishlist" className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 transition-all relative">
           <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: wishlistCount > 0 ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
           {mounted && wishlistCount > 0 && (
@@ -75,6 +110,8 @@ export default function Header() {
             </span>
           )}
         </Link>
+
+        {/* Cart */}
         <Link href="/cart" className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-primary hover:text-white transition-all relative">
           <span className="material-symbols-outlined text-xl">shopping_bag</span>
           {mounted && itemCount > 0 && (
@@ -83,8 +120,22 @@ export default function Header() {
             </span>
           )}
         </Link>
-        <Link href="/login" className="flex items-center justify-center rounded-full size-10 bg-primary text-slate-100 shadow-lg shadow-primary/20">
-          <span className="material-symbols-outlined text-xl">person</span>
+
+        {/* Account — shows name when logged in */}
+        <Link
+          href={userName ? "/account" : "/login"}
+          className="flex items-center gap-2 rounded-full bg-primary text-white shadow-lg shadow-primary/20 transition-all hover:bg-blue-600 pl-1 pr-3 py-1"
+        >
+          <span className="flex items-center justify-center size-8 rounded-full bg-white/20">
+            <span className="material-symbols-outlined text-[18px]">person</span>
+          </span>
+          {mounted && userName ? (
+            <span className="text-sm font-semibold max-w-[100px] truncate">
+              {userName.split(" ")[0]}
+            </span>
+          ) : (
+            <span className="text-sm font-semibold">Login</span>
+          )}
         </Link>
       </div>
     </header>
