@@ -21,6 +21,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingVariantIdx, setUploadingVariantIdx] = useState<number | null>(null);
   const [isUploadingPrimary, setIsUploadingPrimary] = useState(false);
 
   // Form State
@@ -36,7 +37,12 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [newTag, setNewTag] = useState("");
   const [featured, setFeatured] = useState(initialData?.featured || false);
   const [primaryImage, setPrimaryImage] = useState(initialData?.image_url || "");
-  const [secondaryImages, setSecondaryImages] = useState<string[]>(initialData?.images || []);
+  const [secondaryImages, setSecondaryImages] = useState<string[]>(() => {
+    const variantUrls = new Set(
+      (initialData?.colors || []).map((c: any) => c?.imageUrl).filter(Boolean)
+    );
+    return (initialData?.images || []).filter((url: string) => !variantUrls.has(url));
+  });
   const [categories, setCategories] = useState<any[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>(
     initialData?.colors && Array.isArray(initialData.colors)
@@ -58,12 +64,13 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setTags(initialData.tags || []);
       setFeatured(initialData.featured || false);
       setPrimaryImage(initialData.image_url || "");
-      setSecondaryImages(initialData.images || []);
-      setVariants(
-        initialData.colors && Array.isArray(initialData.colors)
-          ? initialData.colors.map((c: any) => typeof c === 'string' ? { name: c, hex: '#000000' } : c)
-          : []
-      );
+      const loadedVariants = initialData.colors && Array.isArray(initialData.colors)
+        ? initialData.colors.map((c: any) => typeof c === 'string' ? { name: c, hex: '#000000' } : c)
+        : [];
+      setVariants(loadedVariants);
+      // Filter out variant photos so Additional Photos only shows truly extra images
+      const variantUrls = new Set(loadedVariants.map((v: ProductVariant) => v.imageUrl).filter(Boolean));
+      setSecondaryImages((initialData.images || []).filter((url: string) => !variantUrls.has(url)));
     }
   }, [initialData]);
 
@@ -76,8 +83,15 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     fetchCats();
   }, [supabase]);
 
+  const hasVariants = variants.length > 0;
+
+  // When variants exist, derive primary image from first variant with a photo
+  const effectivePrimaryImage = hasVariants
+    ? (variants.find(v => v.imageUrl)?.imageUrl || "")
+    : primaryImage;
+
   const handleAddVariant = () => {
-    setVariants([...variants, { name: "New Variant", hex: "#0d59f2" }]);
+    setVariants([...variants, { name: "New Color", hex: "#0d59f2" }]);
   };
 
   const handleRemoveVariant = (index: number) => {
@@ -107,23 +121,15 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const handlePrimaryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    e.target.value = ""; // reset so same file can be re-selected
     setIsUploadingPrimary(true);
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `primary-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
       const filePath = `products/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
-
+      const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, file);
       if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
-
+      const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(filePath);
       setPrimaryImage(publicUrl);
     } catch (err) {
       console.error("Upload error:", err);
@@ -133,59 +139,43 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     }
   };
 
-  const handleFileUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVariantImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    setIsUploading(true);
+    e.target.value = ""; // reset so same file can be re-selected
+    setUploadingVariantIdx(index);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `variant-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
       const filePath = `product-variants/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file);
-
+      const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, file);
       if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
-
+      const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(filePath);
       handleVariantChange(index, 'imageUrl', publicUrl);
     } catch (err) {
       console.error("Upload error:", err);
       alert("Failed to upload image.");
     } finally {
-      setIsUploading(false);
+      setUploadingVariantIdx(null);
     }
   };
 
   const handleSecondaryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
+    if (!e.target.files || e.target.files.length === 0) return;
+    // Snapshot into a real array BEFORE resetting the input — FileList is a live reference
+    const files = Array.from(e.target.files);
+    e.target.value = ""; // reset so same file can be re-selected
     setIsUploading(true);
     try {
-      const uploadPromises = Array.from(files).map(async (file) => {
+      const uploadPromises = files.map(async (file) => {
         const fileExt = file.name.split('.').pop();
         const fileName = `secondary-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
         const filePath = `products/${fileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(filePath, file);
-
+        const { error: uploadError } = await supabase.storage.from('product-images').upload(filePath, file);
         if (uploadError) throw uploadError;
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(filePath);
-
+        const { data: { publicUrl } } = supabase.storage.from('product-images').getPublicUrl(filePath);
         return publicUrl;
       });
-
       const urls = await Promise.all(uploadPromises);
       setSecondaryImages([...secondaryImages, ...urls]);
     } catch (err) {
@@ -222,21 +212,27 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         featured,
         status,
         colors: variants,
-        image_url: primaryImage || variants[0]?.imageUrl || null,
-        images: secondaryImages,
+        // If variants exist, derive primary image from first variant with an image;
+        // otherwise use the manually uploaded primary image.
+        image_url: hasVariants
+          ? (variants.find(v => v.imageUrl)?.imageUrl || primaryImage || null)
+          : (primaryImage || null),
+        // If variants exist, gallery = all variant images + any extra secondaryImages;
+        // otherwise use the manually curated secondary list.
+        images: hasVariants
+          ? [
+              ...variants.filter(v => v.imageUrl).map(v => v.imageUrl as string),
+              ...secondaryImages,
+            ]
+          : secondaryImages,
         updated_at: new Date().toISOString()
       };
 
       if (isEditing && initialData?.id) {
-        const { error } = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', initialData.id);
+        const { error } = await supabase.from('products').update(productData).eq('id', initialData.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('products')
-          .insert([productData]);
+        const { error } = await supabase.from('products').insert([productData]);
         if (error) throw error;
       }
 
@@ -292,83 +288,87 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column */}
         <div className="lg:col-span-8 space-y-8">
-          {/* Product Media */}
-          <section className="bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/5 rounded-3xl p-8 shadow-sm">
-            <h3 className="text-lg font-bold mb-8 flex items-center gap-3">
-              <span className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                <span className="material-symbols-outlined text-xl">image</span>
-              </span>
-              Product Media
-            </h3>
-            
-            <div className="space-y-4">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Primary Product Image</label>
-              
-              {primaryImage ? (
-                <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-slate-100 dark:border-white/5 group bg-slate-50 dark:bg-black/20">
-                  <img src={primaryImage} className="w-full h-full object-contain" alt="Primary Preview" loading="lazy" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                    <label className="size-12 rounded-full bg-white text-slate-900 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
-                      <span className="material-symbols-outlined">edit</span>
-                      <input type="file" className="hidden" accept="image/*" onChange={handlePrimaryUpload} />
-                    </label>
-                    <button 
-                      onClick={() => setPrimaryImage("")}
-                      className="size-12 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform"
-                    >
-                      <span className="material-symbols-outlined">delete</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center aspect-video rounded-2xl border-4 border-dashed border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group">
-                  <div className="size-16 rounded-2xl bg-white dark:bg-white/10 shadow-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    {isUploadingPrimary ? (
-                      <span className="animate-spin border-4 border-primary/30 border-t-primary rounded-full size-8"></span>
-                    ) : (
-                      <span className="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
-                    )}
-                  </div>
-                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">
-                    {isUploadingPrimary ? "Uploading..." : "Upload Primary Image"}
-                  </p>
-                  <p className="text-xs text-slate-400 mt-2 font-medium">PNG, JPG or WEBP up to 5MB</p>
-                  <input type="file" className="hidden" accept="image/*" onChange={handlePrimaryUpload} />
-                </label>
-              )}
-            </div>
 
-            {/* Secondary Media */}
-            <div className="space-y-4 pt-8 border-t border-slate-100 dark:border-white/5 mt-8">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Secondary Images</label>
-              
-              <div className="flex flex-wrap gap-4">
-                {secondaryImages.map((url, idx) => (
-                  <div key={idx} className="relative size-24 rounded-xl overflow-hidden border-2 border-slate-100 dark:border-white/5 group bg-slate-50 dark:bg-black/20 shrink-0">
-                    <img src={url} className="w-full h-full object-cover" alt={`Secondary ${idx}`} loading="lazy" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button 
-                        onClick={(e) => { e.preventDefault(); handleRemoveSecondary(url); }}
-                        className="size-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform"
+          {/* Product Media — only shown when there are NO color variants */}
+          {/* COMMENTED OUT: photos are now handled entirely through color variant uploads
+          {!hasVariants && (
+            <section className="bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/5 rounded-3xl p-8 shadow-sm">
+              <h3 className="text-lg font-bold mb-2 flex items-center gap-3">
+                <span className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <span className="material-symbols-outlined text-xl">image</span>
+                </span>
+                Product Media
+              </h3>
+              <p className="text-xs text-slate-400 font-medium mb-8">
+                Upload a primary photo and any additional angles. To link photos per color, add variants below instead.
+              </p>
+
+              <div className="space-y-4">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Primary Image</label>
+                {primaryImage ? (
+                  <div className="relative aspect-video rounded-2xl overflow-hidden border-2 border-slate-100 dark:border-white/5 group bg-slate-50 dark:bg-black/20">
+                    <img src={primaryImage} className="w-full h-full object-contain" alt="Primary Preview" loading="lazy" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                      <label className="size-12 rounded-full bg-white text-slate-900 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+                        <span className="material-symbols-outlined">edit</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={handlePrimaryUpload} />
+                      </label>
+                      <button
+                        onClick={() => setPrimaryImage("")}
+                        className="size-12 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform"
                       >
-                        <span className="material-symbols-outlined text-sm">delete</span>
+                        <span className="material-symbols-outlined">delete</span>
                       </button>
                     </div>
                   </div>
-                ))}
-                
-                <label className="flex flex-col items-center justify-center size-24 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group shrink-0">
-                  {isUploading ? (
-                    <span className="animate-spin border-2 border-primary/30 border-t-primary rounded-full size-6"></span>
-                  ) : (
-                    <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">add_photo_alternate</span>
-                  )}
-                  <input type="file" className="hidden" accept="image/*" multiple onChange={handleSecondaryUpload} />
-                </label>
+                ) : (
+                  <label className="flex flex-col items-center justify-center aspect-video rounded-2xl border-4 border-dashed border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group">
+                    <div className="size-16 rounded-2xl bg-white dark:bg-white/10 shadow-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                      {isUploadingPrimary ? (
+                        <span className="animate-spin border-4 border-primary/30 border-t-primary rounded-full size-8"></span>
+                      ) : (
+                        <span className="material-symbols-outlined text-primary text-3xl">cloud_upload</span>
+                      )}
+                    </div>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase tracking-widest">
+                      {isUploadingPrimary ? "Uploading..." : "Upload Primary Image"}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-2 font-medium">PNG, JPG or WEBP up to 5MB</p>
+                    <input type="file" className="hidden" accept="image/*" onChange={handlePrimaryUpload} />
+                  </label>
+                )}
               </div>
-              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Upload multiple angles or detail shots</p>
-            </div>
-          </section>
+
+              <div className="space-y-4 pt-8 border-t border-slate-100 dark:border-white/5 mt-8">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Additional Images</label>
+                <div className="flex flex-wrap gap-4">
+                  {secondaryImages.map((url, idx) => (
+                    <div key={idx} className="relative size-24 rounded-xl overflow-hidden border-2 border-slate-100 dark:border-white/5 group bg-slate-50 dark:bg-black/20 shrink-0">
+                      <img src={url} className="w-full h-full object-cover" alt={`Secondary ${idx}`} loading="lazy" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          onClick={(e) => { e.preventDefault(); handleRemoveSecondary(url); }}
+                          className="size-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <label className="flex flex-col items-center justify-center size-24 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group shrink-0">
+                    {isUploading ? (
+                      <span className="animate-spin border-2 border-primary/30 border-t-primary rounded-full size-6"></span>
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">add_photo_alternate</span>
+                    )}
+                    <input type="file" className="hidden" accept="image/*" multiple onChange={handleSecondaryUpload} />
+                  </label>
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Multiple angles or detail shots</p>
+              </div>
+            </section>
+          )}
+          */}
 
           {/* Basic Information */}
           <section className="bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/5 rounded-3xl p-8 shadow-sm">
@@ -404,7 +404,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
 
           {/* Color Variants */}
           <section className="bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/5 rounded-3xl p-8 shadow-sm">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex justify-between items-center mb-2">
               <h3 className="text-lg font-bold flex items-center gap-3">
                 <span className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                   <span className="material-symbols-outlined text-xl">palette</span>
@@ -420,10 +420,15 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                 Add Variant
               </button>
             </div>
+            <p className="text-xs text-slate-400 font-medium mb-8">
+              {hasVariants
+                ? "Each color has one photo — that photo is used both as the color swatch image and in the product gallery. No separate upload needed."
+                : "Optionally add color variants. Each color variant includes its own photo — the Product Media section above will be replaced."}
+            </p>
 
             <div className="space-y-4">
               {variants.map((variant, idx) => (
-                <div key={idx} className="p-6 bg-slate-50/50 dark:bg-[#101622]/50 rounded-2xl border border-slate-100 dark:border-white/5 grid grid-cols-1 md:grid-cols-12 gap-6 relative group transition-colors hover:border-slate-200 dark:hover:border-white/10">
+                <div key={idx} className="p-6 bg-slate-50/50 dark:bg-[#101622]/50 rounded-2xl border border-slate-100 dark:border-white/5 relative group transition-colors hover:border-slate-200 dark:hover:border-white/10">
                   <button
                     onClick={() => handleRemoveVariant(idx)}
                     className="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition-colors"
@@ -431,65 +436,80 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                     <span className="material-symbols-outlined text-lg font-bold">cancel</span>
                   </button>
 
-                  <div className="md:col-span-4">
-                    <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 mb-2">Variant Name</label>
-                    <input
-                      value={variant.name}
-                      onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
-                      className="w-full bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold shadow-sm"
-                      type="text"
-                    />
-                  </div>
-
-                  <div className="md:col-span-3">
-                    <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 mb-2">Hex Code</label>
-                    <div className="flex items-center gap-3">
-                      <div className="relative size-10 shrink-0">
-                        <input
-                          type="color"
-                          value={variant.hex}
-                          onChange={(e) => handleVariantChange(idx, 'hex', e.target.value)}
-                          className="absolute inset-0 size-full opacity-0 cursor-pointer z-10"
-                        />
-                        <div
-                          className="size-full rounded-lg border-2 border-white dark:border-slate-800 shadow-sm transition-transform group-hover:scale-105"
-                          style={{ backgroundColor: variant.hex }}
-                        ></div>
-                      </div>
-                      <input
-                        value={variant.hex}
-                        onChange={(e) => handleVariantChange(idx, 'hex', e.target.value)}
-                        className="w-full bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm font-mono"
-                        type="text"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="md:col-span-5">
-                    <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 mb-2">Media Upload</label>
-                    <div className="flex gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    {/* Photo — large and prominent, comes first */}
+                    <div className="md:col-span-4">
+                      <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 mb-2">
+                        Photo
+                        {idx === 0 && <span className="ml-2 text-emerald-500">· Main image</span>}
+                      </label>
                       {variant.imageUrl ? (
-                        <div className="size-10 rounded-xl bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 overflow-hidden relative group/thumb shadow-sm">
-                          <img src={variant.imageUrl} className="w-full h-full object-cover" alt={variant.name} loading="lazy" />
-                          <label className="absolute inset-0 bg-primary/60 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity cursor-pointer">
-                            <span className="material-symbols-outlined text-white text-sm">edit</span>
-                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(idx, e)} />
+                        <div>
+                          <div className="relative aspect-square w-full rounded-xl overflow-hidden border-2 border-slate-100 dark:border-white/10 group/img">
+                            <img src={variant.imageUrl} className="w-full h-full object-cover" alt={variant.name} loading="lazy" />
+                            {uploadingVariantIdx === idx && (
+                              <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                <span className="animate-spin border-4 border-primary/30 border-t-primary rounded-full size-8"></span>
+                              </div>
+                            )}
+                          </div>
+                          {/* Always-visible change button — no hover required */}
+                          <label className="mt-2 flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-slate-200 dark:border-white/10 text-[10px] font-bold text-slate-400 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all cursor-pointer uppercase tracking-widest">
+                            <span className="material-symbols-outlined text-sm">edit</span>
+                            Change Photo
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleVariantImageUpload(idx, e)} />
                           </label>
                         </div>
                       ) : (
-                        <label className="size-10 rounded-xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-400 cursor-pointer hover:bg-primary/5 hover:border-primary transition-all shadow-sm">
-                          <span className="material-symbols-outlined text-lg">image</span>
-                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(idx, e)} />
+                        <label className="flex flex-col items-center justify-center aspect-square w-full rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-white dark:bg-[#1a2234] hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group/add">
+                          {uploadingVariantIdx === idx ? (
+                            <span className="animate-spin border-4 border-primary/30 border-t-primary rounded-full size-8"></span>
+                          ) : (
+                            <>
+                              <span className="material-symbols-outlined text-slate-300 group-hover/add:text-primary transition-colors text-3xl mb-2">add_photo_alternate</span>
+                              <span className="text-[10px] font-bold text-slate-400 group-hover/add:text-primary transition-colors uppercase tracking-widest">Upload Photo</span>
+                            </>
+                          )}
+                          <input type="file" className="hidden" accept="image/*" onChange={(e) => handleVariantImageUpload(idx, e)} />
                         </label>
                       )}
+                    </div>
 
-                      <label className="flex-1 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 flex items-center justify-center gap-2 cursor-pointer hover:border-primary hover:bg-primary/5 transition-all group/add">
-                        <span className="material-symbols-outlined text-slate-400 text-lg group-hover/add:text-primary transition-colors">upload</span>
-                        <span className="text-[10px] font-bold text-slate-400 group-hover/add:text-primary transition-colors uppercase tracking-widest">
-                          {isUploading ? "Uploading..." : "Upload Photo"}
-                        </span>
-                        <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileUpload(idx, e)} />
-                      </label>
+                    {/* Name + Color */}
+                    <div className="md:col-span-8 flex flex-col gap-4 justify-center">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 mb-2">Variant Name</label>
+                        <input
+                          value={variant.name}
+                          onChange={(e) => handleVariantChange(idx, 'name', e.target.value)}
+                          className="w-full bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold shadow-sm"
+                          type="text"
+                          placeholder="e.g. Midnight Black"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400 mb-2">Color</label>
+                        <div className="flex items-center gap-3">
+                          <div className="relative size-10 shrink-0">
+                            <input
+                              type="color"
+                              value={variant.hex}
+                              onChange={(e) => handleVariantChange(idx, 'hex', e.target.value)}
+                              className="absolute inset-0 size-full opacity-0 cursor-pointer z-10"
+                            />
+                            <div
+                              className="size-full rounded-lg border-2 border-white dark:border-slate-800 shadow-sm"
+                              style={{ backgroundColor: variant.hex }}
+                            ></div>
+                          </div>
+                          <input
+                            value={variant.hex}
+                            onChange={(e) => handleVariantChange(idx, 'hex', e.target.value)}
+                            className="w-full bg-white dark:bg-[#1a2234] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm font-mono"
+                            type="text"
+                          />
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -503,6 +523,37 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                 </div>
               )}
             </div>
+
+            {/* Additional Photos — only shown when variants exist */}
+            {hasVariants && (
+              <div className="pt-8 border-t border-slate-100 dark:border-white/5 mt-8">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Additional Photos</label>
+                <p className="text-[11px] text-slate-400 font-medium mb-4">Optional — lifestyle shots or angles not linked to a specific color. These are added to the product gallery alongside the color photos.</p>
+                <div className="flex flex-wrap gap-4">
+                  {secondaryImages.map((url, idx) => (
+                    <div key={idx} className="relative size-24 rounded-xl overflow-hidden border-2 border-slate-100 dark:border-white/5 group bg-slate-50 dark:bg-black/20 shrink-0">
+                      <img src={url} className="w-full h-full object-cover" alt={`Extra ${idx}`} loading="lazy" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <button
+                          onClick={(e) => { e.preventDefault(); handleRemoveSecondary(url); }}
+                          className="size-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <label className="flex flex-col items-center justify-center size-24 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group shrink-0">
+                    {isUploading ? (
+                      <span className="animate-spin border-2 border-primary/30 border-t-primary rounded-full size-6"></span>
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">add_photo_alternate</span>
+                    )}
+                    <input type="file" className="hidden" accept="image/*" multiple onChange={handleSecondaryUpload} />
+                  </label>
+                </div>
+              </div>
+            )}
           </section>
         </div>
 

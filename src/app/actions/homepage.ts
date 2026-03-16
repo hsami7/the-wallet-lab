@@ -21,7 +21,7 @@ export async function getCollections(): Promise<HomepageCollection[]> {
     .order("slot_index", { ascending: true });
 
   if (error) {
-    console.error("Error fetching homepage collections:", error);
+    console.error("Error fetching homepage collections:", error.message, "| code:", error.code, "| hint:", error.hint);
     return [];
   }
 

@@ -3,19 +3,28 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 export function ProductDetailsClient({ product }: { product: any }) {
   const { addItem } = useCart();
+  const { toggleWishlist, isWishlisted } = useWishlist();
+  const wishlisted = isWishlisted(product.id);
+
   const [selectedColor, setSelectedColor] = useState(
     product.colors && product.colors.length > 0 ? (product.colors[0].hex || product.colors[0].color) : null
   );
 
   const [mainImage, setMainImage] = useState(product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image");
 
-  const allImages = [
+  const variantImages = (product.colors || [])
+    .map((v: any) => v.imageUrl || v.image)
+    .filter(Boolean);
+
+  const allImages = Array.from(new Set([
     product.image_url,
+    ...variantImages,
     ...(product.images || [])
-  ].filter(Boolean);
+  ])).filter(Boolean);
 
   const handleAddToCart = () => {
     addItem({
@@ -26,6 +35,17 @@ export function ProductDetailsClient({ product }: { product: any }) {
       image: product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image",
       description: product.category || "Premium Carry",
       variant: selectedColor || undefined
+    });
+  };
+
+  const handleToggleWishlist = () => {
+    toggleWishlist({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image",
+      slug: product.slug,
+      category: product.category,
     });
   };
 
@@ -144,15 +164,46 @@ export function ProductDetailsClient({ product }: { product: any }) {
             </div>
           )}
 
-          <div className="pt-8 border-t border-slate-200 dark:border-primary/10 flex flex-col gap-4">
-            <button
-              onClick={handleAddToCart}
-              disabled={product.inventory_count <= 0}
-              className="w-full py-5 bg-primary hover:bg-blue-600 text-white font-black rounded-2xl shadow-[0_20px_40px_rgba(13,89,242,0.3)] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:bg-slate-400 disabled:shadow-none"
-            >
-              Add to Laboratory Cart <span className="material-symbols-outlined">add_shopping_cart</span>
-            </button>
-            <p className="text-center text-xs text-slate-500 font-medium">Free worldwide shipping on orders over 1500 MAD</p>
+          {/* CTA Buttons */}
+          <div className="pt-8 border-t border-slate-200 dark:border-primary/10 flex flex-col gap-3">
+            <div className="flex gap-3">
+              <button
+                onClick={handleAddToCart}
+                disabled={product.inventory_count <= 0}
+                className="flex-1 py-5 bg-primary hover:bg-blue-600 text-white font-black rounded-2xl shadow-[0_20px_40px_rgba(13,89,242,0.3)] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:bg-slate-400 disabled:shadow-none"
+              >
+                Add to Cart <span className="material-symbols-outlined">add_shopping_cart</span>
+              </button>
+
+              {/* Wishlist Button */}
+              <button
+                onClick={handleToggleWishlist}
+                title={wishlisted ? "Remove from wishlist" : "Save to wishlist"}
+                className={`size-[62px] shrink-0 rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${
+                  wishlisted
+                    ? "bg-red-50 dark:bg-red-500/10 border-red-300 dark:border-red-500/40 text-red-500 scale-[1.02]"
+                    : "border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-300 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+                }`}
+              >
+                <span
+                  className="material-symbols-outlined text-[26px] transition-all"
+                  style={{ fontVariationSettings: wishlisted ? "'FILL' 1" : "'FILL' 0" }}
+                >
+                  favorite
+                </span>
+              </button>
+            </div>
+
+            {/* Wishlist link hint when saved */}
+            {wishlisted && (
+              <Link
+                href="/wishlist"
+                className="text-center text-xs font-semibold text-red-400 hover:text-red-500 transition-colors flex items-center justify-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">favorite</span>
+                Saved to wishlist — view it
+              </Link>
+            )}
           </div>
         </div>
       </div>

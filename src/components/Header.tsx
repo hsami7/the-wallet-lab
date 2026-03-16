@@ -5,10 +5,12 @@ import React, { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Logo } from "./Logo";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
  
 export default function Header() {
   const { resolvedTheme, setTheme } = useTheme();
   const { itemCount } = useCart();
+  const { itemCount: wishlistCount } = useWishlist();
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
 
@@ -44,15 +46,15 @@ export default function Header() {
         </Link>
         <nav className="hidden md:flex items-center gap-8">
           <Link href="/shop" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">Shop</Link>
-          <Link href="#" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">Technology</Link>
-          <Link href="/about" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">Manifesto</Link>
+          <Link href="/about" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">About Us</Link>
+          <Link href="/contact" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">Contact Us</Link>
         </nav>
       </div>
       <div className="flex items-center gap-4">
-        <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 border border-slate-200 dark:border-slate-700/50">
+        {/* <div className="hidden sm:flex items-center bg-slate-100 dark:bg-slate-800/50 rounded-full px-4 py-2 border border-slate-200 dark:border-slate-700/50">
           <span className="material-symbols-outlined text-slate-400 text-sm">search</span>
           <input className="bg-transparent border-none focus:ring-0 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-500 w-32 lg:w-48 outline-none" placeholder="Search tech..." />
-        </div>
+        </div> */}
         <button 
           onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
           className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-primary hover:text-white dark:hover:bg-primary transition-all"
@@ -65,6 +67,14 @@ export default function Header() {
              <div className="size-5"></div>
           )}
         </button>
+        <Link href="/wishlist" className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-red-50 dark:hover:bg-red-500/10 hover:text-red-500 transition-all relative">
+          <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: wishlistCount > 0 ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+          {mounted && wishlistCount > 0 && (
+            <span className="absolute -top-1 -right-1 size-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-background-light dark:border-background-dark">
+              {wishlistCount}
+            </span>
+          )}
+        </Link>
         <Link href="/cart" className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-primary hover:text-white transition-all relative">
           <span className="material-symbols-outlined text-xl">shopping_bag</span>
           {mounted && itemCount > 0 && (

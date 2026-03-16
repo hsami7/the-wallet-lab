@@ -3,6 +3,8 @@ import { getCollections } from "@/app/actions/homepage";
 import { createClient } from "@/utils/supabase/server";
 import { FeaturedProductsClient } from "@/components/home/FeaturedProductsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const collections = await getCollections();
   const supabase = await createClient();
