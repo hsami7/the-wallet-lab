@@ -7,7 +7,7 @@ import { useCart } from "@/context/CartContext";
 export function ProductDetailsClient({ product }: { product: any }) {
   const { addItem } = useCart();
   const [selectedColor, setSelectedColor] = useState(
-    product.colors && product.colors.length > 0 ? product.colors[0].color : null
+    product.colors && product.colors.length > 0 ? (product.colors[0].hex || product.colors[0].color) : null
   );
 
   const [mainImage, setMainImage] = useState(product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image");
@@ -35,6 +35,8 @@ export function ProductDetailsClient({ product }: { product: any }) {
         <Link href="/" className="hover:text-primary transition-colors">Home</Link>
         <span className="material-symbols-outlined text-xs">chevron_right</span>
         <Link href="/shop" className="hover:text-primary transition-colors">Shop</Link>
+        <span className="material-symbols-outlined text-xs">chevron_right</span>
+        <span className="text-slate-400 capitalize">{product.category}</span>
         <span className="material-symbols-outlined text-xs">chevron_right</span>
         <span className="text-slate-900 dark:text-white font-medium">{product.name}</span>
       </div>
@@ -114,22 +116,30 @@ export function ProductDetailsClient({ product }: { product: any }) {
             <div className="space-y-4">
               <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Select Finish</p>
               <div className="flex gap-4">
-                {product.colors.map((variant: any, idx: number) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedColor(variant.color)}
-                    className={`group relative size-10 rounded-full border-2 transition-all flex items-center justify-center ${selectedColor === variant.color ? 'border-primary' : 'border-transparent'
-                      }`}
-                  >
-                    <div
-                      className="size-7 rounded-full border border-white/20 shadow-inner"
-                      style={{ backgroundColor: variant.color }}
-                    />
-                    <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                      {variant.name}
-                    </span>
-                  </button>
-                ))}
+                {product.colors.map((variant: any, idx: number) => {
+                  const colorHex = variant.hex || variant.color;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setSelectedColor(colorHex);
+                        if (variant.imageUrl || variant.image) {
+                          setMainImage(variant.imageUrl || variant.image);
+                        }
+                      }}
+                      className={`group relative size-10 rounded-full border-2 transition-all flex items-center justify-center ${selectedColor === colorHex ? 'border-primary' : 'border-transparent'
+                        }`}
+                    >
+                      <div
+                        className="size-7 rounded-full border border-white/20 shadow-inner"
+                        style={{ backgroundColor: colorHex }}
+                      />
+                      <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        {variant.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
