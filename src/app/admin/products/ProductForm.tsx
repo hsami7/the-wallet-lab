@@ -36,6 +36,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [newTag, setNewTag] = useState("");
   const [featured, setFeatured] = useState(initialData?.featured || false);
   const [primaryImage, setPrimaryImage] = useState(initialData?.image_url || "");
+  const [secondaryImages, setSecondaryImages] = useState<string[]>(initialData?.images || []);
   const [categories, setCategories] = useState<any[]>([]);
   const [variants, setVariants] = useState<ProductVariant[]>(
     initialData?.colors && Array.isArray(initialData.colors)
@@ -57,6 +58,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setTags(initialData.tags || []);
       setFeatured(initialData.featured || false);
       setPrimaryImage(initialData.image_url || "");
+      setSecondaryImages(initialData.images || []);
       setVariants(
         initialData.colors && Array.isArray(initialData.colors)
           ? initialData.colors.map((c: any) => typeof c === 'string' ? { name: c, hex: '#000000' } : c)
@@ -160,6 +162,44 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     }
   };
 
+  const handleSecondaryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `secondary-${Date.now()}-${Math.random().toString(36).substring(2, 7)}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        return publicUrl;
+      });
+
+      const urls = await Promise.all(uploadPromises);
+      setSecondaryImages([...secondaryImages, ...urls]);
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Failed to upload secondary images.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveSecondary = (urlToRemove: string) => {
+    setSecondaryImages(secondaryImages.filter(url => url !== urlToRemove));
+  };
+
   const handleSave = async (status: string = 'active') => {
     if (!name || !price) {
       alert("Please fill in Name and Price.");
@@ -183,6 +223,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         status,
         colors: variants,
         image_url: primaryImage || variants[0]?.imageUrl || null,
+        images: secondaryImages,
         updated_at: new Date().toISOString()
       };
 
@@ -295,6 +336,37 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                   <input type="file" className="hidden" accept="image/*" onChange={handlePrimaryUpload} />
                 </label>
               )}
+            </div>
+
+            {/* Secondary Media */}
+            <div className="space-y-4 pt-8 border-t border-slate-100 dark:border-white/5 mt-8">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Secondary Images</label>
+              
+              <div className="flex flex-wrap gap-4">
+                {secondaryImages.map((url, idx) => (
+                  <div key={idx} className="relative size-24 rounded-xl overflow-hidden border-2 border-slate-100 dark:border-white/5 group bg-slate-50 dark:bg-black/20 shrink-0">
+                    <img src={url} className="w-full h-full object-cover" alt={`Secondary ${idx}`} loading="lazy" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <button 
+                        onClick={(e) => { e.preventDefault(); handleRemoveSecondary(url); }}
+                        className="size-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:scale-110 transition-transform"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                
+                <label className="flex flex-col items-center justify-center size-24 rounded-xl border-2 border-dashed border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer group shrink-0">
+                  {isUploading ? (
+                    <span className="animate-spin border-2 border-primary/30 border-t-primary rounded-full size-6"></span>
+                  ) : (
+                    <span className="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">add_photo_alternate</span>
+                  )}
+                  <input type="file" className="hidden" accept="image/*" multiple onChange={handleSecondaryUpload} />
+                </label>
+              </div>
+              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Upload multiple angles or detail shots</p>
             </div>
           </section>
 

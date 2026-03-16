@@ -10,6 +10,13 @@ export function ProductDetailsClient({ product }: { product: any }) {
     product.colors && product.colors.length > 0 ? product.colors[0].color : null
   );
 
+  const [mainImage, setMainImage] = useState(product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image");
+
+  const allImages = [
+    product.image_url,
+    ...(product.images || [])
+  ].filter(Boolean);
+
   const handleAddToCart = () => {
     addItem({
       id: product.id,
@@ -37,13 +44,30 @@ export function ProductDetailsClient({ product }: { product: any }) {
         <div className="space-y-6">
           <div className="aspect-square rounded-[2rem] overflow-hidden bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-primary/10">
             <img
-              src={product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image"}
+              src={mainImage}
               alt={product.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-all duration-500"
               loading="lazy"
             />
           </div>
-          {/* Add more images if available in schema */}
+          
+          {allImages.length > 1 && (
+            <div className="flex flex-wrap gap-4">
+              {allImages.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setMainImage(img)}
+                  className={`relative size-20 rounded-2xl overflow-hidden border-2 transition-all ${
+                    mainImage === img 
+                      ? "border-primary ring-4 ring-primary/10" 
+                      : "border-slate-200 dark:border-white/5 hover:border-primary/50"
+                  }`}
+                >
+                  <img src={img} alt={`${product.name} angle ${idx + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Info */}
