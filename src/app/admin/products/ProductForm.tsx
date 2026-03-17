@@ -369,7 +369,11 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         }
       }
 
-      showToast("Product saved successfully!", "success");
+      const successMsg = status === 'active' 
+        ? (isEditing ? "Changes published successfully!" : "Product published successfully!")
+        : "Draft saved successfully!";
+      
+      showToast(successMsg, "success");
       router.push("/admin/products");
       router.refresh();
     } catch (err: any) {
