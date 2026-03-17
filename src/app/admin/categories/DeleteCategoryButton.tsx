@@ -37,51 +37,57 @@ export default function DeleteCategoryButton({ categoryId, categoryName }: Delet
       </button>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="size-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-red-600 dark:text-red-400">warning</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Delete Category</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to delete this category?</p>
-                </div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl shadow-red-500/10 max-w-md w-full border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 ease-out">
+            <div className="p-8 text-center">
+              <div className="size-20 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center mx-auto mb-6 relative">
+                <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping opacity-20" />
+                <span className="material-symbols-outlined text-red-600 dark:text-red-500 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
               </div>
-              <p className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                You are about to delete the category <strong>"{categoryName}"</strong>. This action cannot be undone.
+              
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight leading-tight">
+                Wait! Danger Zone
+              </h3>
+              
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 leading-relaxed max-w-[280px] mx-auto">
+                Are you absolutely sure? You are deleting the category <strong>"{categoryName}"</strong>.
               </p>
+
               {errorMsg && (
-                <p className="mt-4 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-100 dark:border-red-900/30">
+                <p className="mb-6 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 p-3 rounded-xl border border-red-100 dark:border-red-900/30 animate-shake">
                   {errorMsg}
                 </p>
               )}
+
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="w-full py-4 px-6 text-sm font-black text-white bg-red-600 hover:bg-red-500 rounded-2xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                      Deleting Category...
+                    </>
+                  ) : (
+                    'Yes, Delete Permanently'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowModal(false); setErrorMsg(null); }}
+                  disabled={isDeleting}
+                  className="w-full py-4 px-6 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  Nevermind, Go Back
+                </button>
+              </div>
             </div>
-            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => { setShowModal(false); setErrorMsg(null); }}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDelete}
-                disabled={isDeleting}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-              >
-                {isDeleting ? (
-                  <>
-                    <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
-                    Deleting...
-                  </>
-                ) : (
-                  'Delete Category'
-                )}
-              </button>
+            <div className="bg-slate-50 dark:bg-slate-800/30 px-8 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-2">
+              <span className="material-symbols-outlined text-slate-400 text-xs">info</span>
+              <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Action cannot be undone</p>
             </div>
           </div>
         </div>
