@@ -11,13 +11,19 @@ export const flyToCart = (sourceElement: HTMLElement, color: string = '#0d59f2')
   const sourceRect = sourceElement.getBoundingClientRect();
   const targetRect = cartTarget.getBoundingClientRect();
 
+  // Calculate centers
+  const sourceCenterX = sourceRect.left + sourceRect.width / 2;
+  const sourceCenterY = sourceRect.top + sourceRect.height / 2;
+  const targetCenterX = targetRect.left + targetRect.width / 2;
+  const targetCenterY = targetRect.top + targetRect.height / 2;
+
   // Create the flying particle
   const particle = document.createElement('div');
   
   // Style the particle
   particle.style.position = 'fixed';
-  particle.style.left = `${sourceRect.left + sourceRect.width / 2 - 10}px`;
-  particle.style.top = `${sourceRect.top + sourceRect.height / 2 - 10}px`;
+  particle.style.left = `${sourceCenterX - 10}px`;
+  particle.style.top = `${sourceCenterY - 10}px`;
   particle.style.width = '20px';
   particle.style.height = '20px';
   particle.style.backgroundColor = color;
@@ -37,7 +43,7 @@ export const flyToCart = (sourceElement: HTMLElement, color: string = '#0d59f2')
       opacity: 0.8
     },
     {
-      transform: `scale(0.2) translate(${targetRect.left - sourceRect.left}px, ${targetRect.top - sourceRect.top}px)`,
+      transform: `scale(0.2) translate(${targetCenterX - sourceCenterX}px, ${targetCenterY - sourceCenterY}px)`,
       opacity: 0.2
     }
   ], {
