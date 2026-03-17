@@ -133,7 +133,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     : primaryImage;
 
   const handleAddVariant = () => {
-    setVariants([...variants, { name: "New Color", hex: "#0d59f2", secondaryHex: "#000000" }]);
+    setVariants([...variants, { name: "New Color", hex: "#0d59f2" }]);
   };
 
   const handleRemoveVariant = (index: number) => {
