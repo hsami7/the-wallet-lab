@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import { useToast } from "@/context/ToastContext";
 
 const statusColors: Record<string, string> = {
   active:      "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -34,7 +35,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
     return matchFilter && matchSearch;
   });
 
-  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const { showToast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
@@ -43,7 +44,6 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
     
     setIsDeleting(true);
     setProductToDelete(null);
-    setNotification(null);
     console.log("Attempting to delete product ID:", id);
     
     try {
@@ -63,10 +63,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       }
       
       setProducts((prev) => prev.filter((p) => p.id !== id));
-      setNotification({ message: "Product deleted successfully.", type: 'success' });
+      showToast("Product deleted successfully.", "success");
     } catch (err: any) {
       console.error("Deletion failed:", err);
-      setNotification({ message: err.message || "Failed to delete product. Please try again.", type: 'error' });
+      showToast(err.message || "Failed to delete product. Please try again.", "error");
     } finally {
       setIsDeleting(false);
     }
@@ -82,27 +82,6 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
 
   return (
     <div className="p-8 relative">
-      {/* Notifications */}
-      {notification && (
-        <div className={`mb-8 p-4 rounded-2xl border flex items-center justify-between animate-in fade-in slide-in-from-top-4 duration-300 ${
-          notification.type === 'success' 
-            ? "bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-400" 
-            : "bg-red-500/10 border-red-500/20 text-red-700 dark:text-red-400"
-        }`}>
-          <div className="flex items-center gap-3">
-            <span className="material-symbols-outlined">
-              {notification.type === 'success' ? 'check_circle' : 'error'}
-            </span>
-            <p className="font-bold text-sm tracking-wide">{notification.message}</p>
-          </div>
-          <button 
-            onClick={() => setNotification(null)}
-            className="p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition-colors"
-          >
-            <span className="material-symbols-outlined text-lg">close</span>
-          </button>
-        </div>
-      )}
 
       {/* Header */}
       <div className="mb-8 flex items-start justify-between">
