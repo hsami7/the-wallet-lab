@@ -53,7 +53,7 @@ export default function AdminHeader({
             className="lg:hidden flex items-center justify-center p-2 text-slate-600 dark:text-slate-400"
           >
             <span className="material-symbols-outlined text-2xl">menu</span>
-          </button>
+          </button>u
 
           <Link href="/" className="lg:hidden flex items-center">
             <Logo size={120} />

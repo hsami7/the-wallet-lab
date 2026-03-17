@@ -6,8 +6,9 @@ import { useTheme } from "next-themes";
 import { Logo } from "./Logo";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { createClient } from "@/utils/supabase/client";
+import { logout } from "@/app/actions/auth";
 import { usePathname } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
 
 export default function Header() {
   const pathname = usePathname();
@@ -17,6 +18,8 @@ export default function Header() {
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [userName, setUserName] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userInitials, setUserInitials] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -29,16 +32,26 @@ export default function Header() {
         .eq("id", userId)
         .single();
 
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) setUserEmail(user.email);
+
       if (profile?.full_name) {
         setUserName(profile.full_name);
+        const names = profile.full_name.split(" ");
+        const ini = names.map((n: any) => n[0]).join("").toUpperCase();
+        setUserInitials(ini.slice(0, 2));
       } else {
-        const { data: { user } } = await supabase.auth.getUser();
         const name =
           user?.user_metadata?.full_name ||
           user?.user_metadata?.name ||
           user?.email?.split("@")[0] ||
           null;
         setUserName(name);
+        if (name) {
+          const names = name.split(" ");
+          const ini = names.map((n: any) => n[0]).join("").toUpperCase();
+          setUserInitials(ini.slice(0, 2));
+        }
       }
     };
 
@@ -58,7 +71,7 @@ export default function Header() {
               table: 'profiles',
               filter: `id=eq.${session.user.id}`
             },
-            (payload) => {
+            (payload: any) => {
               console.log('Real-time profile update:', payload);
               if (payload.new && (payload.new as any).full_name) {
                 setUserName((payload.new as any).full_name);
@@ -79,7 +92,7 @@ export default function Header() {
       profileChannel = channel;
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (profileChannel) {
         supabase.removeChannel(profileChannel);
         profileChannel = null;
@@ -97,7 +110,7 @@ export default function Header() {
               table: 'profiles',
               filter: `id=eq.${session.user.id}`
             },
-            (payload) => {
+            (payload: any) => {
               if (payload.new && (payload.new as any).full_name) {
                 setUserName((payload.new as any).full_name);
               }
@@ -249,7 +262,9 @@ export default function Header() {
           <div className="absolute inset-y-0 left-0 w-4/5 max-w-sm bg-white dark:bg-slate-900 shadow-2xl animate-in slide-in-from-left duration-500">
             <div className="p-6 flex flex-col h-full">
               <div className="flex items-center justify-between mb-10">
-                <Logo size={140} />
+                <Link href="/" onClick={() => setIsMenuOpen(false)}>
+                  <Logo size={140} forceFull />
+                </Link>
                 <button 
                   onClick={() => setIsMenuOpen(false)}
                   className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500"
@@ -280,12 +295,31 @@ export default function Header() {
                 ))}
               </nav>
 
-              <div className="mt-auto pt-10">
-                <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 text-center">
-                  <p className="text-xs uppercase tracking-widest text-primary font-bold mb-2">Lab Special</p>
-                  <h4 className="text-lg font-black text-slate-900 dark:text-white mb-1">20% OFF</h4>
-                  <p className="text-xs text-slate-500">First Embroidery Order</p>
-                </div>
+              <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800">
+                {userName ? (
+                  <div className="flex items-center justify-between p-2">
+                    <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white font-bold">
+                        {userInitials || "U"}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold truncate max-w-[150px]">{userName}</p>
+                        <p className="text-xs text-slate-500 truncate max-w-[150px]">{userEmail || "Signed In"}</p>
+                      </div>
+                    </div>
+                    <form action={logout}>
+                      <button type="submit" className="size-10 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 flex items-center justify-center transition-colors hover:bg-red-100 dark:hover:bg-red-900/30">
+                        <span className="material-symbols-outlined text-xl">logout</span>
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="p-6 rounded-3xl bg-primary/5 border border-primary/10 text-center">
+                    <p className="text-xs uppercase tracking-widest text-primary font-bold mb-2">Lab Special</p>
+                    <h4 className="text-lg font-black text-slate-900 dark:text-white mb-1">20% OFF</h4>
+                    <p className="text-xs text-slate-500">First Embroidery Order</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
