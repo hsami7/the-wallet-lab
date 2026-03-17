@@ -34,7 +34,7 @@ export function ProductDetailsClient({
     icon_name: 'local_shipping'
   } : null;
 
-  const allHighlights = promoHighlight ? [promoHighlight, ...highlights] : highlights;
+  const allHighlights = promoHighlight ? [...highlights, promoHighlight] : highlights;
 
   const [selectedVariant, setSelectedVariant] = useState(product.colors?.[0] || { name: 'Default', hex: '#000000', imageUrl: product.image_url });
   const [quantity, setQuantity] = useState(1);
