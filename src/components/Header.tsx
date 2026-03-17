@@ -141,9 +141,39 @@ export default function Header() {
           <Logo size={180} />
         </Link>
         <nav className="hidden md:flex items-center gap-8">
-          <Link href="/shop" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">Shop</Link>
-          <Link href="/about" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">About Us</Link>
-          <Link href="/contact" className="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium">Contact Us</Link>
+          <Link 
+            href="/shop" 
+            className={`text-sm font-medium transition-all duration-300 relative py-1 ${
+              pathname === '/shop' ? "text-primary font-bold" : "text-slate-500 dark:text-slate-400 hover:text-primary"
+            }`}
+          >
+            Shop
+            {pathname === '/shop' && (
+              <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full transition-all" />
+            )}
+          </Link>
+          <Link 
+            href="/about" 
+            className={`text-sm font-medium transition-all duration-300 relative py-1 ${
+              pathname === '/about' ? "text-primary font-bold" : "text-slate-500 dark:text-slate-400 hover:text-primary"
+            }`}
+          >
+            About Us
+            {pathname === '/about' && (
+              <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full transition-all" />
+            )}
+          </Link>
+          <Link 
+            href="/contact" 
+            className={`text-sm font-medium transition-all duration-300 relative py-1 ${
+              pathname === '/contact' ? "text-primary font-bold" : "text-slate-500 dark:text-slate-400 hover:text-primary"
+            }`}
+          >
+            Contact Us
+            {pathname === '/contact' && (
+              <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full transition-all" />
+            )}
+          </Link>
         </nav>
       </div>
 
