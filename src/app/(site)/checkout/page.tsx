@@ -235,12 +235,18 @@ export default function CheckoutPage() {
                       {item.variant && (
                         <div className="flex items-center gap-1.5 ml-2">
                           <div 
-                            className="size-2.5 rounded-full border border-white/20 overflow-hidden shadow-inner" 
-                            style={{ 
-                              backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant,
-                              background: item.variant?.secondaryHex ? `linear-gradient(to right, ${item.variant.hex} 0% 50%, ${item.variant.secondaryHex} 50% 100%)` : undefined
-                            }}
-                          ></div>
+                            className="size-2.5 rounded-full border border-white/20 shadow-inner overflow-hidden flex" 
+                            style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }}
+                          >
+                            {typeof item.variant === 'object' && item.variant.secondaryHex ? (
+                              <>
+                                <div className="w-1/2 h-full" style={{ backgroundColor: item.variant.hex }} />
+                                <div className="w-[calc(50%+1px)] h-full -ml-[1px]" style={{ backgroundColor: item.variant.secondaryHex }} />
+                              </>
+                            ) : (
+                              <div className="size-full" style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }} />
+                            )}
+                          </div>
                           <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 truncate max-w-[60px]">
                             {typeof item.variant === 'object' ? item.variant.name : 'Finish'}
                           </span>

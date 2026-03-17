@@ -51,12 +51,18 @@ export default function CartPage() {
                     {item.variant && (
                       <div className="flex items-center gap-2 mt-1">
                         <div 
-                          className="size-3 rounded-full border border-white/20 overflow-hidden shadow-inner" 
-                          style={{ 
-                            backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant,
-                            background: item.variant?.secondaryHex ? `linear-gradient(to right, ${item.variant.hex} 0% 50%, ${item.variant.secondaryHex} 50% 100%)` : undefined
-                          }}
-                        ></div>
+                          className="size-3 rounded-full border border-white/20 overflow-hidden shadow-inner flex" 
+                          style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }}
+                        >
+                          {typeof item.variant === 'object' && item.variant.secondaryHex ? (
+                            <>
+                              <div className="w-1/2 h-full" style={{ backgroundColor: item.variant.hex }} />
+                              <div className="w-[calc(50%+1px)] h-full -ml-[1px]" style={{ backgroundColor: item.variant.secondaryHex }} />
+                            </>
+                          ) : (
+                            <div className="size-full" style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }} />
+                          )}
+                        </div>
                         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                           {typeof item.variant === 'object' ? item.variant.name : 'Selected Finish'}
                         </span>

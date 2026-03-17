@@ -173,12 +173,18 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
                     >
 
                       <div
-                        className="relative z-10 size-7 rounded-full border border-white/20 shadow-inner overflow-hidden"
-                        style={{ 
-                          backgroundColor: colorHex,
-                          background: secondaryHex ? `linear-gradient(to right, ${colorHex} 0% 50%, ${secondaryHex} 50% 100%)` : colorHex
-                        }}
-                      />
+                        className="relative z-10 size-7 rounded-full border border-white/20 shadow-inner overflow-hidden flex"
+                        style={{ backgroundColor: colorHex }}
+                      >
+                        {secondaryHex ? (
+                          <>
+                            <div className="w-1/2 h-full" style={{ backgroundColor: colorHex }} />
+                            <div className="w-[calc(50%+1px)] h-full -ml-[1px]" style={{ backgroundColor: secondaryHex }} />
+                          </>
+                        ) : (
+                          <div className="size-full" style={{ backgroundColor: colorHex }} />
+                        )}
+                      </div>
                       <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap opacity-0 group-hover:opacity-100 ${isSelected ? 'text-primary' : 'text-slate-400'}`}>
                         {variant.name}
                       </span>
