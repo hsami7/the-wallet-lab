@@ -18,7 +18,7 @@ import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { ToastContainer } from "@/components/ui/ToastContainer";
- 
+
 export default function RootLayout({
   children,
 }: Readonly<{

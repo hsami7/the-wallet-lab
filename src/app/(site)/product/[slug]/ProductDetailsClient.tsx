@@ -7,13 +7,13 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { flyToCart } from "@/utils/animations";
 
-export function ProductDetailsClient({ 
-  product, 
-  highlights = [], 
-  shippingRules = [] 
-}: { 
-  product: any; 
-  highlights?: any[]; 
+export function ProductDetailsClient({
+  product,
+  highlights = [],
+  shippingRules = []
+}: {
+  product: any;
+  highlights?: any[];
   shippingRules?: any[];
 }) {
   const router = useRouter();
@@ -26,7 +26,7 @@ export function ProductDetailsClient({
   const promoHighlight = activePromo ? {
     id: 'promo-free-delivery',
     title: 'Free Delivery Promotion',
-    description: activePromo.min_amount > 0 
+    description: activePromo.min_amount > 0
       ? `Get free standard delivery on all orders over ${activePromo.min_amount} MAD.`
       : activePromo.min_quantity > 0
         ? `Get free standard delivery when you buy ${activePromo.min_quantity} or more items.`
@@ -185,8 +185,8 @@ export function ProductDetailsClient({
                         }
                       }}
                       className={`group relative size-10 rounded-full transition-all flex items-center justify-center 
-                        ${isSelected 
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-[#070b14]' 
+                        ${isSelected
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-[#070b14]'
                           : 'hover:ring-2 hover:ring-primary/30 hover:ring-offset-2 hover:ring-offset-white dark:hover:ring-offset-[#070b14]'
                         }`}
                     >

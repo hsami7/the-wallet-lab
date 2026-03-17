@@ -70,18 +70,18 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
                     >
                       {isDualColor ? (
                         <>
-                          <div 
-                            className="absolute inset-y-0 left-0 w-[51%] transition-colors duration-300" 
+                          <div
+                            className="absolute inset-y-0 left-0 w-[51%] transition-colors duration-300"
                             style={{ backgroundColor: variant.hex }}
                           />
-                          <div 
-                            className="absolute inset-y-0 right-0 w-[51%] transition-colors duration-300" 
+                          <div
+                            className="absolute inset-y-0 right-0 w-[51%] transition-colors duration-300"
                             style={{ backgroundColor: variant.secondaryHex }}
                           />
                         </>
                       ) : (
-                        <div 
-                          className="absolute inset-0 transition-colors duration-300" 
+                        <div
+                          className="absolute inset-0 transition-colors duration-300"
                           style={{ backgroundColor: variant.hex || variant.color || '#94a3b8' }}
                         />
                       )}
@@ -92,8 +92,8 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
               <button
                 onClick={(e) => handleAddToCart(e, product)}
                 className={`w-full mt-auto py-3 font-bold rounded-full transition-all text-sm font-display flex items-center justify-center gap-2 ${addedItems[product.id]
-                    ? "bg-emerald-500 text-white shadow-[0_10px_20px_rgba(16,185,129,0.3)] scale-[0.98]"
-                    : "bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white"
+                  ? "bg-emerald-500 text-white shadow-[0_10px_20px_rgba(16,185,129,0.3)] scale-[0.98]"
+                  : "bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white"
                   }`}
               >
                 {addedItems[product.id] ? (

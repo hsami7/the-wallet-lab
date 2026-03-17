@@ -28,7 +28,7 @@ export default function DeleteCategoryButton({ categoryId, categoryName }: Delet
 
   return (
     <>
-      <button 
+      <button
         onClick={() => setShowModal(true)}
         className="text-slate-400 hover:text-red-500 transition-colors"
         title="Delete Category"
@@ -44,11 +44,11 @@ export default function DeleteCategoryButton({ categoryId, categoryName }: Delet
                 <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping opacity-20" />
                 <span className="material-symbols-outlined text-red-600 dark:text-red-500 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
               </div>
-              
+
               <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight leading-tight">
                 Wait! Danger Zone
               </h3>
-              
+
               <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 leading-relaxed max-w-[280px] mx-auto">
                 Are you absolutely sure? You are deleting the category <strong>"{categoryName}"</strong>.
               </p>

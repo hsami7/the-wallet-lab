@@ -6,10 +6,10 @@ import Link from "next/link";
 import { useToast } from "@/context/ToastContext";
 
 const statusColors: Record<string, string> = {
-  active:      "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  low_stock:   "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  out_of_stock:"bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  draft:       "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+  active: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  low_stock: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  out_of_stock: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  draft: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
 };
 
 export function ProductsClient({ initialProducts }: { initialProducts: Record<string, any>[] }) {
@@ -23,10 +23,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
     const isLowStock = p.status === "active" && p.inventory_count > 0 && p.inventory_count <= 10;
 
     let matchFilter = true;
-    if (filter === "In Stock")     matchFilter = p.status === "active" && p.inventory_count > 10;
-    else if (filter === "Low Stock")    matchFilter = isLowStock;
+    if (filter === "In Stock") matchFilter = p.status === "active" && p.inventory_count > 10;
+    else if (filter === "Low Stock") matchFilter = isLowStock;
     else if (filter === "Out of Stock") matchFilter = p.status === "out_of_stock" || (p.status === "active" && p.inventory_count === 0);
-    else if (filter === "Draft")        matchFilter = p.status === "draft";
+    else if (filter === "Draft") matchFilter = p.status === "draft";
 
     const matchSearch =
       p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -41,19 +41,19 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
 
   async function handleProductDelete(id: string) {
     if (isDeleting) return;
-    
+
     setIsDeleting(true);
     setProductToDelete(null);
     console.log("Attempting to delete product ID:", id);
-    
+
     try {
       // 1. Delete highlights first
       const { error: hError } = await supabase.from("product_highlights").delete().eq("product_id", id);
       if (hError) throw hError;
-      
+
       // 2. Try to delete the product
       const { error } = await supabase.from("products").delete().eq("id", id);
-      
+
       if (error) {
         // Handle specific foreign key error (usually Error Code 23503 in PG)
         if (error.message.includes("foreign key constraint") || error.code === '23503') {
@@ -61,7 +61,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
         }
         throw error;
       }
-      
+
       setProducts((prev) => prev.filter((p) => p.id !== id));
       showToast("Product deleted successfully.", "success");
     } catch (err: any) {
@@ -73,10 +73,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
   }
 
   function getDisplayStatus(status: string, stock: number) {
-    if (status === "active" && stock > 0 && stock <= 10) return { label: "Low Stock",    color: statusColors["low_stock"] };
-    if (status === "active" && stock > 0)    return { label: "In Stock",    color: statusColors["active"] };
+    if (status === "active" && stock > 0 && stock <= 10) return { label: "Low Stock", color: statusColors["low_stock"] };
+    if (status === "active" && stock > 0) return { label: "In Stock", color: statusColors["active"] };
     if (status === "out_of_stock" || (status === "active" && stock === 0)) return { label: "Out of Stock", color: statusColors["out_of_stock"] };
-    if (status === "draft")     return { label: "Draft",       color: statusColors["draft"] };
+    if (status === "draft") return { label: "Draft", color: statusColors["draft"] };
     return { label: status, color: statusColors["draft"] };
   }
 
@@ -103,10 +103,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Products", value: products.length.toString(),                                                                                                          icon: "inventory_2" },
-          { label: "Active",         value: products.filter((p) => p.status === "active" && p.inventory_count > 10).length.toString(),                                           icon: "check_circle" },
-          { label: "Low Stock",      value: products.filter((p) => p.status === "active" && p.inventory_count > 0 && p.inventory_count <= 10).length.toString(),                 icon: "warning" },
-          { label: "Out of Stock",   value: products.filter((p) => p.status === "out_of_stock" || (p.status === "active" && p.inventory_count === 0)).length.toString(),         icon: "error" },
+          { label: "Total Products", value: products.length.toString(), icon: "inventory_2" },
+          { label: "Active", value: products.filter((p) => p.status === "active" && p.inventory_count > 10).length.toString(), icon: "check_circle" },
+          { label: "Low Stock", value: products.filter((p) => p.status === "active" && p.inventory_count > 0 && p.inventory_count <= 10).length.toString(), icon: "warning" },
+          { label: "Out of Stock", value: products.filter((p) => p.status === "out_of_stock" || (p.status === "active" && p.inventory_count === 0)).length.toString(), icon: "error" },
         ].map((s) => (
           <div key={s.label} className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 flex items-center gap-4">
             <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -129,11 +129,10 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
               <button
                 key={s}
                 onClick={() => setFilter(s)}
-                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                  filter === s
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${filter === s
                     ? "bg-primary text-white"
                     : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
-                }`}
+                  }`}
               >
                 {s}
               </button>
@@ -261,11 +260,11 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                 <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping opacity-20" />
                 <span className="material-symbols-outlined text-red-600 dark:text-red-500 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
               </div>
-              
+
               <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight leading-tight">
                 Wait! Danger Zone
               </h3>
-              
+
               <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed max-w-[280px] mx-auto">
                 Are you absolutely sure? This will permanently delete this product and all its history.
               </p>

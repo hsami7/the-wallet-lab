@@ -152,8 +152,8 @@ function ShopContent({ products }: { products: any[] }) {
           <button
             onClick={() => updateParams("All", sortBy)}
             className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${activeCategory === "All"
-                ? "bg-primary text-white"
-                : "bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:bg-primary/20"
+              ? "bg-primary text-white"
+              : "bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:bg-primary/20"
               }`}
           >
             All
@@ -163,8 +163,8 @@ function ShopContent({ products }: { products: any[] }) {
               key={cat}
               onClick={() => updateParams(cat, sortBy)}
               className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${activeCategory === cat
-                  ? "bg-primary text-white"
-                  : "bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:bg-primary/20"
+                ? "bg-primary text-white"
+                : "bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:bg-primary/20"
                 }`}
             >
               {cat}
@@ -197,8 +197,8 @@ function ShopContent({ products }: { products: any[] }) {
                     key={value}
                     onClick={() => { updateParams(activeCategory, value); setSortOpen(false); }}
                     className={`w-full text-left px-5 py-3 text-sm font-medium transition-colors ${sortBy === value
-                        ? "bg-primary/10 text-primary font-bold"
-                        : "hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
+                      ? "bg-primary/10 text-primary font-bold"
+                      : "hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
                       }`}
                   >
                     {label}
@@ -257,8 +257,8 @@ function ShopContent({ products }: { products: any[] }) {
                     });
                   }}
                   className={`absolute bottom-4 right-4 size-10 backdrop-blur-md rounded-full flex items-center justify-center transition-all ${isWishlisted(product.id)
-                      ? "bg-red-500 text-white opacity-100"
-                      : "bg-white/10 text-white opacity-0 group-hover:opacity-100 hover:bg-red-500"
+                    ? "bg-red-500 text-white opacity-100"
+                    : "bg-white/10 text-white opacity-0 group-hover:opacity-100 hover:bg-red-500"
                     }`}
                   title={isWishlisted(product.id) ? "Remove from wishlist" : "Save to wishlist"}
                 >
@@ -290,18 +290,18 @@ function ShopContent({ products }: { products: any[] }) {
                         >
                           {isDualColor ? (
                             <>
-                              <div 
-                                className="absolute inset-y-0 left-0 w-[51%] transition-colors duration-300" 
+                              <div
+                                className="absolute inset-y-0 left-0 w-[51%] transition-colors duration-300"
                                 style={{ backgroundColor: variant.hex }}
                               />
-                              <div 
-                                className="absolute inset-y-0 right-0 w-[51%] transition-colors duration-300" 
+                              <div
+                                className="absolute inset-y-0 right-0 w-[51%] transition-colors duration-300"
                                 style={{ backgroundColor: variant.secondaryHex }}
                               />
                             </>
                           ) : (
-                            <div 
-                              className="absolute inset-0 transition-colors duration-300" 
+                            <div
+                              className="absolute inset-0 transition-colors duration-300"
                               style={{ backgroundColor: variant.hex || variant.color || '#94a3b8' }}
                             />
                           )}
@@ -321,8 +321,8 @@ function ShopContent({ products }: { products: any[] }) {
                 <button
                   onClick={(e) => handleAddToCart(e, product)}
                   className={`mt-auto w-full py-3 font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${addedItems[product.id]
-                      ? "bg-emerald-500 text-white shadow-[0_10px_20px_rgba(16,185,129,0.3)] scale-[0.98]"
-                      : "bg-primary hover:bg-blue-600 text-white shadow-[0_10px_20px_rgba(13,89,242,0.3)]"
+                    ? "bg-emerald-500 text-white shadow-[0_10px_20px_rgba(16,185,129,0.3)] scale-[0.98]"
+                    : "bg-primary hover:bg-blue-600 text-white shadow-[0_10px_20px_rgba(13,89,242,0.3)]"
                     }`}
                 >
                   {addedItems[product.id] ? (
