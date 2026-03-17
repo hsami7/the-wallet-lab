@@ -1,15 +1,19 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 
 export function FeaturedProductsClient({ featuredProducts }: { featuredProducts: any[] }) {
   const { addItem } = useCart();
+  const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
   const handleAddToCart = (e: React.MouseEvent, product: any) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (addedItems[product.id]) return;
+
     addItem({
       id: product.id,
       name: product.name,
@@ -18,6 +22,15 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
       image: product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image",
       description: product.category || "Premium Carry"
     });
+
+    setAddedItems(prev => ({ ...prev, [product.id]: true }));
+    setTimeout(() => {
+      setAddedItems(prev => {
+        const next = { ...prev };
+        delete next[product.id];
+        return next;
+      });
+    }, 1800);
   };
 
   return (
@@ -52,9 +65,18 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
               </div>
               <button
                 onClick={(e) => handleAddToCart(e, product)}
-                className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display"
+                className={`w-full mt-auto py-3 font-bold rounded-full transition-all text-sm font-display flex items-center justify-center gap-2 ${addedItems[product.id]
+                    ? "bg-emerald-500 text-white shadow-[0_10px_20px_rgba(16,185,129,0.3)] scale-[0.98]"
+                    : "bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white"
+                  }`}
               >
-                Add to Cart
+                {addedItems[product.id] ? (
+                  <>
+                    Item Added <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  </>
+                ) : (
+                  "Add to Cart"
+                )}
               </button>
             </div>
           </Link>
