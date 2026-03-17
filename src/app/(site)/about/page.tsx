@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 export default function AboutPage() {
   return (
@@ -30,10 +31,10 @@ export default function AboutPage() {
         </div>
         <div className="md:col-span-2 flex flex-col gap-8 text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
           <p>
-            The Wallet Lab started in a small workshop in Brooklyn. Our founder, a former architect, found himself frustrated with bulky, traditional bifolds that didn't fit the streamlined lifestyle of the modern city dweller.
+            The Embroidery&apos;s Lab started in a small workshop in Brooklyn. Our founder, a former architect, found himself frustrated with mass-produced embroidery that lacked the precision and soul of architectural design.
           </p>
           <p>
-            What started as a personal project to create the "perfect" wallet—one that disappeared into a pocket but felt substantial in the hand—quickly grew. Friends asked for them, then friends of friends, and soon we were shipping worldwide.
+            What started as a personal project to create the "perfect" stitch—one that combined structural integrity with intricate beauty—quickly grew. Friends asked for them, then friends of friends, and soon we were shipping worldwide.
           </p>
         </div>
       </section>
@@ -46,24 +47,24 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <div className="group">
             <div className="aspect-square rounded-xl overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
-              <img alt="Leather selection process" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwDpwnnfvhWg2R9nWGppJDmIMRiQ_iNZMEar60cx1JiDt5ojeIruzjQgjEF6BcFdW09OvFsgMRKOQGB0YTGAyaUI4D060D90RdfyojjZXpY_kSAuES-adBzjbPlO8UmDIc3wQHLnvIxCiYFA0LhF64uyNhKkhV45cGm5KY6wNtWroSPY6hRaZ8uylG2x0ZD8nyj41E1tGheKY9p5H1-a2HmbE89E3XAwQG8wKcnyYnRCdNvpWbxZ8hoQq6SEapc5PAFLqr2UM67e4" loading="lazy" />
+              <img alt="Thread selection process" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=800" loading="lazy" />
             </div>
             <h3 className="text-xl font-bold mb-2">01. Material Selection</h3>
-            <p className="text-slate-600 dark:text-slate-400">We source only full-grain vegetable-tanned leathers from world-renowned tanneries in Italy and Chicago.</p>
+            <p className="text-slate-600 dark:text-slate-400">We source only high-tensile embroidery threads and premium base fabrics from world-renowned mills.</p>
           </div>
           <div className="group">
             <div className="aspect-square rounded-xl overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
-              <img alt="Precision cutting" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLPGzCyuR3FAkMoBIUI5J5RmLsrUOANk4qx7Bgzgd_IIC3CHnX0ieVjFnzmzPRTKPlCX9eYRiV1vuNxEPX26Nm9x-lm5NqRFEYa-jPiYan6YH84P5ir1PxPmuf6ze77ht70A8owGbXs3SfIxwaL_RzDXfQIJD2kfUTIvSclJdrxN5AA_JV9bT_gH5wQk2b6tpx7RhHMCR-gJsVs7Hwu2CdwOktmbmDM594gK9gIBruVooDBInjvtLPH98Bk1Urs_AucUTpD3Lbhu4" loading="lazy" />
+              <img alt="Digital digitizing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=800" loading="lazy" />
             </div>
-            <h3 className="text-xl font-bold mb-2">02. Precision Cutting</h3>
-            <p className="text-slate-600 dark:text-slate-400">Every panel is laser-cut for absolute precision, then hand-skived to reduce bulk without sacrificing strength.</p>
+            <h3 className="text-xl font-bold mb-2">02. Architectural Digitizing</h3>
+            <p className="text-slate-600 dark:text-slate-400">Designs are meticulously digitized, treating every stitch path as a structural element for absolute precision.</p>
           </div>
           <div className="group">
             <div className="aspect-square rounded-xl overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
-              <img alt="Hand burnishing edges" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX3F36OG1g1zywgxv0H5TyvNrHFbnsdD0lFX2AKonZppJ3G9bh92-QhUfEnU-s-sApVyUNXmGY-kbhQjPEiucPmheqHYkgTfQIMF7wHYlD4FaPPoopIKvEgdALZwCV5dl26BZrk6mC8LnA2Q8HTtjIaPMSm1OxnI3y83weqQE90ER4SnbSB69XjB8dbYua3enBTC946xVCToil5gfkwPtR39aeFwxH-f77u7zYRm6_UfGYH3Hf7JJsprOD_8Gt1d4soV0czn8jveo" loading="lazy" />
+              <img alt="High speed embroidery" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&q=80&w=800" loading="lazy" />
             </div>
-            <h3 className="text-xl font-bold mb-2">03. Edge Finishing</h3>
-            <p className="text-slate-600 dark:text-slate-400">Our edges are hand-burnished with natural beeswax, a process that takes hours but creates a lifetime finish.</p>
+            <h3 className="text-xl font-bold mb-2">03. Lab-Tested Finishing</h3>
+            <p className="text-slate-600 dark:text-slate-400">Our pieces are hand-finished and stress-tested, ensuring the embroidery remains vibrant for a lifetime.</p>
           </div>
         </div>
       </section>
@@ -72,7 +73,7 @@ export default function AboutPage() {
         <div className="max-w-3xl mx-auto text-center flex flex-col gap-8">
           <h2 className="text-4xl font-bold">Built for the long haul.</h2>
           <p className="text-xl text-slate-600 dark:text-slate-300">
-            We don't believe in fast fashion. We believe in objects that acquire character over time, developing a unique patina that tells your story.
+            We don&apos;t believe in fast fashion. We believe in objects that acquire character over time, engineered with precision to last through every adventure.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8">
             <div className="flex flex-col items-center gap-2">
@@ -80,12 +81,12 @@ export default function AboutPage() {
               <span className="font-bold">Sustainable</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-4xl">verified</span>
-              <span className="font-bold">Lifetime Warranty</span>
+              <span className="material-symbols-outlined text-primary text-4xl">inventory_2</span>
+              <span className="font-bold">Premium Quality</span>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-4xl">inventory_2</span>
-              <span className="font-bold">Recyclable</span>
+              <span className="material-symbols-outlined text-primary text-4xl">architecture</span>
+              <span className="font-bold">Precision Design</span>
             </div>
             <div className="flex flex-col items-center gap-2">
               <span className="material-symbols-outlined text-primary text-4xl">public</span>
@@ -96,10 +97,10 @@ export default function AboutPage() {
       </section>
 
       <section className="text-center py-12 mb-24">
-        <h2 className="text-3xl font-bold mb-6">Ready to upgrade your carry?</h2>
+        <h2 className="text-3xl font-bold mb-6">Need a custom design?</h2>
         <div className="flex justify-center gap-4">
-          <button className="bg-primary text-white px-10 py-4 rounded-full font-bold hover:scale-105 transition-transform">Shop All Products</button>
-          <button className="border border-slate-300 dark:border-slate-700 px-10 py-4 rounded-full font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Join the Lab</button>
+          <Link href="/shop" className="bg-primary text-white px-10 py-4 rounded-full font-bold hover:scale-105 transition-transform flex items-center justify-center">Shop Collections</Link>
+          <Link href="/contact" className="border border-slate-300 dark:border-slate-700 px-10 py-4 rounded-full font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center">Contact the Lab</Link>
         </div>
       </section>
     </div>

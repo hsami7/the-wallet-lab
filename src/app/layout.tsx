@@ -10,8 +10,8 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "The Wallet Lab",
-  description: "Next Generation Wallet Lab",
+  title: "The Embroidery's Lab",
+  description: "Next Generation Embroidery Art Lab",
 };
 
 import { CartProvider } from "@/context/CartContext";
@@ -40,7 +40,7 @@ export default function RootLayout({
         className={`${spaceGrotesk.variable} bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased overflow-x-hidden`}
         suppressHydrationWarning
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <ToastProvider>
             <CartProvider>
               <WishlistProvider>

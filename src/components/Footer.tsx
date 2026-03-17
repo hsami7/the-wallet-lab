@@ -54,7 +54,7 @@ export default function Footer() {
             <Link href="/about#size-guide" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Size Guide</Link>
             <Link href="/about#shipping" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Shipping & Delivery</Link>
             <Link href="/about#returns" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Returns & Exchanges</Link>
-            <Link href="/about" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Contact Us</Link>
+            <Link href="/contact" className="text-slate-600 dark:text-slate-500 hover:text-primary text-sm transition-colors">Contact Us</Link>
           </nav>
         </div>
       </div>

@@ -29,7 +29,7 @@ export default function AdminSidebar({
   const pathname = usePathname() || "/admin";
 
   return (
-    <aside className="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0">
+    <aside className="hidden lg:flex w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-col shrink-0">
       {/* Brand */}
       <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-800">
         <Link href="/" className="flex items-center gap-3">

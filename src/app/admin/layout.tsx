@@ -45,7 +45,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* Right side */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header (Client Component) */}
-        <AdminHeader />
+        <AdminHeader 
+          fullName={fullName} 
+          initials={initials} 
+          email={user?.email} 
+        />
 
         {/* Scrollable content */}
         <main className="flex-1 overflow-y-auto">{children}</main>

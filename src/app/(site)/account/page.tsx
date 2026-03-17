@@ -145,13 +145,13 @@ export default function AccountPage() {
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
-      <main className="flex-1 flex flex-col md:flex-row max-w-[1600px] mx-auto w-full py-12 px-6 md:px-8">
-        <aside className="w-full md:w-64 flex flex-col gap-2 p-6 border-r border-slate-200 dark:border-slate-800">
+      <main className="flex-1 flex flex-col lg:flex-row max-w-[1600px] mx-auto w-full py-6 md:py-12 px-4 md:px-8">
+        <aside className="w-full lg:w-64 flex flex-row lg:flex-col gap-2 p-2 md:p-6 lg:border-r border-slate-200 dark:border-slate-800 overflow-x-auto lg:overflow-y-auto no-scrollbar">
           {sidebarItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`flex items-center gap-3 px-4 py-2 lg:py-3 rounded-xl transition-all whitespace-nowrap shrink-0 ${
                 activeTab === item.id
                   ? "bg-primary text-white shadow-lg shadow-primary/20"
                   : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800"
@@ -161,7 +161,7 @@ export default function AccountPage() {
               <p className="text-sm font-semibold">{item.label}</p>
             </button>
           ))}
-          <div className="mt-8 md:mt-auto pt-6 border-t border-slate-200 dark:border-slate-800">
+          <div className="hidden lg:block mt-auto pt-6 border-t border-slate-200 dark:border-slate-800">
             <form action={logout}>
               <button type="submit" className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer">
                 <span className="material-symbols-outlined">logout</span>
