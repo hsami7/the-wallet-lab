@@ -165,22 +165,12 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
                           setMainImage(variant.imageUrl || variant.image);
                         }
                       }}
-                      className={`group relative size-10 rounded-full transition-all flex items-center justify-center ${isSelected ? 'ring-4 ring-primary/10' : ''}`}
+                      className={`group relative size-10 rounded-full transition-all flex items-center justify-center 
+                        ${isSelected 
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-[#070b14]' 
+                          : 'hover:ring-2 hover:ring-primary/30 hover:ring-offset-2 hover:ring-offset-white dark:hover:ring-offset-[#070b14]'
+                        }`}
                     >
-                      {/* Premium selection ring that matches variant colors exactly (Vertical Split) */}
-                      {isSelected && (
-                        <div className="absolute inset-0 rounded-full overflow-hidden p-[2px]">
-                          {secondaryHex ? (
-                            <div className="size-full rounded-full flex overflow-hidden">
-                              <div className="w-1/2 h-full" style={{ backgroundColor: colorHex }} />
-                              <div className="w-1/2 h-full" style={{ backgroundColor: secondaryHex }} />
-                            </div>
-                          ) : (
-                            <div className="size-full rounded-full" style={{ backgroundColor: colorHex }} />
-                          )}
-                          <div className="absolute inset-[2px] rounded-full bg-white dark:bg-[#070b14]" />
-                        </div>
-                      )}
 
                       <div
                         className="relative z-10 size-7 rounded-full border border-white/20 shadow-inner overflow-hidden"
