@@ -50,8 +50,16 @@ export default function CartPage() {
                     <h3 className="text-xl font-bold">{item.name}</h3>
                     {item.variant && (
                       <div className="flex items-center gap-2 mt-1">
-                        <div className="size-3 rounded-full border border-white/20" style={{ backgroundColor: item.variant }}></div>
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Selected Finish</span>
+                        <div 
+                          className="size-3 rounded-full border border-white/20 overflow-hidden shadow-inner" 
+                          style={{ 
+                            backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant,
+                            background: item.variant?.secondaryHex ? `linear-gradient(to right, ${item.variant.hex} 0% 50%, ${item.variant.secondaryHex} 50% 100%)` : undefined
+                          }}
+                        ></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                          {typeof item.variant === 'object' ? item.variant.name : 'Selected Finish'}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -137,8 +145,8 @@ export default function CartPage() {
                 onClick={handleApplyPromo}
                 disabled={promoStatus === 'success' || isApplying}
                 className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${promoStatus === 'success'
-                    ? 'bg-green-500 text-white'
-                    : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
+                  ? 'bg-green-500 text-white'
+                  : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
                   }`}
               >
                 {isApplying ? (

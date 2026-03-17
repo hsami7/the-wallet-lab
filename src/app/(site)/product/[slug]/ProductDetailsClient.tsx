@@ -13,7 +13,7 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
   const { toggleWishlist, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product.id);
 
-  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || { name: 'Default', imageUrl: product.image_url });
+  const [selectedVariant, setSelectedVariant] = useState(product.colors?.[0] || { name: 'Default', hex: '#000000', imageUrl: product.image_url });
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [added, setAdded] = useState(false);
@@ -39,7 +39,7 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
       quantity: 1,
       image: product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image",
       description: product.category || "Premium Carry",
-      variant: selectedColor || undefined
+      variant: selectedVariant || undefined
     });
 
     // Trigger fly to cart animation
@@ -153,23 +153,43 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
               <div className="flex gap-4">
                 {product.colors.map((variant: any, idx: number) => {
                   const colorHex = variant.hex || variant.color;
+                  const secondaryHex = variant.secondaryHex;
+                  const isSelected = selectedVariant?.name === variant.name;
+
                   return (
                     <button
                       key={idx}
                       onClick={() => {
-                        setSelectedColor(colorHex);
+                        setSelectedVariant(variant);
                         if (variant.imageUrl || variant.image) {
                           setMainImage(variant.imageUrl || variant.image);
                         }
                       }}
-                      className={`group relative size-10 rounded-full border-2 transition-all flex items-center justify-center ${selectedColor === colorHex ? 'border-primary' : 'border-transparent'
-                        }`}
+                      className={`group relative size-10 rounded-full transition-all flex items-center justify-center ${isSelected ? 'ring-4 ring-primary/10' : ''}`}
                     >
+                      {/* Premium selection ring that matches variant colors exactly (Vertical Split) */}
+                      {isSelected && (
+                        <div className="absolute inset-0 rounded-full overflow-hidden p-[2px]">
+                          {secondaryHex ? (
+                            <div className="size-full rounded-full flex overflow-hidden">
+                              <div className="w-1/2 h-full" style={{ backgroundColor: colorHex }} />
+                              <div className="w-1/2 h-full" style={{ backgroundColor: secondaryHex }} />
+                            </div>
+                          ) : (
+                            <div className="size-full rounded-full" style={{ backgroundColor: colorHex }} />
+                          )}
+                          <div className="absolute inset-[2px] rounded-full bg-white dark:bg-[#070b14]" />
+                        </div>
+                      )}
+
                       <div
-                        className="size-7 rounded-full border border-white/20 shadow-inner"
-                        style={{ backgroundColor: colorHex }}
+                        className="relative z-10 size-7 rounded-full border border-white/20 shadow-inner overflow-hidden"
+                        style={{ 
+                          backgroundColor: colorHex,
+                          background: secondaryHex ? `linear-gradient(to right, ${colorHex} 0% 50%, ${secondaryHex} 50% 100%)` : colorHex
+                        }}
                       />
-                      <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      <span className={`absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap opacity-0 group-hover:opacity-100 ${isSelected ? 'text-primary' : 'text-slate-400'}`}>
                         {variant.name}
                       </span>
                     </button>
@@ -186,8 +206,8 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
                 onClick={(e) => handleAddToCart(e)}
                 disabled={product.inventory_count <= 0}
                 className={`flex-1 py-5 font-black rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:bg-slate-400 disabled:shadow-none ${added
-                    ? 'bg-emerald-500 text-white shadow-[0_20px_40px_rgba(16,185,129,0.35)] scale-[0.98]'
-                    : 'bg-primary hover:opacity-90 text-white shadow-[0_20px_40px_rgba(13,89,242,0.3)]'
+                  ? 'bg-emerald-500 text-white shadow-[0_20px_40px_rgba(16,185,129,0.35)] scale-[0.98]'
+                  : 'bg-primary hover:opacity-90 text-white shadow-[0_20px_40px_rgba(13,89,242,0.3)]'
                   }`}
               >
                 {added ? (

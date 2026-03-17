@@ -58,7 +58,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isApplying, setIsApplying] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
   const [shippingRules, setShippingRules] = useState<ShippingRule[]>([]);
   const [selectedRateId, setSelectedRateId] = useState<string | null>(null);
@@ -70,7 +70,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const fetchShipping = async () => {
       const { data: rates } = await supabase.from('shipping_rates').select('id, name, price').eq('is_active', true).order('price', { ascending: true });
       const { data: rules } = await supabase.from('shipping_rules').select('id, active, min_amount, min_quantity');
-      
+
       if (rates && rates.length > 0) {
         // Ensure price is a number (Supabase returns numeric as string)
         const typedRates = rates.map(r => ({
@@ -78,7 +78,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           price: Number(r.price)
         }));
         setShippingRates(typedRates);
-        
+
         // Always re-validate selected rate from fresh DB data
         setSelectedRateId(prev => {
           const stillExists = typedRates.find(r => r.id === prev);
@@ -118,11 +118,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
     const savedPromo = localStorage.getItem("promoCode");
     if (savedPromo) {
-        setPromoCode(savedPromo);
+      setPromoCode(savedPromo);
     }
     const savedRate = localStorage.getItem("selectedRateId");
     if (savedRate) {
-        setSelectedRateId(savedRate);
+      setSelectedRateId(savedRate);
     }
     setIsInitialized(true);
   }, []);
@@ -169,9 +169,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     if (subtotal === 0) return { isFreeShipping: false, shippingFee: 0 };
 
     // Check promotional rules (e.g., free over X amount)
-    const applies = shippingRules.some(rule => 
+    const applies = shippingRules.some(rule =>
       rule.active && (
-        (rule.min_amount > 0 && subtotal >= rule.min_amount) || 
+        (rule.min_amount > 0 && subtotal >= rule.min_amount) ||
         (rule.min_quantity > 0 && itemCount >= rule.min_quantity)
       )
     );
@@ -192,7 +192,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (item: CartItem) => {
     setCart((prevCart) => {
-      // Find item with same ID AND same variant name
+      // Unique item key: ID + Variant Name (to handle different colors separately)
       const existingItem = prevCart.find((i) => 
         i.id === item.id && 
         ((!i.variant && !item.variant) || (i.variant?.name === item.variant?.name))
@@ -236,7 +236,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const applyPromoCode = async (code: string) => {
     setIsApplying(true);
     setPromoError(null);
-    
+
     try {
       const { data, error } = await supabase
         .from('promo_codes')
