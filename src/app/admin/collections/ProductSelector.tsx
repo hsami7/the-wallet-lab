@@ -63,24 +63,25 @@ export function ProductSelector({ onSelect, onClose }: { onSelect: (url: string)
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {filtered.map(product => {
-                const images = [
+                const images = Array.from(new Set([
                   product.image_url,
-                  ...(product.colors?.map((c: any) => c.imageUrl) || [])
-                ].filter(Boolean);
+                  ...(product.colors?.map((c: any) => c.imageUrl) || []),
+                  ...(product.colors?.map((c: any) => c.image) || [])
+                ])).filter(Boolean);
                 
                 return (
-                  <div key={product.id} className="space-y-2">
-                    <p className="text-[10px] font-bold uppercase text-slate-400 truncate">{product.name}</p>
-                    <div className="grid grid-cols-1 gap-2">
+                  <div key={product.id} className="space-y-3 bg-slate-50/50 dark:bg-white/5 p-3 rounded-xl border border-slate-100 dark:border-white/5">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-primary truncate px-1">{product.name}</p>
+                    <div className="grid grid-cols-2 gap-2">
                       {images.map((url, idx) => (
                         <div 
                           key={idx} 
-                          onClick={() => onSelect(url)}
-                          className="group relative aspect-square rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden cursor-pointer border border-transparent hover:border-primary transition-all"
+                          onClick={() => onSelect(url as string)}
+                          className="group relative aspect-square rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden cursor-pointer border-2 border-transparent hover:border-primary transition-all shadow-sm"
                         >
-                          <img src={url} className="w-full h-full object-cover" alt="" loading="lazy" />
-                          <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                            <span className="text-[10px] text-white font-bold uppercase tracking-widest">Select</span>
+                          <img src={url as string} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="" loading="lazy" />
+                          <div className="absolute inset-0 bg-primary/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity backdrop-blur-[2px]">
+                            <span className="text-[10px] text-white font-black uppercase tracking-widest bg-primary px-2 py-1 rounded shadow-lg">Select</span>
                           </div>
                         </div>
                       ))}
