@@ -140,10 +140,6 @@ export function ProductDetailsClient({
                     <span className="px-3 py-1 bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-widest rounded-full">
                       Out of Stock
                     </span>
-                  ) : product.inventory_count <= (product.min_stock_level || 5) ? (
-                    <span className="px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-widest rounded-full">
-                      Low Stock
-                    </span>
                   ) : (
                     <span className="px-3 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-widest rounded-full">
                       In Stock

@@ -241,11 +241,7 @@ function ShopContent({ products }: { products: any[] }) {
                     <span className="bg-red-500 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-tighter uppercase shadow-lg shadow-red-500/30">Sold Out</span>
                   </div>
                 )}
-                {product.track_inventory && product.inventory_count > 0 && product.inventory_count <= (product.min_stock_level || 5) && (
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-tighter uppercase">Low Stock</span>
-                  </div>
-                )}
+
                 {/* Wishlist button */}
                 <button
                   onClick={(e) => {
@@ -319,6 +315,8 @@ function ShopContent({ products }: { products: any[] }) {
                     <span className="text-[10px] font-bold text-slate-400">+{product.colors.length - 4}</span>
                   )}
                 </div>
+
+
 
                 <button
                   onClick={(e) => handleAddToCart(e, product)}
