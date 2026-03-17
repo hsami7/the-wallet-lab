@@ -10,7 +10,7 @@ export interface CartItem {
   quantity: number;
   image: string;
   description?: string;
-  variant?: string;
+  variant?: any;
 }
 
 interface ShippingRate {
@@ -192,10 +192,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = (item: CartItem) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((i) => i.id === item.id);
+      // Find item with same ID AND same variant name
+      const existingItem = prevCart.find((i) => 
+        i.id === item.id && 
+        ((!i.variant && !item.variant) || (i.variant?.name === item.variant?.name))
+      );
+
       if (existingItem) {
         return prevCart.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
+          (i.id === item.id && i.variant?.name === item.variant?.name)
+            ? { ...i, quantity: i.quantity + item.quantity } 
+            : i
         );
       }
       return [...prevCart, item];
