@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import { useToast } from "@/context/ToastContext";
 
 interface ProductVariant {
   name: string;
@@ -59,15 +60,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       : []
   );
   const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
-  // Auto-clear error after 5 seconds
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
   const [showColors, setShowColors] = useState(() => {
     if (!initialData) return true;
     return (initialData.colors && initialData.colors.length > 0) ?? true;
@@ -229,7 +223,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setPrimaryImage(publicUrl);
     } catch (err: any) {
       console.error("Upload error:", err);
-      setError("Failed to upload primary image.");
+      showToast("Failed to upload primary image.", "error");
     } finally {
       setIsUploadingPrimary(false);
     }
@@ -250,7 +244,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       handleVariantChange(index, 'imageUrl', publicUrl);
     } catch (err: any) {
       console.error("Upload error:", err);
-      setError("Failed to upload image.");
+      showToast("Failed to upload image.", "error");
     } finally {
       setUploadingVariantIdx(null);
     }
@@ -276,7 +270,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setSecondaryImages([...secondaryImages, ...urls]);
     } catch (err: any) {
       console.error("Upload error:", err);
-      setError("Failed to upload secondary images.");
+      showToast("Failed to upload secondary images.", "error");
     } finally {
       setIsUploading(false);
     }
@@ -298,7 +292,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       if (stock === "" || stock === undefined || stock === null) missing.push("Stock Quantity");
 
       if (missing.length > 0) {
-        setError(`Required for publishing: ${missing.join(", ")}`);
+        showToast(`Required for publishing: ${missing.join(", ")}`, "error");
         // Scroll to top to see the error
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
@@ -306,7 +300,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     } else {
       // For drafts, we only strictly require the name so it can be identified in the list
       if (!name.trim()) {
-        setError("Please enter at least a Product Title to save this draft.");
+        showToast("Please enter at least a Product Title to save this draft.", "error");
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
@@ -314,7 +308,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
 
     setIsLoading(true);
     try {
-      setError(null);
+
       const productData = {
         name,
         slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
@@ -375,11 +369,12 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         }
       }
 
+      showToast("Product saved successfully!", "success");
       router.push("/admin/products");
       router.refresh();
     } catch (err: any) {
       console.error("Save error:", err);
-      setError(err.message || "Failed to save product. Please try again.");
+      showToast(err.message || "Failed to save product. Please try again.", "error");
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsLoading(false);
@@ -388,26 +383,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Premium Notification Overlay */}
-      {error && (
-        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] w-full max-w-md px-4 animate-in fade-in slide-in-from-top-4 duration-300">
-          <div className="bg-white/90 dark:bg-[#1a2234]/90 backdrop-blur-xl border border-red-200 dark:border-red-500/20 rounded-2xl p-4 shadow-2xl shadow-red-500/10 flex items-start gap-4">
-            <div className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined">warning</span>
-            </div>
-            <div className="flex-1 pt-1">
-              <h4 className="text-sm font-bold text-red-600 dark:text-red-400 uppercase tracking-widest mb-1">Attention Required</h4>
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">{error}</p>
-            </div>
-            <button
-              onClick={() => setError(null)}
-              className="text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors p-1"
-            >
-              <span className="material-symbols-outlined text-lg">close</span>
-            </button>
-          </div>
-        </div>
-      )}
+
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
         <div>
           <nav className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-3">

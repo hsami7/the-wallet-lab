@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { updateCollections } from "@/app/actions/homepage";
 import { CollectionItem } from "./CollectionItem";
+import { useToast } from "@/context/ToastContext";
 
 interface Collection {
   id?: string;
@@ -17,8 +18,7 @@ interface Collection {
 export function CollectionsManager({ initialCollections }: { initialCollections: Collection[] }) {
   const [collections, setCollections] = useState<Collection[]>(initialCollections);
   const [isSaving, setIsSaving] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   function handleUpdate(index: number, updates: Partial<Collection>) {
     const newCollections = [...collections];
@@ -28,15 +28,12 @@ export function CollectionsManager({ initialCollections }: { initialCollections:
 
   async function handleSave() {
     setIsSaving(true);
-    setError(null);
     try {
       await updateCollections(collections);
-      setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      showToast("All collections updated successfully!", "success");
     } catch (err: any) {
       console.error("Save error:", err);
-      setError(err.message);
-      setTimeout(() => setError(null), 5000);
+      showToast(err.message, "error");
     } finally {
       setIsSaving(false);
     }
@@ -44,30 +41,6 @@ export function CollectionsManager({ initialCollections }: { initialCollections:
 
   return (
     <div className="relative space-y-12">
-      {/* Success Notification */}
-      {showSuccess && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in zoom-in slide-in-from-top-4 duration-300">
-          <div className="bg-emerald-500 text-white px-8 py-4 rounded-2xl shadow-2xl shadow-emerald-500/40 flex items-center gap-3 border border-white/20">
-            <div className="size-8 rounded-full bg-white/20 flex items-center justify-center animate-bounce">
-              <span className="material-symbols-outlined text-lg">check_circle</span>
-            </div>
-            <span className="font-black uppercase tracking-widest text-sm">All collections updated successfully!</span>
-          </div>
-        </div>
-      )}
-
-      {/* Error Notification */}
-      {error && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in zoom-in slide-in-from-top-4 duration-300">
-          <div className="bg-red-500 text-white px-8 py-4 rounded-2xl shadow-2xl shadow-red-500/40 flex items-center gap-3 border border-white/20">
-            <div className="size-8 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="material-symbols-outlined text-lg">error</span>
-            </div>
-            <span className="font-black uppercase tracking-widest text-sm">{error}</span>
-          </div>
-        </div>
-      )}
-
       <div className="flex items-center justify-between mb-10">
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Home Page Collections</h1>

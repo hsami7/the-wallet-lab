@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import { ProductSelector } from "./ProductSelector";
 import { createClient } from "@/utils/supabase/client";
+import { useToast } from "@/context/ToastContext";
 
 interface Collection {
   id?: string;
@@ -21,6 +22,7 @@ export function CollectionItem({
   col: Collection; 
   onChange: (updates: Partial<Collection>) => void;
 }) {
+  const { showToast } = useToast();
   const [isUploading, setIsUploading] = useState(false);
   const [showSelector, setShowSelector] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,9 +49,10 @@ export function CollectionItem({
         .getPublicUrl(filePath);
 
       onChange({ image_url: publicUrl });
+      showToast("Image uploaded successfully", "success");
     } catch (err: any) {
       console.error("Upload error:", err);
-      alert("Failed to upload image: " + err.message);
+      showToast(`Upload failed: ${err.message}`, "error");
     } finally {
       setIsUploading(false);
     }

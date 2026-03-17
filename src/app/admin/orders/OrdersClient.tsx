@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useToast } from "@/context/ToastContext";
 
 const statusColors: Record<string, string> = {
   delivered: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -47,30 +48,33 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
     return matchFilter && matchSearch;
   });
 
-  // Example status update handler
-  async function updateOrderStatus(id: string, newStatus: string) {
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', id)
-        .select(`
-          *,
-          profiles(full_name, email),
-          order_items(
-            quantity, price_at_time,
-            products(name, sku)
-          )
-        `)
-        .single();
-        
-      if (error) throw error;
-      setOrders(prev => prev.map(o => o.id === id ? data : o));
-    } catch (err) {
-      console.error("Failed to update order status:", err);
-      alert("Failed to update order status.");
+    const { showToast } = useToast();
+  
+    // Example status update handler
+    async function updateOrderStatus(id: string, newStatus: string) {
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .update({ status: newStatus })
+          .eq('id', id)
+          .select(`
+            *,
+            profiles(full_name, email),
+            order_items(
+              quantity, price_at_time,
+              products(name, sku)
+            )
+          `)
+          .single();
+          
+        if (error) throw error;
+        setOrders(prev => prev.map(o => o.id === id ? data : o));
+        showToast(`Order status updated to ${newStatus}`, "success");
+      } catch (err) {
+        console.error("Failed to update order status:", err);
+        showToast("Failed to update order status.", "error");
+      }
     }
-  }
 
   // Helper to format currency
   const formatCurrency = (amount: number) => {

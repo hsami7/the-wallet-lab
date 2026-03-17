@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useToast } from "@/context/ToastContext";
 
 interface ShippingRate {
   id: string;
@@ -34,6 +35,7 @@ export function SettingsClient({
   const [saved, setSaved] = useState(false);
   const [discarded, setDiscarded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { showToast } = useToast();
 
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>(initialShippingRates);
   const [shippingRules, setShippingRules] = useState<ShippingRule[]>(initialShippingRules);
@@ -93,10 +95,11 @@ export function SettingsClient({
       }
 
       setSaved(true);
+      showToast("Settings synchronized successfully", "success");
       setTimeout(() => setSaved(false), 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving settings:", error);
-      alert("Failed to save settings. Check console for details.");
+      showToast(`Failed to save settings: ${error.message}`, "error");
     } finally {
       setIsSaving(false);
     }
@@ -106,6 +109,7 @@ export function SettingsClient({
     setShippingRates(initialShippingRates);
     setShippingRules(initialShippingRules);
     setDiscarded(true);
+    showToast("Changes discarded", "info");
     setTimeout(() => setDiscarded(false), 1500);
   };
 
