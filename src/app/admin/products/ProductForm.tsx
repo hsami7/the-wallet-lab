@@ -39,7 +39,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [price, setPrice] = useState(initialData?.price || "");
   const [category, setCategory] = useState(initialData?.category || "");
   const [sku, setSku] = useState(initialData?.sku || "");
-  const [stock, setStock] = useState(initialData?.inventory_count || 0);
+  const [stock, setStock] = useState<string | number>(initialData?.inventory_count !== undefined ? initialData.inventory_count : "");
   const [minStock, setMinStock] = useState(initialData?.min_stock_level || 10);
   const [trackInventory, setTrackInventory] = useState(initialData?.track_inventory !== false);
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
@@ -99,7 +99,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setPrice(initialData.price || "");
       setCategory(initialData.category || "");
       setSku(initialData.sku || "");
-      setStock(initialData.inventory_count || 0);
+      setStock(initialData.inventory_count !== undefined ? initialData.inventory_count : "");
       setMinStock(initialData.min_stock_level || 10);
       setTrackInventory(initialData.track_inventory !== false);
       setTags(initialData.tags || []);
@@ -937,9 +937,19 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                   <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3">Stock Qty</label>
                   <input
                     value={stock}
-                    onChange={(e) => setStock(Number(e.target.value))}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === "") {
+                        setStock("");
+                      } else {
+                        const num = Number(val);
+                        setStock(num < 0 ? 0 : num);
+                      }
+                    }}
                     className="w-full bg-slate-50 dark:bg-[#101622] border-2 border-slate-100 dark:border-white/5 rounded-2xl px-5 py-3.5 outline-none focus:border-primary text-sm font-bold"
                     type="number"
+                    min="0"
+                    placeholder="0"
                   />
                 </div>
                 <div>
