@@ -5,64 +5,15 @@
  */
 export const flyToCart = (sourceElement: HTMLElement, color: string = '#0d59f2') => {
   const cartTarget = document.getElementById('cart-icon-target');
-  if (!cartTarget || !sourceElement) return;
+  if (!cartTarget) return;
 
-  // Get coordinates
-  const sourceRect = sourceElement.getBoundingClientRect();
-  const targetRect = cartTarget.getBoundingClientRect();
-
-  // Calculate centers
-  const sourceCenterX = sourceRect.left + sourceRect.width / 2;
-  const sourceCenterY = sourceRect.top + sourceRect.height / 2;
-  const targetCenterX = targetRect.left + targetRect.width / 2;
-  const targetCenterY = targetRect.top + targetRect.height / 2;
-
-  // Create the flying particle
-  const particle = document.createElement('div');
-  
-  // Style the particle
-  particle.style.position = 'fixed';
-  particle.style.left = `${sourceCenterX - 10}px`;
-  particle.style.top = `${sourceCenterY - 10}px`;
-  particle.style.width = '20px';
-  particle.style.height = '20px';
-  particle.style.backgroundColor = color;
-  particle.style.borderRadius = '50%';
-  particle.style.zIndex = '9999';
-  particle.style.pointerEvents = 'none';
-  particle.style.boxShadow = `0 0 15px ${color}80`;
-  particle.style.opacity = '0.8';
-  
-  // Add to body
-  document.body.appendChild(particle);
-
-  // Animation keyframes
-  const animation = particle.animate([
-    {
-      transform: 'scale(1) translate(0, 0)',
-      opacity: 0.8
-    },
-    {
-      transform: `scale(0.2) translate(${targetCenterX - sourceCenterX}px, ${targetCenterY - sourceCenterY}px)`,
-      opacity: 0.2
-    }
+  // Subtle "ping" animation on the cart icon
+  cartTarget.animate([
+    { transform: 'scale(1)' },
+    { transform: 'scale(1.3)', backgroundColor: `${color}20` },
+    { transform: 'scale(1)' }
   ], {
-    duration: 800,
-    easing: 'cubic-bezier(0.165, 0.84, 0.44, 1)'
+    duration: 300,
+    easing: 'ease-out'
   });
-
-  // Finish and cleanup
-  animation.onfinish = () => {
-    particle.remove();
-    
-    // Subtle "ping" animation on the cart icon when it arrives
-    cartTarget.animate([
-      { transform: 'scale(1)' },
-      { transform: 'scale(1.3)', backgroundColor: `${color}20` },
-      { transform: 'scale(1)' }
-    ], {
-      duration: 300,
-      easing: 'ease-out'
-    });
-  };
 };
