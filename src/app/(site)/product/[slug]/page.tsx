@@ -25,5 +25,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .eq("product_id", product.id)
     .order("order_index", { ascending: true });
 
-  return <ProductDetailsClient product={product} highlights={highlights || []} />;
+  const { data: shippingRules } = await supabase
+    .from("shipping_rules")
+    .select("*")
+    .eq("active", true);
+
+  return <ProductDetailsClient 
+    product={product} 
+    highlights={highlights || []} 
+    shippingRules={shippingRules || []}
+  />;
 }

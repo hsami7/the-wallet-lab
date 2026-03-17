@@ -117,7 +117,11 @@ export function SettingsClient({
   };
 
   const updateRuleValue = (id: string, field: keyof ShippingRule, value: any) => {
-    setShippingRules(rules => rules.map(r => r.id === id ? { ...r, [field]: value } : r));
+    let finalValue = value;
+    if (field === 'min_amount' || field === 'min_quantity') {
+      finalValue = Math.max(0, typeof value === 'string' ? parseFloat(value) || 0 : value);
+    }
+    setShippingRules(rules => rules.map(r => r.id === id ? { ...r, [field]: finalValue } : r));
   };
 
   return (

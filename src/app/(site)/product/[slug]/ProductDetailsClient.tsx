@@ -7,11 +7,34 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { flyToCart } from "@/utils/animations";
 
-export function ProductDetailsClient({ product, highlights = [] }: { product: any; highlights?: any[] }) {
+export function ProductDetailsClient({ 
+  product, 
+  highlights = [], 
+  shippingRules = [] 
+}: { 
+  product: any; 
+  highlights?: any[]; 
+  shippingRules?: any[];
+}) {
   const router = useRouter();
   const { addItem } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product.id);
+
+  // Check for active free shipping promotions
+  const activePromo = shippingRules.find(r => r.active);
+  const promoHighlight = activePromo ? {
+    id: 'promo-free-delivery',
+    title: 'Free Delivery Promotion',
+    description: activePromo.min_amount > 0 
+      ? `Get free standard delivery on all orders over ${activePromo.min_amount} MAD.`
+      : activePromo.min_quantity > 0
+        ? `Get free standard delivery when you buy ${activePromo.min_quantity} or more items.`
+        : 'Free standard delivery is currently active on all orders!',
+    icon_name: 'local_shipping'
+  } : null;
+
+  const allHighlights = promoHighlight ? [promoHighlight, ...highlights] : highlights;
 
   const [selectedVariant, setSelectedVariant] = useState(product.colors?.[0] || { name: 'Default', hex: '#000000', imageUrl: product.image_url });
   const [quantity, setQuantity] = useState(1);
@@ -249,9 +272,9 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
           </div>
 
           {/* Product Highlights Section - Relocated & Restyled per Snippet */}
-          {highlights && highlights.length > 0 && (
+          {allHighlights && allHighlights.length > 0 && (
             <div className="pt-8 space-y-6">
-              {highlights.map((h) => (
+              {allHighlights.map((h) => (
                 <div key={h.id} className="flex items-start gap-4">
                   <div className="bg-primary/10 p-2 rounded-lg text-primary shrink-0">
                     {h.icon_name?.trim().startsWith('<svg') ? (
