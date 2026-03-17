@@ -2,17 +2,20 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 
-export function ProductDetailsClient({ product }: { product: any }) {
+export function ProductDetailsClient({ product, highlights = [] }: { product: any; highlights?: any[] }) {
+  const router = useRouter();
   const { addItem } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product.id);
 
-  const [selectedColor, setSelectedColor] = useState(
-    product.colors && product.colors.length > 0 ? (product.colors[0].hex || product.colors[0].color) : null
-  );
+  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || { name: 'Default', imageUrl: product.image_url });
+  const [quantity, setQuantity] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
+  const [added, setAdded] = useState(false);
 
   const [mainImage, setMainImage] = useState(product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image");
 
@@ -27,6 +30,7 @@ export function ProductDetailsClient({ product }: { product: any }) {
   ])).filter(Boolean);
 
   const handleAddToCart = () => {
+    if (added) return;
     addItem({
       id: product.id,
       name: product.name,
@@ -36,6 +40,8 @@ export function ProductDetailsClient({ product }: { product: any }) {
       description: product.category || "Premium Carry",
       variant: selectedColor || undefined
     });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
   };
 
   const handleToggleWishlist = () => {
@@ -72,18 +78,17 @@ export function ProductDetailsClient({ product }: { product: any }) {
               loading="lazy"
             />
           </div>
-          
+
           {allImages.length > 1 && (
             <div className="flex flex-wrap gap-4">
               {allImages.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setMainImage(img)}
-                  className={`relative size-20 rounded-2xl overflow-hidden border-2 transition-all ${
-                    mainImage === img 
-                      ? "border-primary ring-4 ring-primary/10" 
-                      : "border-slate-200 dark:border-white/5 hover:border-primary/50"
-                  }`}
+                  className={`relative size-20 rounded-2xl overflow-hidden border-2 transition-all ${mainImage === img
+                    ? "border-primary ring-4 ring-primary/10"
+                    : "border-slate-200 dark:border-white/5 hover:border-primary/50"
+                    }`}
                 >
                   <img src={img} alt={`${product.name} angle ${idx + 1}`} className="w-full h-full object-cover" />
                 </button>
@@ -127,9 +132,12 @@ export function ProductDetailsClient({ product }: { product: any }) {
             <p className="text-2xl font-bold text-primary">{product.price.toFixed(2)} MAD</p>
           </div>
 
-          <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-            {product.description || "The pinnacle of engineering and minimalist design. Crafted for those who demand precision and performance in every detail of their carry."}
-          </p>
+          <div>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed font-medium">
+              {product.description}
+            </p>
+          </div>
+
 
           {/* Color Selection */}
           {product.colors && product.colors.length > 0 && (
@@ -165,25 +173,36 @@ export function ProductDetailsClient({ product }: { product: any }) {
           )}
 
           {/* CTA Buttons */}
-          <div className="pt-8 border-t border-slate-200 dark:border-primary/10 flex flex-col gap-3">
+          <div className="pt-8 flex flex-col gap-3">
             <div className="flex gap-3">
               <button
                 onClick={handleAddToCart}
                 disabled={product.inventory_count <= 0}
-                className="flex-1 py-5 bg-primary hover:bg-blue-600 text-white font-black rounded-2xl shadow-[0_20px_40px_rgba(13,89,242,0.3)] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:bg-slate-400 disabled:shadow-none"
+                className={`flex-1 py-5 font-black rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:bg-slate-400 disabled:shadow-none ${added
+                    ? 'bg-emerald-500 text-white shadow-[0_20px_40px_rgba(16,185,129,0.35)] scale-[0.98]'
+                    : 'bg-primary hover:opacity-90 text-white shadow-[0_20px_40px_rgba(13,89,242,0.3)]'
+                  }`}
               >
-                Add to Cart <span className="material-symbols-outlined">add_shopping_cart</span>
+                {added ? (
+                  <>
+                    Item Added
+                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                  </>
+                ) : (
+                  <>
+                    Add to Cart <span className="material-symbols-outlined">add_shopping_cart</span>
+                  </>
+                )}
               </button>
 
               {/* Wishlist Button */}
               <button
                 onClick={handleToggleWishlist}
                 title={wishlisted ? "Remove from wishlist" : "Save to wishlist"}
-                className={`size-[62px] shrink-0 rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${
-                  wishlisted
-                    ? "bg-red-50 dark:bg-red-500/10 border-red-300 dark:border-red-500/40 text-red-500 scale-[1.02]"
-                    : "border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-300 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
-                }`}
+                className={`size-[62px] shrink-0 rounded-2xl border-2 flex items-center justify-center transition-all duration-200 ${wishlisted
+                  ? "bg-red-50 dark:bg-red-500/10 border-red-300 dark:border-red-500/40 text-red-500 scale-[1.02]"
+                  : "border-slate-200 dark:border-white/10 text-slate-400 hover:border-red-300 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10"
+                  }`}
               >
                 <span
                   className="material-symbols-outlined text-[26px] transition-all"
@@ -205,6 +224,32 @@ export function ProductDetailsClient({ product }: { product: any }) {
               </Link>
             )}
           </div>
+
+          {/* Product Highlights Section - Relocated & Restyled per Snippet */}
+          {highlights && highlights.length > 0 && (
+            <div className="pt-8 space-y-6">
+              {highlights.map((h) => (
+                <div key={h.id} className="flex items-start gap-4">
+                  <div className="bg-primary/10 p-2 rounded-lg text-primary shrink-0">
+                    {h.icon_name?.trim().startsWith('<svg') ? (
+                      <div
+                        className="size-6 [&>svg]:size-full [&>svg]:fill-current"
+                        dangerouslySetInnerHTML={{ __html: h.icon_name }}
+                      />
+                    ) : (
+                      <span className="material-symbols-outlined text-[24px]">
+                        {h.icon_name || 'verified'}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-lg text-slate-900 dark:text-white leading-tight">{h.title}</h4>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{h.description}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -44,6 +44,8 @@ export default function AdminPromoCodes() {
   const [form, setForm] = useState(emptyForm);
   const [editId, setEditId] = useState<string | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+  const [codeToDelete, setCodeToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -120,13 +122,15 @@ export default function AdminPromoCodes() {
   }
 
   async function deleteCode(id: string) {
-    if (!confirm("Are you sure you want to delete this code?")) return;
+    setIsDeleting(true);
     const { error } = await supabase
       .from('promo_codes')
       .delete()
       .eq('id', id);
     
     if (!error) fetchCodes();
+    setIsDeleting(false);
+    setCodeToDelete(null);
   }
 
   function copyCode(code: string) {
@@ -245,7 +249,7 @@ export default function AdminPromoCodes() {
                         <button onClick={() => openEdit(c)} className="text-slate-400 hover:text-primary transition-colors">
                           <span className="material-symbols-outlined text-lg">edit</span>
                         </button>
-                        <button onClick={() => deleteCode(c.id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                        <button onClick={() => setCodeToDelete(c.id)} className="text-slate-400 hover:text-red-500 transition-colors">
                           <span className="material-symbols-outlined text-lg">delete</span>
                         </button>
                       </div>
@@ -311,6 +315,53 @@ export default function AdminPromoCodes() {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors">
                 <span className="material-symbols-outlined text-lg">save</span>
                 {editId ? "Save Changes" : "Create Code"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {codeToDelete && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-md w-full border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="size-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-red-600 dark:text-red-400">warning</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Delete Promo Code</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Are you sure you want to delete this code?</p>
+                </div>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                This action cannot be undone. Customers will no longer be able to use this promo code.
+              </p>
+            </div>
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setCodeToDelete(null)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteCode(codeToDelete)}
+                disabled={isDeleting}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Code'
+                )}
               </button>
             </div>
           </div>

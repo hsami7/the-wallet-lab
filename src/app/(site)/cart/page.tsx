@@ -5,7 +5,7 @@ import React, { useState } from "react";
 import { useCart } from "@/context/CartContext";
 
 export default function CartPage() {
-  const { cart, removeItem, updateQuantity, subtotal, discount, total, applyPromoCode, promoCode, promoError, isApplying } = useCart();
+  const { cart, removeItem, updateQuantity, subtotal, discount, total, applyPromoCode, promoCode, promoError, isApplying, isFreeShipping, shippingFee } = useCart();
   const [promoInput, setPromoInput] = useState("");
   const [promoStatus, setPromoStatus] = useState<"idle" | "success" | "error">("idle");
 
@@ -20,14 +20,14 @@ export default function CartPage() {
     }
   };
 
-  const tax = subtotal * 0.08;
+
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-20 pt-0 pb-24 w-full">
       <div className="mb-10 mt-12">
         <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-2">Your Cart</h1>
         <p className="text-slate-500 dark:text-slate-400 text-lg">
-          {cart.length > 0 
-            ? `You have ${cart.length} premium items reserved in your basket` 
+          {cart.length > 0
+            ? `You have ${cart.length} premium items reserved in your basket`
             : "Your laboratory basket is currently empty"}
         </p>
       </div>
@@ -37,9 +37,9 @@ export default function CartPage() {
           {cart.map(item => (
             <div key={item.id} className="flex flex-col sm:flex-row items-center gap-6 p-6 rounded-xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 shadow-sm">
               <div className="bg-slate-200 dark:bg-slate-800 aspect-square rounded-lg size-24 sm:size-32 overflow-hidden relative border border-slate-200 dark:border-primary/10">
-                <img 
-                  src={item.image} 
-                  alt={item.name} 
+                <img
+                  src={item.image}
+                  alt={item.name}
                   className="w-full h-full object-cover"
                   loading="lazy"
                 />
@@ -55,7 +55,7 @@ export default function CartPage() {
                       </div>
                     )}
                   </div>
-                  <button 
+                  <button
                     onClick={() => removeItem(item.id)}
                     className="text-slate-400 hover:text-red-500 transition-colors"
                   >
@@ -65,14 +65,14 @@ export default function CartPage() {
                 <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">{item.description}</p>
                 <div className="flex justify-between items-end mt-auto">
                   <div className="flex items-center gap-4 bg-slate-100 dark:bg-slate-800 rounded-full px-4 py-2">
-                    <button 
+                    <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       className="text-primary hover:opacity-70 flex items-center justify-center"
                     >
                       <span className="material-symbols-outlined text-sm">remove</span>
                     </button>
                     <span className="font-bold w-4 text-center">{item.quantity}</span>
-                    <button 
+                    <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       className="text-primary hover:opacity-70 flex items-center justify-center"
                     >
@@ -113,11 +113,11 @@ export default function CartPage() {
               )}
               <div className="flex justify-between text-slate-500 dark:text-slate-400">
                 <span>Delivery</span>
-                <span className="font-medium text-green-500">FREE</span>
-              </div>
-              <div className="flex justify-between text-slate-500 dark:text-slate-400">
-                <span>Estimated Tax</span>
-                <span className="font-medium text-slate-900 dark:text-slate-100">{tax.toFixed(2)} MAD</span>
+                {isFreeShipping ? (
+                  <span className="font-medium text-green-500 uppercase tracking-widest text-[10px]">Free</span>
+                ) : (
+                  <span className="font-medium text-slate-900 dark:text-slate-100">{shippingFee.toFixed(2)} MAD</span>
+                )}
               </div>
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-end">
                 <span className="text-lg font-bold">Total</span>
@@ -126,35 +126,37 @@ export default function CartPage() {
             </div>
 
             <div className="relative mb-6">
-                <input 
-                  value={promoInput}
-                  onChange={(e) => setPromoInput(e.target.value)}
-                  className={`w-full rounded-full border ${promoStatus === 'error' ? 'border-red-500' : 'border-slate-200'} dark:border-none bg-slate-50 dark:bg-slate-800/50 py-3 pl-4 pr-20 text-sm focus:ring-2 focus:ring-primary/20 outline-none`} 
-                  placeholder="Promo code" 
-                  type="text"
-                />
-                <button 
-                  onClick={handleApplyPromo}
-                  disabled={promoStatus === 'success' || isApplying}
-                  className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
-                    promoStatus === 'success' 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
+              <input
+                value={promoInput}
+                onChange={(e) => setPromoInput(e.target.value)}
+                className={`w-full rounded-full border ${promoStatus === 'error' ? 'border-red-500' : 'border-slate-200'} dark:border-none bg-slate-50 dark:bg-slate-800/50 py-3 pl-4 pr-20 text-sm focus:ring-2 focus:ring-primary/20 outline-none`}
+                placeholder="Promo code"
+                type="text"
+              />
+              <button
+                onClick={handleApplyPromo}
+                disabled={promoStatus === 'success' || isApplying}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${promoStatus === 'success'
+                    ? 'bg-green-500 text-white'
+                    : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'
                   }`}
-                >
-                  {isApplying ? (
-                    <span className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin block"></span>
-                  ) : promoStatus === 'success' ? 'Applied' : 'Apply'}
-                </button>
+              >
+                {isApplying ? (
+                  <span className="size-4 border-2 border-primary border-t-transparent rounded-full animate-spin block"></span>
+                ) : promoStatus === 'success' ? 'Applied' : 'Apply'}
+              </button>
             </div>
             {promoError && promoStatus === 'error' && (
               <p className="text-red-500 text-[10px] font-bold uppercase tracking-wider mb-4 ml-4 animate-in fade-in slide-in-from-top-1">
                 {promoError}
               </p>
             )}
-            
+
             <div className="space-y-4">
-              <Link href="/checkout" className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/30">
+              <Link
+                href={cart.length > 0 ? "/checkout" : "#"}
+                className={`w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-full flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/30 ${cart.length === 0 ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}`}
+              >
                 <span>Proceed to Checkout</span>
                 <span className="material-symbols-outlined">arrow_forward</span>
               </Link>
@@ -162,7 +164,7 @@ export default function CartPage() {
                 Continue Shopping
               </Link>
             </div>
-            
+
             <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 text-sm">
                 <span className="material-symbols-outlined text-primary">verified_user</span>

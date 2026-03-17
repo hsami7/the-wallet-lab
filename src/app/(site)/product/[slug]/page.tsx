@@ -11,6 +11,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .from("products")
     .select("*")
     .eq("slug", slug)
+    .eq("status", "active")
     .single();
 
   if (!product) {
@@ -23,5 +24,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     );
   }
 
-  return <ProductDetailsClient product={product} />;
+  const { data: highlights } = await supabase
+    .from("product_highlights")
+    .select("*")
+    .eq("product_id", product.id)
+    .order("order_index", { ascending: true });
+
+  return <ProductDetailsClient product={product} highlights={highlights || []} />;
 }

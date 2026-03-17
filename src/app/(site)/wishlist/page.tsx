@@ -138,11 +138,10 @@ export default function WishlistPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleAddToCart(item)}
-                      className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${
-                        addedIds.has(item.id)
+                      className={`flex-1 py-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 ${addedIds.has(item.id)
                           ? "bg-green-500 text-white"
                           : "bg-primary hover:bg-blue-600 text-white"
-                      }`}
+                        }`}
                     >
                       <span className="material-symbols-outlined text-base">
                         {addedIds.has(item.id) ? "check" : "add_shopping_cart"}
@@ -177,11 +176,10 @@ export default function WishlistPage() {
             </div>
             <button
               onClick={handleCopyLink}
-              className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-sm font-bold transition-all shrink-0 ${
-                copied
+              className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl text-sm font-bold transition-all shrink-0 ${copied
                   ? "bg-green-500 text-white shadow-lg shadow-green-500/20"
                   : "bg-primary text-white shadow-lg shadow-primary/20 hover:translate-y-[-1px]"
-              }`}
+                }`}
             >
               <span className="material-symbols-outlined text-base">
                 {copied ? "check_circle" : "link"}

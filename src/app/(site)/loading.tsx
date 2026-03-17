@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import { useEffect } from "react";
+import { IconMark } from "@/components/IconMark";
 
 export default function Loading() {
-  React.useEffect(() => {
+  useEffect(() => {
     const footer = document.querySelector('footer');
     if (footer) {
       footer.style.display = 'none';
@@ -16,22 +17,25 @@ export default function Loading() {
   }, []);
 
   return (
-    <div className="flex min-h-[80vh] flex-col items-center justify-start bg-[#0F172A] relative overflow-hidden pt-48 pb-20">
-      <div className="absolute inset-0 carbon-pattern opacity-10 pointer-events-none"></div>
+    <div className="flex h-screen w-full flex-col items-center justify-center bg-slate-50 dark:bg-[#0F172A] relative overflow-hidden transition-colors duration-500">
+      <div className="absolute inset-0 carbon-pattern opacity-[0.03] dark:opacity-10 pointer-events-none"></div>
 
-      <div className="relative z-10 flex flex-col items-center gap-12">
-        {/* Laboratory Animation */}
-        <div className="relative size-32">
-          <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-t-primary rounded-full animate-spin"></div>
-          <div className="absolute inset-4 border-2 border-primary/40 rounded-full animate-pulse"></div>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="material-symbols-outlined text-primary text-4xl animate-bounce">biotech</span>
-          </div>
+      <div className="relative z-10 flex flex-col items-center gap-12 -mt-20">
+        {/* Laboratory Calibration Animation */}
+        <div className="relative size-40 flex items-center justify-center">
+          {/* Inner Emblem */}
+          <IconMark size={140} className="relative z-10" />
+          
+          {/* External Calibration Rings */}
+          <div className="absolute inset-0 border-[3px] border-primary/5 dark:border-primary/10 rounded-full scale-110"></div>
+          <div className="absolute inset-0 border-[3px] border-t-primary rounded-full animate-spin scale-110 shadow-[0_0_15px_rgba(13,89,242,0.3)]"></div>
+          
+          {/* Pulsing Glow */}
+          <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full scale-75 animate-pulse"></div>
         </div>
 
         <div className="text-center space-y-3">
-          <h2 className="text-2xl font-black text-white tracking-widest uppercase">CALIBRATING</h2>
+          <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-widest uppercase">CALIBRATING</h2>
           <p className="text-primary text-xs font-bold uppercase tracking-[0.3em] animate-pulse">
             LABORATORY INSTRUMENTS...
           </p>
@@ -39,7 +43,7 @@ export default function Loading() {
 
         <button
           onClick={() => window.location.reload()}
-          className="px-6 py-2 border border-white/10 text-white/40 hover:text-white hover:border-white/20 transition-all text-[10px] font-black uppercase tracking-widest rounded-lg"
+          className="px-6 py-2 border border-slate-200 dark:border-white/10 text-slate-400 dark:text-white/40 hover:text-slate-800 dark:hover:text-white hover:border-slate-400 dark:hover:border-white/20 transition-all text-[10px] font-black uppercase tracking-widest rounded-lg"
         >
           Reload Protocol
         </button>

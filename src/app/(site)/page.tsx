@@ -8,11 +8,12 @@ export const dynamic = "force-dynamic";
 export default async function Home() {
   const collections = await getCollections();
   const supabase = await createClient();
-  
+
   const { data: featuredProducts } = await supabase
     .from("products")
     .select("*")
     .eq("featured", true)
+    .eq("status", "active")
     .limit(3);
 
   const defaultCollections = [
@@ -28,9 +29,9 @@ export default async function Home() {
       <section className="grid grid-cols-1 md:grid-cols-3 w-full h-auto min-h-[600px]">
         {gridData.map((col, idx) => (
           <div key={idx} className={`relative group overflow-hidden h-[600px] md:h-auto ${idx === 1 ? 'border-y md:border-y-0 md:border-x border-white/10' : ''}`}>
-            <img 
-              src={col.image_url} 
-              alt={`${col.label} - ${col.heading}`} 
+            <img
+              src={col.image_url}
+              alt={`${col.label} - ${col.heading}`}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               loading="lazy"
             />

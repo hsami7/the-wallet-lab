@@ -26,10 +26,10 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
         featuredProducts.map((product) => (
           <Link key={product.id} href={`/product/${product.slug}`} className="group flex flex-col gap-6 p-6 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 hover:border-primary/50 transition-all">
             <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-primary/10">
-              <img 
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
-                alt={product.name} 
-                src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"} 
+              <img
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                alt={product.name}
+                src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"}
                 loading="lazy"
               />
             </div>
@@ -43,14 +43,14 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
               </div>
               <div className="flex gap-1.5">
                 {product.colors && product.colors.slice(0, 3).map((variant: any, idx: number) => (
-                  <div 
-                    key={idx} 
+                  <div
+                    key={idx}
                     className="size-3 rounded-full border border-white/20 shadow-sm"
-                    style={{ backgroundColor: variant.color }}
+                    style={{ backgroundColor: variant.hex || variant.color || '#94a3b8' }}
                   ></div>
                 ))}
               </div>
-              <button 
+              <button
                 onClick={(e) => handleAddToCart(e, product)}
                 className="w-full mt-auto py-3 bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white font-bold rounded-full transition-colors text-sm font-display"
               >

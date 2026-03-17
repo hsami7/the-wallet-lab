@@ -1,15 +1,19 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "newest" | "name-asc";
 
-export function ShopClient({ products }: { products: any[] }) {
+function ShopContent({ products }: { products: any[] }) {
   const { addItem } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
   // Derive unique categories from products
   const categories = useMemo(() => {
@@ -20,6 +24,44 @@ export function ShopClient({ products }: { products: any[] }) {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [sortOpen, setSortOpen] = useState(false);
+
+  // Sync state with URL params
+  useEffect(() => {
+    const catParam = searchParams.get("category");
+    const sortParam = searchParams.get("sort") as SortOption;
+
+    if (catParam) {
+      // Check if it's a valid category
+      if (categories.includes(catParam) || catParam === "All") {
+        setActiveCategory(catParam);
+      }
+    } else {
+      setActiveCategory("All");
+    }
+
+    if (sortParam && ["featured", "price-asc", "price-desc", "newest", "name-asc"].includes(sortParam)) {
+      setSortBy(sortParam);
+    }
+  }, [searchParams, categories]);
+
+  // Handle URL updates when filtering locally
+  const updateParams = (cat: string, sort: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (cat === "All") {
+      params.delete("category");
+    } else {
+      params.set("category", cat);
+    }
+
+    if (sort === "newest") {
+      params.delete("sort");
+    } else {
+      params.set("sort", sort);
+    }
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    router.push(`${pathname}${query}`, { scroll: false });
+  };
 
   const sortLabels: Record<SortOption, string> = {
     featured: "Featured",
@@ -89,24 +131,22 @@ export function ShopClient({ products }: { products: any[] }) {
         <div className="flex flex-wrap items-center gap-2">
           {/* All pill */}
           <button
-            onClick={() => setActiveCategory("All")}
-            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
-              activeCategory === "All"
+            onClick={() => updateParams("All", sortBy)}
+            className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${activeCategory === "All"
                 ? "bg-primary text-white"
                 : "bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:bg-primary/20"
-            }`}
+              }`}
           >
             All
           </button>
           {categories.map((cat) => (
             <button
               key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
-                activeCategory === cat
+              onClick={() => updateParams(cat, sortBy)}
+              className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${activeCategory === cat
                   ? "bg-primary text-white"
                   : "bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:bg-primary/20"
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -136,12 +176,11 @@ export function ShopClient({ products }: { products: any[] }) {
                 {(Object.entries(sortLabels) as [SortOption, string][]).map(([value, label]) => (
                   <button
                     key={value}
-                    onClick={() => { setSortBy(value); setSortOpen(false); }}
-                    className={`w-full text-left px-5 py-3 text-sm font-medium transition-colors ${
-                      sortBy === value
+                    onClick={() => { updateParams(activeCategory, value); setSortOpen(false); }}
+                    className={`w-full text-left px-5 py-3 text-sm font-medium transition-colors ${sortBy === value
                         ? "bg-primary/10 text-primary font-bold"
                         : "hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300"
-                    }`}
+                      }`}
                   >
                     {label}
                   </button>
@@ -202,11 +241,10 @@ export function ShopClient({ products }: { products: any[] }) {
                       category: product.category,
                     });
                   }}
-                  className={`absolute bottom-4 right-4 size-10 backdrop-blur-md rounded-full flex items-center justify-center transition-all ${
-                    isWishlisted(product.id)
+                  className={`absolute bottom-4 right-4 size-10 backdrop-blur-md rounded-full flex items-center justify-center transition-all ${isWishlisted(product.id)
                       ? "bg-red-500 text-white opacity-100"
                       : "bg-white/10 text-white opacity-0 group-hover:opacity-100 hover:bg-red-500"
-                  }`}
+                    }`}
                   title={isWishlisted(product.id) ? "Remove from wishlist" : "Save to wishlist"}
                 >
                   <span
@@ -231,7 +269,7 @@ export function ShopClient({ products }: { products: any[] }) {
                       <div
                         key={idx}
                         className="size-3.5 rounded-full border border-white/20 shadow-sm"
-                        style={{ backgroundColor: variant.color || variant.hex }}
+                        style={{ backgroundColor: variant.hex || variant.color || '#94a3b8' }}
                         title={variant.name}
                       />
                     ))
@@ -255,7 +293,7 @@ export function ShopClient({ products }: { products: any[] }) {
         )}
       </div>
 
-      {/* Newsletter CTA */}
+      {/* Newsletter CTA commented out
       <div className="mt-24 p-8 md:p-16 rounded-[2.5rem] bg-primary relative overflow-hidden border border-white/10 shadow-2xl shadow-primary/30">
         <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 blur-[120px] -mr-48 -mt-48 rounded-full" />
         <div className="relative z-10 max-w-2xl">
@@ -278,6 +316,19 @@ export function ShopClient({ products }: { products: any[] }) {
           </form>
         </div>
       </div>
+      */}
     </div>
+  );
+}
+
+export function ShopClient({ products }: { products: any[] }) {
+  return (
+    <Suspense fallback={
+      <div className="max-w-7xl mx-auto px-6 md:px-20 pt-24 pb-24 w-full flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-primary"></div>
+      </div>
+    }>
+      <ShopContent products={products} />
+    </Suspense>
   );
 }

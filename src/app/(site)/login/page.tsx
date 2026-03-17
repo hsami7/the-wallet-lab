@@ -110,7 +110,7 @@ function LoginFormContent() {
           </div>
           
           <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-[0_10px_20px_rgba(13,89,242,0.2)] transition-all transform active:scale-[0.98] mt-4" type="submit">
-            {mode === "signin" ? "Sign In to Your Wallet" : "Create Account"}
+            {mode === "signin" ? "Sign In" : "Create Account"}
           </button>
         </form>
 
@@ -135,8 +135,14 @@ function LoginFormContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="flex h-64 items-center justify-center">
-        <span className="material-symbols-outlined animate-spin text-primary text-4xl">autorenew</span>
+      <div className="flex h-screen w-full items-center justify-center bg-background-light dark:bg-background-dark">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative size-16">
+            <div className="absolute inset-0 border-2 border-primary/20 rounded-full"></div>
+            <div className="absolute inset-0 border-2 border-t-primary rounded-full animate-spin"></div>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">Initializing Lab</span>
+        </div>
       </div>
     }>
       <LoginFormContent />

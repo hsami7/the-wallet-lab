@@ -176,20 +176,8 @@ export default function AccountPage() {
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <div 
-                      className="bg-center bg-no-repeat aspect-square bg-cover rounded-xl size-24 md:size-32 border-4 border-white dark:border-slate-800 shadow-xl" 
-                      style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAkoouBaeLpg6sE86G6qo97BWKwpJNdiz8T68ebB_1VktKNkK_qvce3hElB_gR1th9bFIDFYz7hR3zxqwYFhk3dciDmi-U91FMUFpazcGzifP9MxMfn4dKlSWiTPKRKlHhX46HW5RqyuLRijAm3ycMsExRwTLlTkPVQCwaqnxyRHNJ6342M0bRwBacPZrdspgZzMGEP5Itx4LsCtT3yBBTD7OfWhK6lkWRKQvrqi7N5HhegEDJA1pyoIHGfto0vavEF80GyIkePnZg")' }}
-                    ></div>
-                    <button className="absolute -bottom-2 -right-2 bg-primary text-white p-2 rounded-full shadow-lg hover:scale-110 transition-transform">
-                      <span className="material-symbols-outlined text-sm">edit</span>
-                    </button>
-                  </div>
                   <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{fullName || "Your Account"}</h1>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">Verified Account</span>
-                    </div>
+                    <h1 className="text-3xl font-bold tracking-tight">{fullName}</h1>
                   </div>
                 </div>
               </div>
@@ -247,17 +235,6 @@ export default function AccountPage() {
                     <div className="rounded-2xl bg-white dark:bg-slate-900/50 p-4 border border-slate-200 dark:border-slate-800 shadow-sm relative group overflow-hidden">
                       <div className="flex justify-between items-start mb-1">
                         <label className="text-xs font-bold uppercase text-slate-400">Email Address</label>
-                        <button 
-                          onClick={handleEmailEdit}
-                          disabled={isPendingEmail}
-                          className={`hover:text-primary/70 transition-colors ${isPendingEmail ? 'text-slate-400' : 'text-primary'}`}
-                        >
-                          {isPendingEmail ? (
-                            <span className="material-symbols-outlined text-lg animate-spin">refresh</span>
-                          ) : (
-                            <span className="material-symbols-outlined text-lg">{isEditingEmail ? 'done' : 'edit'}</span>
-                          )}
-                        </button>
                       </div>
                       {isEditingEmail ? (
                         <input 
@@ -283,17 +260,6 @@ export default function AccountPage() {
                     <div className="rounded-2xl bg-white dark:bg-slate-900/50 p-4 border border-slate-200 dark:border-slate-800 shadow-sm relative group overflow-hidden">
                       <div className="flex justify-between items-start mb-1">
                         <label className="text-xs font-bold uppercase text-slate-400">Phone Number</label>
-                        <button 
-                          onClick={handlePhoneEdit}
-                          disabled={isPendingPhone}
-                          className={`hover:text-primary/70 transition-colors ${isPendingPhone ? 'text-slate-400' : 'text-primary'}`}
-                        >
-                          {isPendingPhone ? (
-                            <span className="material-symbols-outlined text-lg animate-spin">refresh</span>
-                          ) : (
-                            <span className="material-symbols-outlined text-lg">{isEditingPhone ? 'done' : 'edit'}</span>
-                          )}
-                        </button>
                       </div>
                       {isEditingPhone ? (
                         <div className="flex bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-primary focus-within:border-primary">

@@ -19,7 +19,7 @@ export async function login(formData: FormData) {
   }
 
   // Check user role
-  let redirectUrl = '/account'
+  let redirectUrl = '/'
   if (authData.user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -61,7 +61,7 @@ export async function signup(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/account')
+  redirect('/')
 }
 
 export async function logout() {

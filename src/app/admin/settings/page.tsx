@@ -11,7 +11,24 @@ export default async function AdminSettings() {
     .select("*")
     .order("created_at", { ascending: true });
 
-  // Currently we don't have a settings table, so we'll pass mocked settings
-  // for the store profile and shipping rates for now, but use real staff data
-  return <SettingsClient currentUserId={user?.id} profiles={profiles || []} />;
+  // Fetch real shipping rates
+  const { data: shippingRates } = await supabase
+    .from("shipping_rates")
+    .select("*")
+    .order("price", { ascending: true });
+
+  // Fetch shipping rules
+  const { data: shippingRules } = await supabase
+    .from("shipping_rules")
+    .select("*")
+    .order("created_at", { ascending: true });
+
+  return (
+    <SettingsClient 
+      currentUserId={user?.id} 
+      profiles={profiles || []} 
+      initialShippingRates={shippingRates || []}
+      initialShippingRules={shippingRules || []}
+    />
+  );
 }

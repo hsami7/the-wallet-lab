@@ -7,8 +7,10 @@ import { Logo } from "./Logo";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { createClient } from "@/utils/supabase/client";
+import { usePathname } from "next/navigation";
 
 export default function Header() {
+  const pathname = usePathname();
   const { resolvedTheme, setTheme } = useTheme();
   const { itemCount } = useCart();
   const { itemCount: wishlistCount } = useWishlist();
@@ -18,37 +20,102 @@ export default function Header() {
 
   useEffect(() => {
     setMounted(true);
-
-    // Fetch user session
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        // Try full_name from metadata, fall back to email prefix
+
+    const fetchProfile = async (userId: string) => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", userId)
+        .single();
+
+      if (profile?.full_name) {
+        setUserName(profile.full_name);
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
         const name =
-          user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          user.email?.split("@")[0] ||
+          user?.user_metadata?.full_name ||
+          user?.user_metadata?.name ||
+          user?.email?.split("@")[0] ||
           null;
         setUserName(name);
       }
+    };
+
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        fetchProfile(session.user.id);
+        
+        // Subscribe to real-time changes for this user's profile
+        const channel = supabase
+          .channel(`profile-${session.user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'profiles',
+              filter: `id=eq.${session.user.id}`
+            },
+            (payload) => {
+              console.log('Real-time profile update:', payload);
+              if (payload.new && (payload.new as any).full_name) {
+                setUserName((payload.new as any).full_name);
+              }
+            }
+          )
+          .subscribe();
+          
+        return channel;
+      } else {
+        setUserName(null);
+        return null;
+      }
+    };
+
+    let profileChannel: any = null;
+    checkUser().then(channel => {
+      profileChannel = channel;
     });
 
-    // Listen for auth state changes (login/logout)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (profileChannel) {
+        supabase.removeChannel(profileChannel);
+        profileChannel = null;
+      }
+      
       if (session?.user) {
-        const name =
-          session.user.user_metadata?.full_name ||
-          session.user.user_metadata?.name ||
-          session.user.email?.split("@")[0] ||
-          null;
-        setUserName(name);
+        await fetchProfile(session.user.id);
+        profileChannel = supabase
+          .channel(`profile-${session.user.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'profiles',
+              filter: `id=eq.${session.user.id}`
+            },
+            (payload) => {
+              if (payload.new && (payload.new as any).full_name) {
+                setUserName((payload.new as any).full_name);
+              }
+            }
+          )
+          .subscribe();
       } else {
         setUserName(null);
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+      if (profileChannel) {
+        supabase.removeChannel(profileChannel);
+      }
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -134,7 +201,7 @@ export default function Header() {
               {userName.split(" ")[0]}
             </span>
           ) : (
-            <span className="text-sm font-semibold">Login</span>
+            <span className="text-sm font-semibold">Sign In</span>
           )}
         </Link>
       </div>

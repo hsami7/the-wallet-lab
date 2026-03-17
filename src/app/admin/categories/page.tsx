@@ -30,7 +30,7 @@ export default async function AdminCategoriesPage() {
                 <input
                   name="name"
                   required
-                  placeholder="e.g. Cardholders"
+                  placeholder="e.g. Wallets"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 focus:border-primary outline-none transition-all text-sm font-medium"
                 />
               </div>
@@ -114,7 +114,7 @@ export default async function AdminCategoriesPage() {
 
 insert into categories (name, slug)
 values 
-('Cardholders', 'cardholders'),
+('Wallets', 'wallets'),
 ('Bifolds', 'bifolds'),
 ('Phone Wallets', 'phone-wallets'),
 ('Limited Edition', 'limited-edition'),

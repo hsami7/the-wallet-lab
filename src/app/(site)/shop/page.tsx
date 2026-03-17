@@ -7,6 +7,7 @@ export default async function ShopPage() {
   const { data: products, error } = await supabase
     .from("products")
     .select("*")
+    .eq("status", "active")
     .order("created_at", { ascending: false });
 
   // Fallback to empty array if error or no data

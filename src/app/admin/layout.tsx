@@ -7,20 +7,23 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
-  // Fetch profile to get the full name
+  // Fetch profile to get role
   let profile = null;
-  if (user) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("full_name, role")
-      .eq("id", user.id)
-      .single();
-    profile = data;
-    
-    // Security check: If not an admin, kick them to the customer account page
-    if (profile && profile.role !== "admin" && profile.role !== "Administrator") {
-      redirect("/account");
-    }
+  if (!user) {
+    redirect("/login");
+  }
+
+  const { data } = await supabase
+    .from("profiles")
+    .select("full_name, role")
+    .eq("id", user.id)
+    .single();
+  
+  profile = data;
+  
+  // Strict security check: Redirect to home if not an admin
+  if (!profile || (profile.role !== "admin" && profile.role !== "Administrator")) {
+    redirect("/");
   }
 
   const fullName = profile?.full_name || "Admin User";
