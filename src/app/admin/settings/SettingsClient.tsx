@@ -66,7 +66,7 @@ export function SettingsClient({
     try {
       // Save shipping rates
       for (const rate of shippingRates) {
-        await supabase
+        const { error: rateError } = await supabase
           .from("shipping_rates")
           .update({
             price: rate.price,
@@ -74,11 +74,13 @@ export function SettingsClient({
             is_active: rate.is_active
           })
           .eq("id", rate.id);
+        
+        if (rateError) throw rateError;
       }
 
       // Save shipping rules
       for (const rule of shippingRules) {
-        await supabase
+        const { error: ruleError } = await supabase
           .from("shipping_rules")
           .update({
             active: rule.active,
@@ -86,6 +88,8 @@ export function SettingsClient({
             min_quantity: rule.min_quantity
           })
           .eq("id", rule.id);
+        
+        if (ruleError) throw ruleError;
       }
 
       setSaved(true);

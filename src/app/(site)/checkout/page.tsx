@@ -131,43 +131,6 @@ export default function CheckoutPage() {
                 <input required className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="94103" type="text"/>
               </label>
             </ScrollReveal>
-
-            <ScrollReveal animation="fade-up" className="mt-12">
-              <h3 className="text-lg font-bold mb-4">Shipping Method</h3>
-              <div className="grid grid-cols-1 gap-4">
-                {shippingRates.map((rate) => (
-                  <div
-                    key={rate.id}
-                    className={`relative flex items-center gap-4 cursor-pointer rounded-xl border-2 p-5 transition-all duration-300 ${
-                      selectedRateId === rate.id
-                        ? 'border-primary bg-primary/5 shadow-lg shadow-primary/5 scale-[1.02]'
-                        : 'border-slate-100 dark:border-slate-800 bg-transparent hover:border-slate-200 dark:hover:border-slate-700'
-                    }`}
-                    onClick={() => setSelectedRateId(rate.id)}
-                  >
-                    <div className={`size-10 rounded-full flex items-center justify-center transition-colors shrink-0 ${
-                      selectedRateId === rate.id
-                        ? 'bg-primary text-white'
-                        : 'bg-slate-100 dark:bg-slate-900 text-slate-400'
-                    }`}>
-                      <span className="material-symbols-outlined text-lg">
-                        {rate.name.includes("Express") ? "bolt" : "local_shipping"}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-slate-900 dark:text-white">{rate.name}</p>
-                      <p className="text-xs text-slate-500">{rate.name.includes("Express") ? "Expedited delivery" : "Standard delivery time"}</p>
-                    </div>
-                    <p className="font-bold text-sm text-primary">{rate.price.toFixed(2)} MAD</p>
-                    {selectedRateId === rate.id && (
-                      <div className="absolute top-3 right-3">
-                        <span className="material-symbols-outlined text-primary text-sm">check_circle</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </ScrollReveal>
           </section>
 
           {/* Payment Method */}

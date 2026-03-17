@@ -72,11 +72,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const { data: rules } = await supabase.from('shipping_rules').select('id, active, min_amount, min_quantity');
       
       if (rates && rates.length > 0) {
-        setShippingRates(rates);
-        // Always re-validate selected rate from fresh DB data to avoid stale cached prices
+        // Ensure price is a number (Supabase returns numeric as string)
+        const typedRates = rates.map(r => ({
+          ...r,
+          price: Number(r.price)
+        }));
+        setShippingRates(typedRates);
+        
+        // Always re-validate selected rate from fresh DB data
         setSelectedRateId(prev => {
-          const stillExists = rates.find(r => r.id === prev);
-          return stillExists ? prev : rates[0].id;
+          const stillExists = typedRates.find(r => r.id === prev);
+          return stillExists ? prev : typedRates[0].id;
         });
       }
       if (rules) setShippingRules(rules);
