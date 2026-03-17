@@ -61,13 +61,33 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
                 <span className="text-lg font-bold text-primary">{product.price.toFixed(2)} MAD</span>
               </div>
               <div className="flex gap-1.5">
-                {product.colors && product.colors.slice(0, 3).map((variant: any, idx: number) => (
-                  <div
-                    key={idx}
-                    className="size-3 rounded-full border border-white/20 shadow-sm"
-                    style={{ backgroundColor: variant.hex || variant.color || '#94a3b8' }}
-                  ></div>
-                ))}
+                {product.colors && product.colors.slice(0, 3).map((variant: any, idx: number) => {
+                  const isDualColor = !!variant.secondaryHex;
+                  return (
+                    <div
+                      key={idx}
+                      className="size-3 rounded-full border border-white/20 shadow-sm relative overflow-hidden bg-slate-200 dark:bg-slate-700"
+                    >
+                      {isDualColor ? (
+                        <>
+                          <div 
+                            className="absolute inset-y-0 left-0 w-[51%] transition-colors duration-300" 
+                            style={{ backgroundColor: variant.hex }}
+                          />
+                          <div 
+                            className="absolute inset-y-0 right-0 w-[51%] transition-colors duration-300" 
+                            style={{ backgroundColor: variant.secondaryHex }}
+                          />
+                        </>
+                      ) : (
+                        <div 
+                          className="absolute inset-0 transition-colors duration-300" 
+                          style={{ backgroundColor: variant.hex || variant.color || '#94a3b8' }}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               <button
                 onClick={(e) => handleAddToCart(e, product)}

@@ -284,14 +284,34 @@ function ShopContent({ products }: { products: any[] }) {
 
                 <div className="flex gap-1.5 mb-6">
                   {product.colors && product.colors.length > 0 ? (
-                    product.colors.slice(0, 4).map((variant: any, idx: number) => (
-                      <div
-                        key={idx}
-                        className="size-3.5 rounded-full border border-white/20 shadow-sm"
-                        style={{ backgroundColor: variant.hex || variant.color || '#94a3b8' }}
-                        title={variant.name}
-                      />
-                    ))
+                    product.colors.slice(0, 4).map((variant: any, idx: number) => {
+                      const isDualColor = !!variant.secondaryHex;
+                      return (
+                        <div
+                          key={idx}
+                          className="size-3.5 rounded-full border border-white/20 shadow-sm relative overflow-hidden bg-slate-200 dark:bg-slate-700"
+                          title={variant.name}
+                        >
+                          {isDualColor ? (
+                            <>
+                              <div 
+                                className="absolute inset-y-0 left-0 w-[51%] transition-colors duration-300" 
+                                style={{ backgroundColor: variant.hex }}
+                              />
+                              <div 
+                                className="absolute inset-y-0 right-0 w-[51%] transition-colors duration-300" 
+                                style={{ backgroundColor: variant.secondaryHex }}
+                              />
+                            </>
+                          ) : (
+                            <div 
+                              className="absolute inset-0 transition-colors duration-300" 
+                              style={{ backgroundColor: variant.hex || variant.color || '#94a3b8' }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })
                   ) : (
                     <div className="size-3.5 rounded-full bg-slate-400 border border-white/20" />
                   )}
