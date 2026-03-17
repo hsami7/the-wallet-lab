@@ -209,7 +209,11 @@ export default function Header() {
         </Link>
 
         {/* Cart */}
-        <Link href="/cart" className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-primary hover:text-white transition-all relative">
+        <Link 
+          id="cart-icon-target"
+          href="/cart" 
+          className="flex items-center justify-center rounded-full size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-primary hover:text-white transition-all relative"
+        >
           <span className="material-symbols-outlined text-xl">shopping_bag</span>
           {mounted && itemCount > 0 && (
             <span className="absolute -top-1 -right-1 size-5 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse border-2 border-background-light dark:border-background-dark">

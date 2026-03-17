@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { flyToCart } from "@/utils/animations";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "newest" | "name-asc";
 
@@ -116,6 +117,11 @@ function ShopContent({ products }: { products: any[] }) {
       image: product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image",
       description: product.category || "Premium Carry"
     });
+
+    // Trigger fly to cart animation
+    if (e.currentTarget instanceof HTMLElement) {
+      flyToCart(e.currentTarget);
+    }
 
     setAddedItems(prev => ({ ...prev, [product.id]: true }));
     setTimeout(() => {

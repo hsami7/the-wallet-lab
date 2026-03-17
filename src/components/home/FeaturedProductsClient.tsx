@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { flyToCart } from "@/utils/animations";
 
 export function FeaturedProductsClient({ featuredProducts }: { featuredProducts: any[] }) {
   const { addItem } = useCart();
@@ -22,6 +23,11 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
       image: product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image",
       description: product.category || "Premium Carry"
     });
+
+    // Trigger fly to cart animation
+    if (e.currentTarget instanceof HTMLElement) {
+      flyToCart(e.currentTarget);
+    }
 
     setAddedItems(prev => ({ ...prev, [product.id]: true }));
     setTimeout(() => {

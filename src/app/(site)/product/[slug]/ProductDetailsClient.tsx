@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { flyToCart } from "@/utils/animations";
 
 export function ProductDetailsClient({ product, highlights = [] }: { product: any; highlights?: any[] }) {
   const router = useRouter();
@@ -29,7 +30,7 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
     ...(product.images || [])
   ])).filter(Boolean);
 
-  const handleAddToCart = () => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     if (added) return;
     addItem({
       id: product.id,
@@ -40,6 +41,12 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
       description: product.category || "Premium Carry",
       variant: selectedColor || undefined
     });
+
+    // Trigger fly to cart animation
+    if (e.currentTarget instanceof HTMLElement) {
+      flyToCart(e.currentTarget);
+    }
+
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
   };
@@ -176,7 +183,7 @@ export function ProductDetailsClient({ product, highlights = [] }: { product: an
           <div className="pt-8 flex flex-col gap-3">
             <div className="flex gap-3">
               <button
-                onClick={handleAddToCart}
+                onClick={(e) => handleAddToCart(e)}
                 disabled={product.inventory_count <= 0}
                 className={`flex-1 py-5 font-black rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:bg-slate-400 disabled:shadow-none ${added
                     ? 'bg-emerald-500 text-white shadow-[0_20px_40px_rgba(16,185,129,0.35)] scale-[0.98]'
