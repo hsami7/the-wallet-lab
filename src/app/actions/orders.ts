@@ -2,6 +2,7 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 
 export async function createOrder(formData: {
   customer_id: string;
@@ -16,8 +17,32 @@ export async function createOrder(formData: {
   }[];
 }) {
   const supabase = await createClient();
+  const headersList = await headers();
+  const ip = headersList.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
 
   try {
+    // 0. Security Checks (Rate Limiting)
+    const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+    const { count: recentOrders } = await supabase
+      .from("orders")
+      .select("*", { count: 'exact', head: true })
+      .eq("ip_address", ip)
+      .gt("created_at", tenMinutesAgo);
+
+    if ((recentOrders || 0) > 5) {
+      return { success: false, error: "Too many attempts. Please wait a few minutes." };
+    }
+
+    // 0.1 Fraud Risk Scoring (Simple logic)
+    let fraud_score = 0;
+    let risks = [];
+    
+    // Example: Flag if ZIP doesn't match a pattern (simple placeholder for complex logic)
+    if (formData.shipping_address.zip.length < 5) {
+       fraud_score += 20;
+       risks.push("Suspect ZIP code format");
+    }
+
     // 1. Create the order
     const { data: order, error: orderError } = await supabase
       .from("orders")
@@ -27,7 +52,10 @@ export async function createOrder(formData: {
         shipping_rate_id: formData.shipping_rate_id,
         shipping_address: formData.shipping_address,
         status: "pending",
-        payment_status: "unpaid", // Default for now, assuming COD or pending card success
+        payment_status: "unpaid",
+        ip_address: ip,
+        fraud_score,
+        risks
       })
       .select()
       .single();
@@ -69,6 +97,93 @@ export async function createOrder(formData: {
     return { success: true, orderId: order.id };
   } catch (error: any) {
     console.error("Order creation error:", error);
+    return { success: false, error: error.message };
+  }
+}
+export async function notifyCustomer(orderId: string, status: string) {
+  const supabase = await createClient();
+  
+  const brandedMessages: Record<string, string> = {
+    pending: "Laboratory Order Received — Your artisan piece is queued for the lab.",
+    processing: "Stitching Phase Active — Your garment has officially entered the lab's technical production.",
+    shipped: "Logistics Dispatched — Your order is now in transit with our logistics partner.",
+    delivered: "Operation Complete — Your artisan package has been delivered.",
+    refunded: "Transaction Reversal — A refund has been issued for your order."
+  };
+
+  const message = brandedMessages[status.toLowerCase()] || `Order status updated to ${status}.`;
+
+  try {
+     // Fetch current history
+     const { data: order } = await supabase.from("orders").select("notification_history").eq("id", orderId).single();
+     const history = order?.notification_history || [];
+     
+     const newNotification = {
+        type: "status_update",
+        status: status.toLowerCase(),
+        message,
+        timestamp: new Date().toISOString()
+     };
+
+     const { error } = await supabase
+        .from("orders")
+        .update({ 
+           notification_history: [...history, newNotification] 
+        })
+        .eq("id", orderId);
+
+     if (error) throw error;
+     
+     // Note: In production, you would call your Email/SMS provider API here.
+     console.log(`[Notification Engine] Sent to order ${orderId}: "${message}"`);
+
+     return { success: true };
+  } catch (error: any) {
+     console.error("Notification error:", error);
+     return { success: false, error: error.message };
+  }
+}
+
+export async function updateOrderStatus(orderId: string | string[], status: string) {
+  const supabase = await createClient();
+  const ids = Array.isArray(orderId) ? orderId : [orderId];
+
+  try {
+    const { error } = await supabase
+      .from("orders")
+      .update({ status })
+      .in("id", ids);
+
+    if (error) throw error;
+
+    // Trigger notifications for each order
+    for (const id of ids) {
+       await notifyCustomer(id, status);
+    }
+
+    revalidatePath("/admin/orders");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Order update error:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateOrderTracking(orderId: string, trackingData: { tracking_number: string; carrier: string }) {
+  const supabase = await createClient();
+
+  try {
+    const { error } = await supabase
+      .from("orders")
+      .update(trackingData)
+      .eq("id", orderId);
+
+    if (error) throw error;
+
+    revalidatePath("/admin/orders");
+    return { success: true };
+  } catch (error: any) {
+    console.error("Tracking update error:", error);
     return { success: false, error: error.message };
   }
 }
