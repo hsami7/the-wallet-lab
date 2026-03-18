@@ -43,7 +43,7 @@ export default function SiteLayout({
   }
 
   // Hide footer on specific routes
-  const hideFooterRoutes = ["/cart", "/checkout"];
+  const hideFooterRoutes = ["/cart", "/checkout", "/about"];
   const showFooter = !hideFooterRoutes.includes(pathname);
 
   return (

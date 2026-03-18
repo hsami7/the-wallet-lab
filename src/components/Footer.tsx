@@ -59,7 +59,9 @@ export default function Footer() {
         </div>
       </div>
       <div className="max-w-7xl mx-auto pt-10 border-t border-slate-200 dark:border-slate-900 flex flex-col md:flex-row justify-between items-center gap-6">
-        <p className="text-slate-500 dark:text-slate-600 text-xs">© 2024 The embroidery&apos;s Lab. Engineered for those who know better.</p>
+        <p className="text-slate-500 dark:text-slate-600 text-xs text-center md:text-left">
+          © 2026 The embroidery&apos;s Lab. Engineered for those who know better. build by <a href="https://github.com/hsami7" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline decoration-dotted">github.com/hsami7</a>
+        </p>
         <div className="flex gap-8 text-xs text-slate-500 dark:text-slate-600">
           <Link href="#" className="hover:text-primary">Privacy Policy</Link>
           <Link href="#" className="hover:text-primary">Terms of Service</Link>

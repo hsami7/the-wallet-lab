@@ -193,6 +193,11 @@ export default function CartPage() {
           </div>
         </div>
       </div>
+      <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800 text-center">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">
+          © 2026 The embroidery&apos;s Lab. Engineered for those who know better. build by <a href="https://github.com/hsami7" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline decoration-dotted">github.com/hsami7</a>
+        </p>
+      </div>
     </div>
   );
 }
