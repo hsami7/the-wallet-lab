@@ -35,7 +35,9 @@ export default function CheckoutPage() {
     address: "",
     city: "",
     zip: "",
+    phone: "",
   });
+  const [saveToProfile, setSaveToProfile] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,8 +59,8 @@ export default function CheckoutPage() {
   };
 
   const handleCompletePurchase = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.address || !formData.city || !formData.zip) {
-      setError("Please fill in all delivery information");
+    if (!formData.firstName || !formData.lastName || !formData.address || !formData.city || !formData.zip || !formData.phone) {
+      setError("Please fill in all delivery information including phone");
       return;
     }
 
@@ -66,6 +68,18 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
+      // Sync profile if checked
+      if (user && saveToProfile) {
+        await supabase.from("profiles").update({
+          full_name: `${formData.firstName} ${formData.lastName}`,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          zip: formData.zip,
+          updated_at: new Date().toISOString(),
+        }).eq("id", user.id);
+      }
+
       const result = await createOrder({
         customer_id: user.id,
         total_amount: total,
@@ -95,10 +109,33 @@ export default function CheckoutPage() {
   React.useEffect(() => {
     async function checkAuth() {
       const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user || null);
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      
+      if (currentUser) {
+        // Pre-fill from profile
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", currentUser.id)
+          .single();
+        
+        if (profile) {
+          const names = profile.full_name?.split(" ") || ["", ""];
+          setFormData(prev => ({
+            ...prev,
+            firstName: names[0] || "",
+            lastName: names.slice(1).join(" ") || "",
+            phone: profile.phone || "",
+            address: profile.address || "",
+            city: profile.city || "",
+            zip: profile.zip || "",
+          }));
+        }
+      }
+
       setLoading(false);
 
-      // Only redirect if cart is empty, NOT loading, and NOT currently in the middle of a purchase
       if (!loading && cart.length === 0 && !isSubmitting) {
         router.push("/shop");
       }
@@ -188,7 +225,7 @@ export default function CheckoutPage() {
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
-                  placeholder="123 Innovation Drive" 
+                  placeholder="Hay Oued Fes, No 123" 
                   type="text" 
                 />
               </label>
@@ -210,10 +247,33 @@ export default function CheckoutPage() {
                   value={formData.zip}
                   onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
                   className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
-                  placeholder="94103" 
+                  placeholder="30000" 
                   type="text" 
                 />
               </label>
+              <label className="flex flex-col gap-1 md:col-span-2">
+                <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Phone Number</span>
+                <input 
+                  required 
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  placeholder="+212 600-000000" 
+                  type="tel" 
+                />
+              </label>
+
+              {user && (
+                <label className="flex items-center gap-3 mt-4 md:col-span-2 cursor-pointer select-none">
+                  <input 
+                    type="checkbox" 
+                    checked={saveToProfile}
+                    onChange={(e) => setSaveToProfile(e.target.checked)}
+                    className="size-5 rounded border-slate-300 text-primary focus:ring-primary transition-all cursor-pointer" 
+                  />
+                  <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Save my information for next time</span>
+                </label>
+              )}
             </ScrollReveal>
           </section>
 

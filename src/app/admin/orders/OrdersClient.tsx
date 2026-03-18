@@ -238,6 +238,9 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                        <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                           <span className="material-symbols-outlined text-xs">mail</span> {selectedOrder.profiles?.email}
                        </p>
+                       <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                          <span className="material-symbols-outlined text-xs">call</span> {selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone || "No phone provided"}
+                       </p>
                     </div>
                   </div>
                 </section>
