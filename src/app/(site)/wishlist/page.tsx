@@ -117,11 +117,11 @@ export default function WishlistPage() {
                   {/* Remove from wishlist */}
                   <button
                     onClick={() => removeFromWishlist(item.id)}
-                    className="absolute top-3 right-3 size-9 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                    className="absolute top-3 right-3 size-9 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm flex items-center justify-center shadow-md hover:scale-110 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all text-red-500"
                     title="Remove from wishlist"
                   >
-                    <span className="material-symbols-outlined text-red-500 text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                      favorite
+                    <span className="material-symbols-outlined text-[18px]">
+                      delete
                     </span>
                   </button>
                 </div>
