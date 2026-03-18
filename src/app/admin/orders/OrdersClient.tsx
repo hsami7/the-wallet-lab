@@ -52,7 +52,9 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
     const searchLower = searchQuery.toLowerCase();
     
     // We expect the profile to be joined
-    const customerName = o.profiles?.full_name || o.profiles?.email || "Unknown Customer";
+    const shipping = o.shipping_address;
+    const shippingName = shipping?.firstName ? `${shipping.firstName} ${shipping.lastName}` : null;
+    const customerName = shippingName || o.profiles?.full_name || o.profiles?.email || "Unknown Customer";
     
     // We expect items to be joined, mapping over products
     const productNames = o.order_items?.map((item: Record<string, any>) => item.products?.name).join(" ") || "";
@@ -182,7 +184,9 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
             </thead>
             <tbody>
               {filtered.map((order, i) => {
-                const customerName = order.profiles?.full_name || order.profiles?.email || "Unknown";
+                const shipping = order.shipping_address;
+                const shippingName = shipping?.firstName ? `${shipping.firstName} ${shipping.lastName}` : null;
+                const customerName = shippingName || order.profiles?.full_name || order.profiles?.email || "Unknown";
                 const dateRaw = new Date(order.created_at);
                 const dateOptions: Intl.DateTimeFormatOptions = { month: 'short', day: '2-digit', year: 'numeric' };
                 const formattedDate = dateRaw.toLocaleDateString('en-US', dateOptions);
