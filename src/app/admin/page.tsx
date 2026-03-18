@@ -189,8 +189,8 @@ export default async function AdminDashboard() {
             <div>
               <h4 className="text-lg font-bold">Order Volume</h4>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-2xl font-bold">{totalOrders} Orders</span>
-                <span className="text-sm text-primary font-bold">Live Throughput</span>
+                <span className="text-2xl font-bold">{totalOrders.toLocaleString()}</span>
+                <span className="text-sm text-emerald-500 font-bold">+4% vs last week</span>
               </div>
             </div>
             <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-bold py-2 px-4 focus:ring-primary/30">
@@ -198,27 +198,30 @@ export default async function AdminDashboard() {
               <option>Last 30 Days</option>
             </select>
           </div>
-          {/* Line Chart Simulation (Emerald) */}
-          <div className="relative h-48 w-full mt-4">
-            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
-              <defs>
-                <linearGradient id="emeraldGradient" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.4"></stop>
-                  <stop offset="100%" stopColor="#10b981" stopOpacity="0"></stop>
-                </linearGradient>
-              </defs>
-              <path d="M0,90 Q50,70 100,80 T200,40 T300,20 T400,30 V100 H0 Z" fill="url(#emeraldGradient)"></path>
-              <path d="M0,90 Q50,70 100,80 T200,40 T300,20 T400,30" fill="none" stroke="#10b981" strokeLinecap="round" strokeWidth="3"></path>
-            </svg>
-            <div className="flex justify-between mt-4 text-xs font-bold text-slate-400">
-              <span>Mon</span>
-              <span>Tue</span>
-              <span>Wed</span>
-              <span>Thu</span>
-              <span>Fri</span>
-              <span>Sat</span>
-              <span>Sun</span>
-            </div>
+          
+          {/* Bar Chart Simulation */}
+          <div className="flex items-end justify-between h-48 w-full mt-4 px-2">
+            {[
+              { day: "Mon", height: "40%" },
+              { day: "Tue", height: "70%" },
+              { day: "Wed", height: "85%", active: true },
+              { day: "Thu", height: "45%" },
+              { day: "Fri", height: "60%" },
+              { day: "Sat", height: "75%" },
+              { day: "Sun", height: "35%" },
+            ].map((bar) => (
+              <div key={bar.day} className="flex flex-col items-center gap-4 w-full">
+                <div 
+                  className={`w-8 rounded-full transition-all duration-500 ${
+                    bar.active 
+                      ? "bg-[#6366f1] shadow-[0_0_15px_rgba(99,102,241,0.6)]" 
+                      : "bg-slate-200 dark:bg-slate-700/50"
+                  }`}
+                  style={{ height: bar.height }}
+                />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{bar.day}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
