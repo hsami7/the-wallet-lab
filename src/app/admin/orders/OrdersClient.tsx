@@ -18,7 +18,24 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
   const [orders, setOrders] = useState(initialOrders);
   const [filter, setFilter] = useState("All");
   const { searchQuery, setSearchQuery, setPageResults } = useAdminSearch();
+  const { showToast } = useToast();
   const statuses = ["All", "Pending", "Processing", "Shipped", "Delivered", "Refunded"];
+
+  async function handleStatusUpdate(orderId: string, newStatus: string) {
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: newStatus.toLowerCase() })
+        .eq("id", orderId);
+
+      if (error) throw error;
+
+      setOrders(orders.map(o => o.id === orderId ? { ...o, status: newStatus.toLowerCase() } : o));
+      showToast(`Order status updated to ${newStatus}`, "success");
+    } catch (err: any) {
+      showToast(err.message, "error");
+    }
+  }
 
   // Sync orders to global search results
   useEffect(() => {
@@ -67,33 +84,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
     return matchFilter && matchSearch;
   });
 
-    const { showToast } = useToast();
-  
-    // Example status update handler
-    async function updateOrderStatus(id: string, newStatus: string) {
-      try {
-        const { data, error } = await supabase
-          .from('orders')
-          .update({ status: newStatus })
-          .eq('id', id)
-          .select(`
-            *,
-            profiles(full_name, email),
-            order_items(
-              quantity, unit_price,
-              products(name, sku)
-            )
-          `)
-          .single();
-          
-        if (error) throw error;
-        setOrders(prev => prev.map(o => o.id === id ? data : o));
-        showToast(`Order status updated to ${newStatus}`, "success");
-      } catch (err) {
-        console.error("Failed to update order status:", err);
-        showToast("Failed to update order status.", "error");
-      }
-    }
 
   // Helper to format currency
   const formatCurrency = (amount: number) => {
@@ -210,9 +200,18 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                     </td>
                     <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{formattedDate}</td>
                     <td className="px-6 py-4">
-                      <button className="text-slate-400 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-lg">more_horiz</span>
-                      </button>
+                      <select 
+                        value={order.status.toLowerCase()}
+                        onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                        className="bg-transparent text-xs font-bold text-slate-500 hover:text-primary outline-none cursor-pointer uppercase tracking-tight"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="refunded">Refunded</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
                     </td>
                   </tr>
                 );

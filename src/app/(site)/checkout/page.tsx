@@ -97,12 +97,13 @@ export default function CheckoutPage() {
       setUser(session?.user || null);
       setLoading(false);
 
-      if (!loading && cart.length === 0) {
+      // Only redirect if cart is empty, NOT loading, and NOT currently in the middle of a purchase
+      if (!loading && cart.length === 0 && !isSubmitting) {
         router.push("/shop");
       }
     }
     checkAuth();
-  }, [supabase, cart.length, router, loading]);
+  }, [supabase, cart.length, router, loading, isSubmitting]);
 
   if (loading) {
     return (
