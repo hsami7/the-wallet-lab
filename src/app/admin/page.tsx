@@ -301,37 +301,48 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* Top 5 Sellers */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 mt-6 overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">Product Performance</h2>
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-3 py-1.5 rounded-full">Top Performers</span>
+      {/* Product Performance Section */}
+      <div className="bg-white dark:bg-slate-900/40 rounded-3xl border border-slate-200 dark:border-slate-800 mt-6 overflow-hidden shadow-sm">
+        <div className="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Product Performance</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-widest font-bold font-geist">Top sellers by unit volume</p>
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-4 py-2 rounded-full border border-primary/20">Live Intelligence</span>
         </div>
-        <div className="p-8 flex flex-col gap-8">
+        <div className="p-8 flex flex-col gap-10">
           {topSellers.length > 0 ? (
             topSellers.map((p) => (
-              <div key={p.rank} className="flex items-center gap-6">
-                <span className={`text-xl font-black w-8 shrink-0 ${
-                  p.rank === 1 ? "text-primary" :
-                  p.rank === 2 ? "text-slate-400" :
-                  p.rank === 3 ? "text-slate-300" :
-                  "text-slate-200 dark:text-slate-700"
-                }`}>0{p.rank}</span>
+              <div key={p.rank} className="flex items-center gap-8 group">
+                <div className="relative shrink-0 w-12 h-12 flex items-center justify-center">
+                  <span className={`text-2xl font-black italic ${
+                    p.rank === 1 ? "text-primary drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)]" :
+                    p.rank === 2 ? "text-slate-400" :
+                    p.rank === 3 ? "text-slate-300" :
+                    "text-slate-200 dark:text-slate-700"
+                  }`}>{p.rank}</span>
+                  {p.rank === 1 && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse shadow-[0_0_10px_#0d59f2]" />
+                  )}
+                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-end justify-between mb-4">
                     <div className="min-w-0">
-                      <span className="text-sm font-black text-slate-900 dark:text-white truncate block uppercase tracking-tight">{p.name}</span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.category}</span>
+                      <span className="text-sm font-black text-slate-900 dark:text-white truncate block uppercase tracking-tight group-hover:text-primary transition-colors">{p.name}</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 block">{p.category}</span>
                     </div>
-                    <div className="text-right shrink-0 ml-4">
-                      <span className="text-sm font-black text-slate-900 dark:text-white block">{p.units} UNITS</span>
-                      <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Best Seller</span>
+                    <div className="text-right shrink-0">
+                      <span className="text-base font-black text-slate-900 dark:text-white block tracking-tighter">{p.units} UNITS SOLD</span>
+                      <div className="flex items-center justify-end gap-1 mt-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                        <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Trending high</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-3 bg-slate-100 dark:bg-zinc-800/50 rounded-full overflow-hidden p-[2px]">
                     <div
                       className={`h-full rounded-full transition-all duration-1000 ease-out ${
-                        p.rank === 1 ? "bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" : "bg-primary/40"
+                        p.rank === 1 ? "bg-primary shadow-[0_0_15px_rgba(13,89,242,0.4)]" : "bg-slate-400 dark:bg-slate-600"
                       }`}
                       style={{ width: `${p.share}%` }}
                     />
@@ -340,8 +351,8 @@ export default async function AdminDashboard() {
               </div>
             ))
           ) : (
-            <div className="py-10 text-center opacity-30">
-              <span className="material-symbols-outlined text-4xl mb-2">analytics</span>
+            <div className="py-16 text-center opacity-30 flex flex-col items-center">
+              <span className="material-symbols-outlined text-5xl mb-3 animate-pulse">analytics</span>
               <p className="text-xs font-bold uppercase tracking-widest">Waiting for initial sales data</p>
             </div>
           )}
