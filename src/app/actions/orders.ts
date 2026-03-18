@@ -1,5 +1,3 @@
-"use client"; // Note: This file will contain server actions, but usually they are "use server" at the top level. I will use "use server" at the function level if needed, or at the top.
-
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
