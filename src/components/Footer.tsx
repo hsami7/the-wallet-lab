@@ -63,7 +63,7 @@ export default function Footer() {
           © 2026 The embroidery&apos;s Lab. Engineered for those who know better. build by <a href="https://github.com/hsami7" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline decoration-dotted">github.com/hsami7</a>
         </p>
         <div className="flex gap-8 text-xs text-slate-500 dark:text-slate-600">
-          <Link href="#" className="hover:text-primary">Privacy Policy</Link>
+          <Link href="/privacy" className="hover:text-primary underline decoration-dotted">Privacy Policy</Link>
           <Link href="#" className="hover:text-primary">Terms of Service</Link>
           <Link href="#" className="hover:text-primary">Cookies</Link>
         </div>

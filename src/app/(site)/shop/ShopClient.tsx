@@ -6,6 +6,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { flyToCart } from "@/utils/animations";
+import { trackEvent } from "@/components/analytics/TrackingProvider";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "newest" | "name-asc";
 
@@ -116,6 +117,13 @@ function ShopContent({ products }: { products: any[] }) {
       quantity: 1,
       image: product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image",
       description: product.category || "Premium Carry"
+    });
+
+    trackEvent("add_to_cart", { 
+      product_id: product.id, 
+      product_name: product.name, 
+      price: product.price,
+      source: "shop_grid"
     });
 
     // Trigger fly to cart animation
@@ -255,6 +263,7 @@ function ShopContent({ products }: { products: any[] }) {
                       slug: product.slug,
                       category: product.category,
                     });
+                    trackEvent("wishlist_add", { product_id: product.id, product_name: product.name });
                   }}
                   className={`absolute bottom-4 right-4 size-10 backdrop-blur-md rounded-full flex items-center justify-center transition-all ${isWishlisted(product.id)
                     ? "bg-red-500 text-white opacity-100"
@@ -270,15 +279,14 @@ function ShopContent({ products }: { products: any[] }) {
               </div>
 
               <div className="p-6 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-bold text-lg">{product.name}</h3>
-                    <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">{product.category || "Premium Carry"}</p>
-                  </div>
-                  <span className="text-primary font-bold">{product.price.toFixed(2)} MAD</span>
-                </div>
-
-                <div className="flex gap-1.5 mb-6">
+                {/* 1. Category */}
+                <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold mb-1">{product.category || "Premium Carry"}</p>
+                
+                {/* 2. Name */}
+                <h3 className="font-bold text-lg mb-3 group-hover:text-primary transition-colors">{product.name}</h3>
+                
+                {/* 3. Colors */}
+                <div className="flex gap-1.5 mb-4 mt-auto">
                   {product.colors && product.colors.length > 0 ? (
                     product.colors.slice(0, 4).map((variant: any, idx: number) => {
                       const isDualColor = !!variant.secondaryHex;
@@ -314,6 +322,11 @@ function ShopContent({ products }: { products: any[] }) {
                   {product.colors && product.colors.length > 4 && (
                     <span className="text-[10px] font-bold text-slate-400">+{product.colors.length - 4}</span>
                   )}
+                </div>
+
+                {/* 4. Price */}
+                <div className="mb-6">
+                  <span className="text-primary font-black text-lg">{product.price.toFixed(2)} <span className="text-[10px]">MAD</span></span>
                 </div>
 
 

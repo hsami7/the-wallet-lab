@@ -52,15 +52,17 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
                 loading="lazy"
               />
             </div>
-            <div className="flex-1 flex flex-col gap-4">
-              <div className="flex justify-between items-start">
-                <div>
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white">{product.name}</h4>
-                  <p className="text-sm text-slate-500">{product.category || "Premium Carry"}</p>
-                </div>
-                <span className="text-lg font-bold text-primary">{product.price.toFixed(2)} MAD</span>
+            <div className="flex-1 flex flex-col pt-2">
+              <div className="flex flex-col gap-1 mb-3">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                  {product.category || "Premium Carry"}
+                </p>
+                <h4 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-snug">
+                  {product.name}
+                </h4>
               </div>
-              <div className="flex gap-1.5">
+
+              <div className="flex gap-1.5 mb-4">
                 {product.colors && product.colors.slice(0, 3).map((variant: any, idx: number) => {
                   const isDualColor = !!variant.secondaryHex;
                   return (
@@ -89,11 +91,16 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
                   );
                 })}
               </div>
+
+              <div className="mb-6">
+                <span className="text-xl font-black text-primary">{product.price.toFixed(2)} <span className="text-xs">MAD</span></span>
+              </div>
+
               <button
                 onClick={(e) => handleAddToCart(e, product)}
-                className={`w-full mt-auto py-3 font-bold rounded-full transition-all text-sm font-display flex items-center justify-center gap-2 ${addedItems[product.id]
+                className={`w-full mt-auto py-4 font-black rounded-2xl transition-all text-sm flex items-center justify-center gap-2 ${addedItems[product.id]
                   ? "bg-emerald-500 text-white shadow-[0_10px_20px_rgba(16,185,129,0.3)] scale-[0.98]"
-                  : "bg-slate-100 dark:bg-slate-700 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white"
+                  : "bg-slate-100 dark:bg-slate-700/50 hover:bg-primary dark:hover:bg-primary text-slate-900 dark:text-white hover:text-white border border-slate-200 dark:border-white/5"
                   }`}
               >
                 {addedItems[product.id] ? (

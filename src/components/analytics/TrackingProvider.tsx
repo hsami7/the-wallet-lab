@@ -7,51 +7,66 @@ import { createClient } from "@/utils/supabase/client";
 function TrackingHandler() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const supabase = createClient();
 
   useEffect(() => {
     // 1. Capture UTM parameters
     const utm_source = searchParams.get("utm_source");
     const utm_medium = searchParams.get("utm_medium");
     const utm_campaign = searchParams.get("utm_campaign");
-    const ref_user = searchParams.get("ref_user"); // For wishlist shares
+    const ref_user = searchParams.get("ref_user");
 
-    // 2. Persist UTMs in sessionStorage for the duration of the visit
+    // 2. Persist UTMs
     if (utm_source) sessionStorage.setItem("utm_source", utm_source);
     if (utm_medium) sessionStorage.setItem("utm_medium", utm_medium);
     if (utm_campaign) sessionStorage.setItem("utm_campaign", utm_campaign);
     if (ref_user) sessionStorage.setItem("ref_user", ref_user);
 
-    // 3. Get actual UTMs (current or persisted)
-    const active_source = utm_source || sessionStorage.getItem("utm_source");
-    const active_medium = utm_medium || sessionStorage.getItem("utm_medium");
-    const active_campaign = utm_campaign || sessionStorage.getItem("utm_campaign");
-
-    // 4. Log the page view
-    const logPageView = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      await supabase.from("traffic_logs").insert({
-        url: window.location.href,
-        referrer: document.referrer || "direct",
-        utm_source: active_source,
-        utm_medium: active_medium,
-        utm_campaign: active_campaign,
-        session_id: getSessionId(),
-        user_id: user?.id || null,
-        metadata: {
-          path: pathname,
-          ref_user: ref_user || sessionStorage.getItem("ref_user"),
-          screen_size: `${window.innerWidth}x${window.innerHeight}`,
-          user_agent: navigator.userAgent
-        }
-      });
-    };
-
-    logPageView();
+    // 3. Log initial page view
+    trackEvent("page_view", {
+      path: pathname,
+      referrer: document.referrer || "direct"
+    });
   }, [pathname, searchParams]);
 
   return null;
+}
+
+/**
+ * Pro Global Tracker
+ * Logs events to Supabase for advanced analytics.
+ */
+export const trackEvent = async (eventType: string, metadata: any = {}) => {
+  if (typeof window === "undefined") return;
+  
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const active_source = sessionStorage.getItem("utm_source");
+  const active_medium = sessionStorage.getItem("utm_medium");
+  const active_campaign = sessionStorage.getItem("utm_campaign");
+  const ref_user = sessionStorage.getItem("ref_user");
+
+  await supabase.from("traffic_logs").insert({
+    url: window.location.href,
+    referrer: document.referrer || "direct",
+    utm_source: active_source,
+    utm_medium: active_medium,
+    utm_campaign: active_campaign,
+    session_id: getSessionId(),
+    event_type: eventType,
+    user_id: user?.id || null,
+    metadata: {
+      ...metadata,
+      ref_user,
+      screen_size: `${window.innerWidth}x${window.innerHeight}`,
+      user_agent: navigator.userAgent
+    }
+  });
+};
+
+// Expose to window for components that might not want to import
+if (typeof window !== "undefined") {
+  (window as any).trackEvent = trackEvent;
 }
 
 // Simple session ID generator

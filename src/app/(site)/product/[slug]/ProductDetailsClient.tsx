@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { flyToCart } from "@/utils/animations";
+import { trackEvent } from "@/components/analytics/TrackingProvider";
 
 export function ProductDetailsClient({
   product,
@@ -65,6 +66,13 @@ export function ProductDetailsClient({
       variant: selectedVariant || undefined
     });
 
+    trackEvent("add_to_cart", {
+      product_id: product.id,
+      product_name: product.name,
+      price: product.price,
+      source: "product_page"
+    });
+
     // Trigger fly to cart animation
     if (e.currentTarget instanceof HTMLElement) {
       flyToCart(e.currentTarget);
@@ -83,6 +91,10 @@ export function ProductDetailsClient({
       slug: product.slug,
       category: product.category,
     });
+    
+    if (!wishlisted) {
+      trackEvent("wishlist_add", { product_id: product.id, product_name: product.name });
+    }
   };
 
   return (

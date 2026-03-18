@@ -38,38 +38,92 @@ const countries = [
 export default function AdminAnalytics() {
   const [activeSeries, setActiveSeries] = useState<"revenue" | "orders">("revenue");
   const [trafficSources, setTrafficSources] = useState<any[]>([]);
+  const [totalVisitors, setTotalVisitors] = useState<number>(0);
+  const [topWishlisted, setTopWishlisted] = useState<any[]>([]);
+  const [topCarted, setTopCarted] = useState<any[]>([]);
+  const [totalCartAdds, setTotalCartAdds] = useState<number>(0);
+  
+  // UTM Generator State
+  const [utmSource, setUtmSource] = useState("instagram");
+  const [utmMedium, setUtmMedium] = useState("social");
+  const [utmCampaign, setUtmCampaign] = useState("winter_sale");
+  const [utmPath, setUtmPath] = useState("/shop");
+  const [copied, setCopied] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     async function fetchTraffic() {
-      const { data: logs } = await supabase.from("traffic_logs").select("utm_source");
+      // 1. Fetch Visitors
+      const { data: logs } = await supabase.from("traffic_logs")
+        .select("utm_source, metadata")
+        .eq("event_type", "page_view");
       
       if (logs) {
+        setTotalVisitors(logs.length);
         const counts: Record<string, number> = {};
+        const total = logs.length;
+
         logs.forEach(log => {
-          const source = log.utm_source || "Direct";
+          let source = log.utm_source || "Direct";
+          if (source === "wishlist_share" && (log.metadata as any)?.ref_user) {
+            source = `Wishlist (Ref: ${(log.metadata as any).ref_user.slice(0, 5)})`;
+          } else if (source === "wishlist_share") {
+            source = "Wishlist Share";
+          }
           counts[source] = (counts[source] || 0) + 1;
         });
 
-        const total = logs.length;
-        const mapped = Object.entries(counts).map(([name, count]) => ({
-          name,
-          icon: name === "Direct" ? "link" : 
-                name.toLowerCase().includes("insta") ? "photo_camera" :
-                name.toLowerCase().includes("tiktok") ? "music_note" :
-                name.toLowerCase().includes("face") ? "thumb_up" :
-                name.toLowerCase().includes("google") ? "search" :
-                name.toLowerCase().includes("wishlist") ? "favorite" : "open_in_new",
-          color: name === "Direct" ? "from-slate-500 to-slate-600" :
-                 name.toLowerCase().includes("insta") ? "from-pink-500 to-purple-600" :
-                 name.toLowerCase().includes("tiktok") ? "from-rose-500 to-pink-600" :
-                 name.toLowerCase().includes("wishlist") ? "from-red-500 to-orange-600" : "from-blue-500 to-indigo-600",
-          visitors: count,
-          share: total > 0 ? Number(((count / total) * 100).toFixed(1)) : 0,
-          change: "Real-time"
-        })).sort((a, b) => b.visitors - a.visitors);
+        const mapped = Object.entries(counts).map(([name, count]) => {
+          const isWishlist = name.toLowerCase().includes("wishlist");
+          const isInsta = name.toLowerCase().includes("insta") || name.toLowerCase().includes("instagram");
+          const isTiktok = name.toLowerCase().includes("tiktok");
+          
+          return {
+            name,
+            icon: name === "Direct" ? "link" : isInsta ? "photo_camera" : isTiktok ? "music_note" : isWishlist ? "favorite" : "open_in_new",
+            color: name === "Direct" ? "from-slate-500 to-slate-600" : isInsta ? "from-pink-500 to-purple-600" : isTiktok ? "from-rose-500 to-pink-600" : isWishlist ? "from-red-500 to-orange-600" : "from-blue-500 to-indigo-600",
+            visitors: count,
+            share: total > 0 ? Number(((count / total) * 100).toFixed(1)) : 0,
+            change: "Live"
+          };
+        }).sort((a, b) => b.visitors - a.visitors);
 
         setTrafficSources(mapped);
+      }
+
+      // 2. Fetch Wishlist Trends
+      const { data: wishlistEvents } = await supabase.from("traffic_logs")
+        .select("metadata")
+        .eq("event_type", "wishlist_add");
+      
+      if (wishlistEvents) {
+        const stats: Record<string, number> = {};
+        wishlistEvents.forEach(e => {
+          const name = (e.metadata as any)?.product_name || "Unknown";
+          stats[name] = (stats[name] || 0) + 1;
+        });
+        setTopWishlisted(Object.entries(stats)
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 4));
+      }
+
+      // 3. Fetch Cart Interest & Trends
+      const { data: cartEvents } = await supabase.from("traffic_logs")
+        .select("metadata")
+        .eq("event_type", "add_to_cart");
+      
+      if (cartEvents) {
+        setTotalCartAdds(cartEvents.length);
+        const stats: Record<string, number> = {};
+        cartEvents.forEach(e => {
+          const name = (e.metadata as any)?.product_name || "Unknown";
+          stats[name] = (stats[name] || 0) + 1;
+        });
+        setTopCarted(Object.entries(stats)
+          .map(([name, count]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 4));
       }
     }
 
@@ -95,8 +149,8 @@ export default function AdminAnalytics() {
         {[
           { label: "Total Revenue",    value: "630,400 MAD", change: "+18.3%", up: true,  icon: "payments"      },
           { label: "Total Orders",     value: "1,284",       change: "+12.1%", up: true,  icon: "receipt_long"  },
-          { label: "Total Visitors",   value: "15,210",      change: "+22.4%", up: true,  icon: "group"         },
-          { label: "Avg. Order Value", value: "891 MAD",     change: "-2.1%",  up: false, icon: "shopping_bag"  },
+          { label: "Total Visitors",   value: totalVisitors.toLocaleString(), change: "Live", up: true,  icon: "group"         },
+          { label: "Cart Interest",    value: `${totalCartAdds}`, change: "Live", up: true,  icon: "add_shopping_cart" },
         ].map((s) => (
           <div key={s.label} className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between mb-3">
@@ -190,26 +244,49 @@ export default function AdminAnalytics() {
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Traffic Sources</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">Where visitors are coming from</p>
           <div className="flex flex-col gap-4">
-            {trafficSources.map((src) => (
+            {trafficSources.slice(0, 5).map((src) => (
               <div key={src.name} className="flex items-center gap-3">
                 <div className={`size-9 rounded-lg bg-gradient-to-br ${src.color} flex items-center justify-center shrink-0`}>
                   <span className="material-symbols-outlined text-white text-base">{src.icon}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-slate-900 dark:text-white">{src.name}</span>
+                    <span className="text-sm font-medium text-slate-900 dark:text-white truncate pr-2">{src.name}</span>
                     <div className="flex items-center gap-3 text-xs shrink-0 ml-2">
-                      <span className="text-green-600 dark:text-green-400 font-medium">{src.change}</span>
-                      <span className="text-slate-500 dark:text-slate-400">{src.visitors.toLocaleString()}</span>
+                      <span className="text-slate-500 dark:text-slate-400">{src.visitors}</span>
                       <span className="font-semibold text-slate-900 dark:text-white w-10 text-right">{src.share}%</span>
                     </div>
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div className={`h-full bg-gradient-to-r ${src.color} rounded-full`} style={{ width: `${src.share * 3.15}%` }} />
+                    <div className={`h-full bg-gradient-to-r ${src.color} rounded-full`} style={{ width: `${src.share}%` }} />
                   </div>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Wishlist Trends */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Wishlist Trends</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">Products in customer wishlists (Desire)</p>
+          <div className="flex flex-col gap-4">
+            {topWishlisted.length > 0 ? topWishlisted.map((item, i) => (
+              <div key={item.name} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
+                <div className="flex items-center gap-3 shrink-0 min-w-0">
+                  <span className="size-6 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center shrink-0">#{i+1}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2">{item.name}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-bold text-primary">{item.count}</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Saves</span>
+                </div>
+              </div>
+            )) : (
+              <div className="py-10 text-center text-slate-400 text-xs italic">
+                No wishlist data yet.
+              </div>
+            )}
           </div>
         </div>
 
@@ -239,6 +316,124 @@ export default function AdminAnalytics() {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Cart Trends */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Cart Trends</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">Products in shopping carts (Intent)</p>
+          <div className="flex flex-col gap-4">
+            {topCarted.length > 0 ? topCarted.map((item, i) => (
+              <div key={item.name} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
+                <div className="flex items-center gap-3 shrink-0 min-w-0">
+                  <span className="size-6 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-bold flex items-center justify-center shrink-0">#{i+1}</span>
+                  <span className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2">{item.name}</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-bold text-orange-600 dark:text-orange-400">{item.count}</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Adds</span>
+                </div>
+              </div>
+            )) : (
+              <div className="py-10 text-center text-slate-400 text-xs italic">
+                No cart data captured yet.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── UTM Link Generator (NEW) ── */}
+      <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-primary/20 p-6 mb-6 shadow-xl shadow-primary/5">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="size-10 rounded-xl bg-primary flex items-center justify-center text-white">
+            <span className="material-symbols-outlined">link</span>
+          </div>
+          <div>
+            <h2 className="text-lg font-black text-slate-900 dark:text-white">UTM Link Generator</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400">Create tracked links for your ads & social media</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Target Page</label>
+            <select 
+              value={utmPath}
+              onChange={(e) => setUtmPath(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all font-medium"
+            >
+              <option value="/">Home Page</option>
+              <option value="/shop">Shop All</option>
+              <option value="/wishlist">Wishlist</option>
+              {/* You can add more specific product pages here if needed */}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Platform (Source)</label>
+            <select 
+              value={utmSource}
+              onChange={(e) => setUtmSource(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all font-medium"
+            >
+              <option value="instagram">Instagram</option>
+              <option value="tiktok">TikTok</option>
+              <option value="facebook">Facebook</option>
+              <option value="google">Google</option>
+              <option value="whatsapp">WhatsApp</option>
+              <option value="email">Email</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Placement (Medium)</label>
+            <select 
+              value={utmMedium}
+              onChange={(e) => setUtmMedium(e.target.value)}
+              className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all font-medium"
+            >
+              <option value="social">Social Post</option>
+              <option value="ad">Paid Ad</option>
+              <option value="chat">Direct Chat (WhatsApp/DM)</option>
+              <option value="bio">Profile Link (Bio)</option>
+              <option value="story">Story Link</option>
+              <option value="email">Email</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Campaign Name</label>
+            <input 
+              type="text"
+              value={utmCampaign}
+              onChange={(e) => setUtmCampaign(e.target.value)}
+              placeholder="e.g. winter_sale"
+              className="bg-slate-50 dark:bg-slate-800 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all font-medium placeholder:text-slate-400"
+            />
+          </div>
+        </div>
+
+        <div className="bg-slate-900 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 group">
+          <div className="flex-1 min-w-0 w-full overflow-hidden">
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Generated Tracking Link:</p>
+            <code className="text-primary-foreground/90 font-mono text-sm break-all">
+              {typeof window !== 'undefined' ? window.location.origin : 'https://the-wallet-lab.com'}
+              {utmPath}?utm_source={utmSource}&utm_medium={utmMedium}&utm_campaign={utmCampaign}
+            </code>
+          </div>
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}${utmPath}?utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}`;
+              navigator.clipboard.writeText(url);
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            }}
+            className="shrink-0 flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all active:scale-95 shadow-lg shadow-primary/20"
+          >
+            <span className="material-symbols-outlined text-lg">{copied ? "done" : "content_copy"}</span>
+            {copied ? "Copied!" : "Copy Link"}
+          </button>
         </div>
       </div>
 
