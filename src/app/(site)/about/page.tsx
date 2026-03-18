@@ -1,108 +1,199 @@
 import React from "react";
 import Link from "next/link";
+import { ScrollReveal } from "@/components/ScrollReveal";
+import { Logo } from "@/components/Logo";
 
 export default function AboutPage() {
   return (
-    <div className="max-w-7xl mx-auto px-6 md:px-20 pt-4 md:pt-8 pb-24 w-full">
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-24 mt-12">
-        <div className="flex flex-col gap-6">
-          <span className="text-primary font-semibold tracking-widest uppercase text-sm">Established 2012</span>
-          <h1 className="text-5xl md:text-7xl font-bold leading-none tracking-tight">Modern utility meets timeless soul.</h1>
-          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-lg">
-            We believe the objects you carry every day should be as functional as they are beautiful. Our journey began with a single goal: to redefine the classic wallet for the modern era.
-          </p>
-          <div className="flex gap-4 pt-4">
-            <button className="bg-primary text-white px-8 py-4 rounded-full font-bold hover:opacity-90 transition-opacity">Explore Collections</button>
-          </div>
+    <div className="dark bg-[#101622] text-[#f1f5f9] font-['Space_Grotesk'] min-h-screen overflow-x-hidden pt-0 transition-colors duration-500">
+      {/* 1. The Hero Section */}
+      <section className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
+        {/* Background Image with Overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src="/home/ngl/.gemini/antigravity/brain/3d7f97d1-a8f1-4fa4-ba4d-008ac5acede3/about_hero_bg_1773786217427.png"
+            alt="Engineered Art Background"
+            className="w-full h-full object-cover opacity-60 scale-105 animate-pulse-slow active:scale-100 transition-transform duration-[10s]"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#101622]/40 via-transparent to-[#101622]" />
+          <div className="absolute inset-0 bg-black/20" />
         </div>
-        <div className="relative">
-          <div className="aspect-[4/5] rounded-xl overflow-hidden shadow-2xl">
-            <img alt="Craftsman working on premium leather" className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIuuEZqpcsnfJBVtqxRRlmvoCsOINW7RUZOhUNz5WOjBKGqqIWDC9kBzG-ZiYfu_Jt9MRq87V0Nqn9k-ELNUnm1NkSaSDJm9iBJYfDniHNG_7uha74YnJFXNiHIXboaMZE-OtKB2rfWZbFbXU3Mwjl2eN5lzVenZlSmp_RWyvpi7uys8Vp53rnE5Qwu92s8ugsAzCfTV2tSpjU7N8vYMdn9avPLqERpYYYWQtN3MBy1kB9L10DX57HQrj1Hv3YVRFiOt_nwwMeE4M" loading="lazy" />
+
+        <div className="relative z-10 text-center px-6">
+          <ScrollReveal animation="fade-up">
+            <h1 className="text-7xl md:text-[10rem] font-bold tracking-tighter leading-none mb-4 italic">
+              ENGINEERED<br />
+              <span className="text-[#0d59f2] bg-clip-text text-transparent bg-gradient-to-r from-[#0d59f2] to-purple-500">ART.</span>
+            </h1>
+          </ScrollReveal>
+          <ScrollReveal animation="fade-up" delay={200}>
+            <p className="text-xl md:text-2xl font-light tracking-widest uppercase opacity-80">
+              Where laboratory precision meets timeless needlework.
+            </p>
+          </ScrollReveal>
+        </div>
+
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce flex flex-col items-center gap-2 opacity-60">
+          <span className="text-[10px] uppercase tracking-[0.3em]">Enter The Lab</span>
+          <span className="material-symbols-outlined text-3xl">keyboard_double_arrow_down</span>
+        </div>
+      </section>
+
+      {/* 2. The Manifesto (Our Story) */}
+      <section className="py-24 px-6 md:px-20 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-24 items-center">
+          <div className="lg:col-span-7 flex flex-col gap-8 order-2 lg:order-1">
+            <ScrollReveal animation="slide-right">
+              <h2 className="text-4xl md:text-6xl font-bold leading-tight uppercase">
+                WE ENGINEER <br />
+                <span className="text-[#0d59f2]">WEARABLE ARCHITECTURE.</span>
+              </h2>
+            </ScrollReveal>
+            <ScrollReveal animation="slide-right" delay={200}>
+              <div className="space-y-6 text-lg text-[#666666] leading-relaxed max-w-xl">
+                <p>
+                  Born from a desire to merge ancient craftsmanship with modern streetwear aesthetics,
+                  <span className="text-[#f1f5f9] font-medium ml-1">The Embroidery&apos;s Lab</span> was never just a clothing brand. It was a technical challenge.
+                </p>
+                <p>
+                  Every garment is a calculated experiment in thread density, color gradients, and structural integrity.
+                  We draw inspiration from the traditional weaves of Fes and translate them into algorithms that feed our high-precision machinery.
+                </p>
+                <p>
+                  To us, a jacket isn&apos;t just apparel; it&apos;s a blueprint. Each stitch path is modeled with surgical intent to interact perfectly with the grain of premium denim.
+                </p>
+              </div>
+            </ScrollReveal>
           </div>
-          <div className="absolute -bottom-6 -left-6 bg-primary p-8 rounded-xl hidden md:block">
-            <p className="text-white text-3xl font-bold italic">"Crafted, not manufactured."</p>
+          <div className="lg:col-span-5 order-1 lg:order-2">
+            <ScrollReveal animation="slide-left">
+              <div className="relative group">
+                <div className="absolute -inset-4 bg-gradient-to-tr from-[#0d59f2]/20 to-purple-500/20 rounded-3xl blur-2xl group-hover:opacity-100 opacity-50 transition-opacity" />
+                <div className="relative rounded-2xl overflow-hidden border border-white/5 shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]">
+                  <img
+                    src="/home/ngl/.gemini/antigravity/brain/3d7f97d1-a8f1-4fa4-ba4d-008ac5acede3/about_manifesto_img_v3_1773786503517.png"
+                    alt="Precision Embroidery Machine"
+                    className="w-full h-auto grayscale group-hover:grayscale-0 transition-all duration-700"
+                  />
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-16 py-12 border-t border-slate-200 dark:border-slate-800">
-        <div className="md:col-span-1">
-          <h2 className="text-3xl font-bold">The Beginning</h2>
-        </div>
-        <div className="md:col-span-2 flex flex-col gap-8 text-slate-600 dark:text-slate-400 text-lg leading-relaxed">
-          <p>
-            The Embroidery&apos;s Lab started in a small workshop in Brooklyn. Our founder, a former architect, found himself frustrated with mass-produced embroidery that lacked the precision and soul of architectural design.
-          </p>
-          <p>
-            What started as a personal project to create the "perfect" stitch—one that combined structural integrity with intricate beauty—quickly grew. Friends asked for them, then friends of friends, and soon we were shipping worldwide.
-          </p>
-        </div>
-      </section>
+      {/* 3. The Blueprint (Our Core Pillars) */}
+      <section className="py-24 bg-[#0d59f2]/5 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#0d59f2]/10 rounded-full blur-[120px] -mr-64 -mt-64" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] -ml-64 -mb-64" />
 
-      <section className="py-24">
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold mb-4">The Craftsmanship Process</h2>
-          <p className="text-slate-600 dark:text-slate-400">Every piece goes through a rigorous 24-step process before it earns the Lab stamp.</p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="group">
-            <div className="aspect-square rounded-xl overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
-              <img alt="Thread selection process" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&q=80&w=800" loading="lazy" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">01. Material Selection</h3>
-            <p className="text-slate-600 dark:text-slate-400">We source only high-tensile embroidery threads and premium base fabrics from world-renowned mills.</p>
+        <div className="max-w-7xl mx-auto px-6 md:px-20 relative z-10">
+          <div className="mb-16">
+            <ScrollReveal animation="fade-up">
+              <h2 className="text-3xl md:text-5xl font-bold uppercase tracking-tight mb-4 italic">The <span className="text-[#0d59f2]">Blueprint</span></h2>
+              <div className="w-20 h-1 bg-[#0d59f2]" />
+            </ScrollReveal>
           </div>
-          <div className="group">
-            <div className="aspect-square rounded-xl overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
-              <img alt="Digital digitizing" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1596464716127-f2a82984de30?auto=format&fit=crop&q=80&w=800" loading="lazy" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">02. Architectural Digitizing</h3>
-            <p className="text-slate-600 dark:text-slate-400">Designs are meticulously digitized, treating every stitch path as a structural element for absolute precision.</p>
-          </div>
-          <div className="group">
-            <div className="aspect-square rounded-xl overflow-hidden mb-6 bg-slate-200 dark:bg-slate-800">
-              <img alt="High speed embroidery" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="https://images.unsplash.com/photo-1517423568366-8b83523034fd?auto=format&fit=crop&q=80&w=800" loading="lazy" />
-            </div>
-            <h3 className="text-xl font-bold mb-2">03. Lab-Tested Finishing</h3>
-            <p className="text-slate-600 dark:text-slate-400">Our pieces are hand-finished and stress-tested, ensuring the embroidery remains vibrant for a lifetime.</p>
-          </div>
-        </div>
-      </section>
 
-      <section className="bg-primary/10 rounded-xl p-8 md:p-16 mb-24">
-        <div className="max-w-3xl mx-auto text-center flex flex-col gap-8">
-          <h2 className="text-4xl font-bold">Built for the long haul.</h2>
-          <p className="text-xl text-slate-600 dark:text-slate-300">
-            We don&apos;t believe in fast fashion. We believe in objects that acquire character over time, engineered with precision to last through every adventure.
-          </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-8">
-            <div className="flex flex-col items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-4xl">eco</span>
-              <span className="font-bold">Sustainable</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-4xl">inventory_2</span>
-              <span className="font-bold">Premium Quality</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-4xl">architecture</span>
-              <span className="font-bold">Precision Design</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-4xl">public</span>
-              <span className="font-bold">Global Delivery</span>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <ScrollReveal animation="fade-up" delay={100} className="h-full">
+              <div className="p-10 rounded-[32px] bg-[#1e293b] border border-white/5 h-full hover:border-[#0d59f2]/50 transition-all group">
+                <div className="size-16 rounded-2xl bg-[#0d59f2]/10 flex items-center justify-center mb-8 border border-[#0d59f2]/20 text-[#0d59f2] transition-colors group-hover:bg-[#0d59f2] group-hover:text-white">
+                  <span className="material-symbols-outlined text-3xl">architecture</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-4 uppercase italic">Surgical Precision</h3>
+                <p className="text-[#666666] leading-relaxed group-hover:text-slate-300 transition-colors">
+                  Over 150,000 stitches per garment. Calibrated to interact perfectly with the denim&apos;s grain for a finish that rivals high-end architecture.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal animation="fade-up" delay={200} className="h-full">
+              <div className="p-10 rounded-[32px] bg-[#1e293b] border border-white/5 h-full hover:border-[#0d59f2]/50 transition-all group">
+                <div className="size-16 rounded-2xl bg-[#0d59f2]/10 flex items-center justify-center mb-8 border border-[#0d59f2]/20 text-[#0d59f2] transition-colors group-hover:bg-[#0d59f2] group-hover:text-white">
+                  <span className="material-symbols-outlined text-3xl">layers</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-4 uppercase italic">Structural Integrity</h3>
+                <p className="text-[#666666] leading-relaxed group-hover:text-slate-300 transition-colors">
+                  High-density pigment stitching that crosses functional seams without warping the fabric, ensuring your experiment lasts a lifetime.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal animation="fade-up" delay={300} className="h-full">
+              <div className="p-10 rounded-[32px] bg-[#1e293b] border border-white/5 h-full hover:border-[#0d59f2]/50 transition-all group">
+                <div className="size-16 rounded-2xl bg-[#0d59f2]/10 flex items-center justify-center mb-8 border border-[#0d59f2]/20 text-[#0d59f2] transition-colors group-hover:bg-[#0d59f2] group-hover:text-white">
+                  <span className="material-symbols-outlined text-3xl">science</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-4 uppercase italic">Limited Experiments</h3>
+                <p className="text-[#666666] leading-relaxed group-hover:text-slate-300 transition-colors">
+                  We reject mass production. Each drop is a limited-run, meticulously tested prototype, numbered and archived in our database.
+                </p>
+              </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
-      <section className="text-center py-12 mb-24">
-        <h2 className="text-3xl font-bold mb-6">Need a custom design?</h2>
-        <div className="flex justify-center gap-4">
-          <Link href="/shop" className="bg-primary text-white px-10 py-4 rounded-full font-bold hover:scale-105 transition-transform flex items-center justify-center">Shop Collections</Link>
-          <Link href="/contact" className="border border-slate-300 dark:border-slate-700 px-10 py-4 rounded-full font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center">Contact the Lab</Link>
+      {/* 4. The Technicians (Behind the Needle) */}
+      <section className="py-32 relative overflow-hidden group">
+        <div className="absolute inset-0 carbon-pattern opacity-10" />
+        <div className="max-w-7xl mx-auto px-6 md:px-20 text-center relative z-10">
+          <ScrollReveal animation="fade-up">
+            <span className="text-[#0d59f2] font-bold tracking-[0.4em] uppercase text-sm block mb-8">The Technicians</span>
+            <h2 className="text-5xl md:text-7xl font-bold tracking-tight uppercase leading-none mb-12 italic">
+              TRANSFORMING ALGORITHMS <br />
+              <span className="opacity-40">INTO THREAD.</span>
+            </h2>
+            <div className="max-w-2xl mx-auto text-lg text-[#666666] leading-relaxed">
+              Our digitizers and designers aren&apos;t just artists; they are visionaries who translate complex geometry into physical form.
+              The lab is where human intuition meets robotic precision.
+            </div>
+          </ScrollReveal>
         </div>
       </section>
+
+      {/* 5. Call to Action (The Final Hook) */}
+      <section className="py-24 px-6 md:px-20 relative">
+        <div className="max-w-4xl mx-auto rounded-[3rem] p-12 md:p-24 bg-gradient-to-tr from-[#0d59f2] to-purple-600 text-center relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none" />
+
+          <ScrollReveal animation="fade-up">
+            <h2 className="text-5xl md:text-7xl font-bold uppercase tracking-tighter mb-8 italic">ENTER THE LAB.</h2>
+            <p className="text-xl md:text-2xl text-white/90 font-light mb-12 max-w-xl mx-auto">
+              Secure your unit from the archive or collaborate on a unique architectural project.
+            </p>
+          </ScrollReveal>
+
+          <ScrollReveal animation="fade-up" delay={200}>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/shop"
+                className="bg-white text-[#0d59f2] px-10 py-5 rounded-full font-bold text-lg hover:scale-105 transition-all shadow-xl shadow-black/20"
+              >
+                Shop the Archive
+              </Link>
+              <Link
+                href="/contact"
+                className="bg-transparent border-2 border-white/40 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-md"
+              >
+                Commission an Experiment
+              </Link>
+            </div>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* Simple Dark Footer for About Page */}
+      <footer className="py-12 border-t border-white/5 text-center mt-12 bg-[#0a0f1a]">
+        <div className="flex flex-col items-center gap-6">
+          <Logo size={120} forceFull className="opacity-80" />
+          <p className="text-[10px] uppercase tracking-[0.5em] text-[#666666]">
+            &copy; {new Date().getFullYear()} The Embroidery&apos;s Lab. All Rights Reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

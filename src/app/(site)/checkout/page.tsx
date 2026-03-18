@@ -223,19 +223,19 @@ export default function CheckoutPage() {
           <ScrollReveal animation="slide-right" className="bg-slate-100 dark:bg-slate-900 rounded-3xl p-8 sticky top-28 border border-slate-200 dark:border-slate-800 shadow-sm">
             <h3 className="text-xl font-bold mb-6 tracking-tight">Order Summary</h3>
 
-            <div className="space-y-5 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-5 mb-8">
               {cart.map((item, idx) => (
                 <div key={item.id} className="flex items-center gap-4">
                   <div className="h-16 w-16 bg-white dark:bg-slate-800 rounded-xl overflow-hidden flex-shrink-0 border border-slate-200 dark:border-white/5">
                     <img className="h-full w-full object-cover" src={item.image} alt={item.name} loading="lazy" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mt-1">
-                      <p className="font-bold text-sm truncate shrink-0">{item.name}</p>
+                    <div className="flex items-start justify-between gap-2 mt-1">
+                      <p className="font-bold text-sm line-clamp-2 leading-tight flex-1">{item.name}</p>
                       {item.variant && (
-                        <div className="flex items-center gap-1.5 ml-2">
-                          <div 
-                            className="size-2.5 rounded-full border border-white/20 shadow-inner overflow-hidden flex" 
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <div
+                            className="size-2.5 rounded-full border border-white/20 shadow-inner overflow-hidden flex"
                             style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }}
                           >
                             {typeof item.variant === 'object' && item.variant.secondaryHex ? (
@@ -247,7 +247,7 @@ export default function CheckoutPage() {
                               <div className="size-full" style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }} />
                             )}
                           </div>
-                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 truncate max-w-[60px]">
+                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">
                             {typeof item.variant === 'object' ? item.variant.name : 'Finish'}
                           </span>
                         </div>
@@ -311,8 +311,8 @@ export default function CheckoutPage() {
                 onClick={handleApplyPromo}
                 disabled={promoStatus === 'success' || isApplying}
                 className={`absolute right-1.5 top-1.5 rounded-lg px-4 py-2 text-[10px] font-bold transition-all ${promoStatus === 'success'
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                    : 'bg-primary text-white hover:brightness-110 active:scale-95'
+                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                  : 'bg-primary text-white hover:brightness-110 active:scale-95'
                   }`}
               >
                 {isApplying ? (
