@@ -4,6 +4,8 @@ import { useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useToast } from "@/context/ToastContext";
+import { useAdminSearch } from "@/context/AdminSearchContext";
+import { useEffect } from "react";
 
 const statusColors: Record<string, string> = {
   active: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -16,8 +18,24 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
   const supabase = createClient();
   const [products, setProducts] = useState(initialProducts);
   const [filter, setFilter] = useState("All");
-  const [search, setSearch] = useState("");
+  const { searchQuery, setSearchQuery, setPageResults } = useAdminSearch();
   const filters = ["All", "In Stock", "Low Stock", "Out of Stock", "Draft"];
+
+  // Sync products to global search results
+  useEffect(() => {
+    const results = products.map(p => ({
+      id: p.id,
+      title: p.name,
+      subtitle: `${p.category || 'Product'} — ${p.price} MAD`,
+      href: `/admin/products/${p.id}/edit`,
+      icon: "inventory_2",
+      type: "content" as const
+    }));
+    setPageResults(results);
+    
+    // Cleanup on unmount
+    return () => setPageResults([]);
+  }, [products, setPageResults]);
 
   const filtered = products.filter((p) => {
     const isLowStock = p.status === "active" && p.inventory_count > 0 && p.inventory_count <= 10;
@@ -29,8 +47,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
     else if (filter === "Draft") matchFilter = p.status === "draft";
 
     const matchSearch =
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      (p.sku && p.sku.toLowerCase().includes(search.toLowerCase()));
+      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchFilter && matchSearch;
   });
@@ -141,8 +159,8 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 gap-2 border border-slate-200 dark:border-slate-700">
             <span className="material-symbols-outlined text-slate-400 text-sm">search</span>
             <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none w-40 md:w-52"
               placeholder="Search products..."
             />

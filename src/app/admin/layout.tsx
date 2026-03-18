@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
+import { AdminSearchProvider } from "@/context/AdminSearchContext";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
@@ -35,25 +36,27 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     .toUpperCase();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
-      <AdminSidebar 
-        fullName={fullName} 
-        initials={initials} 
-        email={user?.email} 
-      />
-
-      {/* Right side */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Header (Client Component) */}
-        <AdminHeader 
+    <AdminSearchProvider>
+      <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-950">
+        <AdminSidebar 
           fullName={fullName} 
           initials={initials} 
           email={user?.email} 
         />
 
-        {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        {/* Right side */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Top Header (Client Component) */}
+          <AdminHeader 
+            fullName={fullName} 
+            initials={initials} 
+            email={user?.email} 
+          />
+
+          {/* Scrollable content */}
+          <main className="flex-1 overflow-y-auto">{children}</main>
+        </div>
       </div>
-    </div>
+    </AdminSearchProvider>
   );
 }

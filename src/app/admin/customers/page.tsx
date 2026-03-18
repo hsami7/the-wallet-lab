@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAdminSearch } from "@/context/AdminSearchContext";
 
 const customers = [
   { id: "C-001", name: "Jean Dupont", email: "jean.dupont@email.com", orders: 7, spent: "5,950 MAD", joined: "Jan 15, 2025", status: "Active" },
@@ -21,8 +22,31 @@ const statusColors: Record<string, string> = {
 
 export default function AdminCustomers() {
   const [filter, setFilter] = useState("All");
+  const { searchQuery, setSearchQuery, setPageResults } = useAdminSearch();
 
-  const filtered = filter === "All" ? customers : customers.filter((c) => c.status === filter);
+  // Sync customers to global search results
+  useEffect(() => {
+    const results = customers.map(c => ({
+      id: c.id,
+      title: c.name,
+      subtitle: c.email,
+      href: "/admin/customers",
+      icon: "person",
+      type: "content" as const
+    }));
+    setPageResults(results);
+    
+    // Cleanup on unmount
+    return () => setPageResults([]);
+  }, [setPageResults]);
+
+  const filtered = customers.filter((c) => {
+    const matchFilter = filter === "All" || c.status === filter;
+    const matchSearch = 
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.email.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchFilter && matchSearch;
+  });
 
   return (
     <div className="p-8">
@@ -76,7 +100,12 @@ export default function AdminCustomers() {
           </div>
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 gap-2 border border-slate-200 dark:border-slate-700">
             <span className="material-symbols-outlined text-slate-400 text-sm">search</span>
-            <input className="bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none w-40" placeholder="Search customers..." />
+            <input 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none w-40" 
+              placeholder="Search customers..." 
+            />
           </div>
         </div>
         <div className="overflow-x-auto">

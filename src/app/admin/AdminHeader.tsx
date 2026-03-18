@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { logout } from "@/app/actions/auth";
 import { Logo } from "@/components/Logo";
+import { useAdminSearch } from "@/context/AdminSearchContext";
 
 const notifications = [
   { icon: "shopping_cart", title: "New order #ORD-4822", desc: "Jean Dupont placed an order", time: "2m ago", unread: true },
@@ -23,10 +24,10 @@ export default function AdminHeader({
   email?: string;
 }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const { searchQuery, setSearchQuery, pageResults } = useAdminSearch();
   const [notifOpen, setNotifOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
@@ -42,21 +43,28 @@ export default function AdminHeader({
 
   const navItems = [
     { href: "/admin", label: "Overview", icon: "dashboard" },
-    { href: "/admin/orders", label: "Orders", icon: "shopping_cart" },
-    { href: "/admin/products", label: "Products", icon: "inventory_2" },
+    { href: "/admin/orders", label: "Orders Management", icon: "shopping_cart" },
+    { href: "/admin/products", label: "Product Inventory", icon: "inventory_2" },
     { href: "/admin/categories", label: "Categories", icon: "category" },
-    { href: "/admin/collections", label: "Home Page", icon: "web" },
-    { href: "/admin/customers", label: "Customers", icon: "group" },
-    { href: "/admin/analytics", label: "Analytics", icon: "leaderboard" },
+    { href: "/admin/collections", label: "Home Collections", icon: "web" },
+    { href: "/admin/customers", label: "Customer List", icon: "group" },
+    { href: "/admin/analytics", label: "Business Analytics", icon: "leaderboard" },
     { href: "/admin/promo-codes", label: "Promo Codes", icon: "confirmation_number" },
-    { href: "/admin/settings", label: "Settings", icon: "settings" },
+    { href: "/admin/settings", label: "System Settings", icon: "settings" },
   ];
 
-  const filteredItems = searchQuery.trim() === "" 
+  const filteredNavItems = searchQuery.trim() === "" 
     ? [] 
     : navItems.filter(item => 
         item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.href.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+  const filteredPageResults = searchQuery.trim() === ""
+    ? []
+    : pageResults.filter(item =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.subtitle?.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
   return (
@@ -90,26 +98,60 @@ export default function AdminHeader({
             />
 
             {/* Search Results */}
-            {showResults && filteredItems.length > 0 && (
-              <div className="absolute top-12 left-0 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top">
+            {showResults && (filteredNavItems.length > 0 || filteredPageResults.length > 0) && (
+              <div className="absolute top-12 left-0 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top max-h-[80vh] overflow-y-auto">
                 <div className="p-2 flex flex-col gap-1">
-                  {filteredItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => {
-                        setShowResults(false);
-                        setSearchQuery("");
-                      }}
-                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group"
-                    >
-                      <div className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-                      </div>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-white">{item.label}</span>
-                      <span className="ml-auto material-symbols-outlined text-slate-400 text-[16px] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">arrow_forward</span>
-                    </Link>
-                  ))}
+                  
+                  {/* Page-Specific Content Results */}
+                  {filteredPageResults.length > 0 && (
+                    <div className="mb-2">
+                      <p className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">In this Section</p>
+                      {filteredPageResults.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={item.href}
+                          onClick={() => {
+                            setShowResults(false);
+                            setSearchQuery("");
+                          }}
+                          className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group"
+                        >
+                          <div className="size-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                            <span className="material-symbols-outlined text-[18px]">{item.icon || "receipt_long"}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm font-semibold text-slate-900 dark:text-white block">{item.title}</span>
+                            {item.subtitle && <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5">{item.subtitle}</span>}
+                          </div>
+                          <span className="ml-auto material-symbols-outlined text-slate-400 text-[16px] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">arrow_forward</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Navigation Results */}
+                  {filteredNavItems.length > 0 && (
+                    <div>
+                      {filteredPageResults.length > 0 && <p className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-t border-slate-100 dark:border-slate-800 mt-1">Navigation</p>}
+                      {filteredNavItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => {
+                            setShowResults(false);
+                            setSearchQuery("");
+                          }}
+                          className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group"
+                        >
+                          <div className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-primary transition-colors">
+                            <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-slate-900 dark:text-white">{item.label}</span>
+                          <span className="ml-auto material-symbols-outlined text-slate-400 text-[16px] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">arrow_forward</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

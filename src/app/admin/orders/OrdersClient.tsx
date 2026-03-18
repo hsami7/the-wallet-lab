@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/context/ToastContext";
+import { useAdminSearch } from "@/context/AdminSearchContext";
 
 const statusColors: Record<string, string> = {
   delivered: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -16,8 +17,24 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
   const supabase = createClient();
   const [orders, setOrders] = useState(initialOrders);
   const [filter, setFilter] = useState("All");
-  const [search, setSearch] = useState("");
+  const { searchQuery, setSearchQuery, setPageResults } = useAdminSearch();
   const statuses = ["All", "Pending", "Processing", "Shipped", "Delivered", "Refunded"];
+
+  // Sync orders to global search results
+  useEffect(() => {
+    const results = orders.map(o => ({
+      id: o.id,
+      title: `Order #${o.id.slice(0, 8).toUpperCase()}`,
+      subtitle: `${o.profiles?.full_name || o.profiles?.email || 'Customer'} — ${o.total_amount} MAD`,
+      href: `/admin/orders`, // Or a specific order view if it exists
+      icon: "shopping_cart",
+      type: "content" as const
+    }));
+    setPageResults(results);
+    
+    // Cleanup on unmount
+    return () => setPageResults([]);
+  }, [orders, setPageResults]);
 
   const filtered = orders.filter((o) => {
     const statusMap: Record<string, string> = {
@@ -32,7 +49,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
     const matchFilter = filter === "All" || o.status === mappedFilter;
     
     // Safely search through customer name/email, order ID, or product names
-    const searchLower = search.toLowerCase();
+    const searchLower = searchQuery.toLowerCase();
     
     // We expect the profile to be joined
     const customerName = o.profiles?.full_name || o.profiles?.email || "Unknown Customer";
@@ -145,8 +162,8 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
           <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 gap-2 border border-slate-200 dark:border-slate-700">
             <span className="material-symbols-outlined text-slate-400 text-sm">search</span>
             <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none w-40"
               placeholder="Search orders..."
             />
