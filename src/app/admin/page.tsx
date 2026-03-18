@@ -142,41 +142,83 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
-      {/* Revenue Chart Card */}
-      <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6 mb-8">
-        <div className="flex justify-between items-start">
-          <div>
-            <h4 className="text-lg font-bold">Revenue Over Time</h4>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-2xl font-bold">{totalRevenue.toLocaleString()} MAD</span>
-              <span className="text-sm text-emerald-500 font-bold">+10% vs last week</span>
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Revenue Chart Card */}
+        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="text-lg font-bold">Revenue Over Time</h4>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-2xl font-bold">{totalRevenue.toLocaleString()} MAD</span>
+                <span className="text-sm text-emerald-500 font-bold">+10% vs last week</span>
+              </div>
+            </div>
+            <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-bold py-2 px-4 focus:ring-primary/30">
+              <option>Last 7 Days</option>
+              <option>Last 30 Days</option>
+            </select>
+          </div>
+          {/* Line Chart Simulation */}
+          <div className="relative h-48 w-full mt-4">
+            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+              <defs>
+                <linearGradient id="neonGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#0d59f2" stopOpacity="0.4"></stop>
+                  <stop offset="100%" stopColor="#0d59f2" stopOpacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10 V100 H0 Z" fill="url(#neonGradient)"></path>
+              <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10" fill="none" stroke="#0d59f2" strokeLinecap="round" strokeWidth="3"></path>
+            </svg>
+            <div className="flex justify-between mt-4 text-xs font-bold text-slate-400">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
             </div>
           </div>
-          <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-bold py-2 px-4 focus:ring-primary/30">
-            <option>Last 7 Days</option>
-            <option>Last 30 Days</option>
-          </select>
         </div>
-        {/* Line Chart Simulation */}
-        <div className="relative h-48 w-full mt-4">
-          <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
-            <defs>
-              <linearGradient id="neonGradient" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="#0d59f2" stopOpacity="0.4"></stop>
-                <stop offset="100%" stopColor="#0d59f2" stopOpacity="0"></stop>
-              </linearGradient>
-            </defs>
-            <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10 V100 H0 Z" fill="url(#neonGradient)"></path>
-            <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10" fill="none" stroke="#0d59f2" strokeLinecap="round" strokeWidth="3"></path>
-          </svg>
-          <div className="flex justify-between mt-4 text-xs font-bold text-slate-400">
-            <span>Mon</span>
-            <span>Tue</span>
-            <span>Wed</span>
-            <span>Thu</span>
-            <span>Fri</span>
-            <span>Sat</span>
-            <span>Sun</span>
+
+        {/* Order Volume Chart Card */}
+        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="text-lg font-bold">Order Volume</h4>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-2xl font-bold">{totalOrders} Orders</span>
+                <span className="text-sm text-primary font-bold">Live Throughput</span>
+              </div>
+            </div>
+            <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-bold py-2 px-4 focus:ring-primary/30">
+              <option>Last 7 Days</option>
+              <option>Last 30 Days</option>
+            </select>
+          </div>
+          {/* Line Chart Simulation (Emerald) */}
+          <div className="relative h-48 w-full mt-4">
+            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+              <defs>
+                <linearGradient id="emeraldGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.4"></stop>
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0"></stop>
+                </linearGradient>
+              </defs>
+              <path d="M0,90 Q50,70 100,80 T200,40 T300,20 T400,30 V100 H0 Z" fill="url(#emeraldGradient)"></path>
+              <path d="M0,90 Q50,70 100,80 T200,40 T300,20 T400,30" fill="none" stroke="#10b981" strokeLinecap="round" strokeWidth="3"></path>
+            </svg>
+            <div className="flex justify-between mt-4 text-xs font-bold text-slate-400">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
+            </div>
           </div>
         </div>
       </div>
