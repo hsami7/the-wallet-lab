@@ -1,4 +1,16 @@
-export default function JsonLd() {
+interface JsonLdProps {
+  product?: {
+    name: string;
+    description: string;
+    image: string;
+    price: number;
+    sku?: string;
+    slug: string;
+    inStock: boolean;
+  };
+}
+
+export default function JsonLd({ product }: JsonLdProps = {}) {
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -23,6 +35,26 @@ export default function JsonLd() {
     },
   };
 
+  const productJsonLd = product ? {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.name,
+    "description": product.description,
+    "image": product.image,
+    "sku": product.sku || product.slug,
+    "brand": {
+      "@type": "Brand",
+      "name": "The Embroidery's Lab"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://theembroideryslab.com/product/${product.slug}`,
+      "priceCurrency": "MAD",
+      "price": product.price,
+      "availability": product.inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"
+    }
+  } : null;
+
   return (
     <>
       <script
@@ -33,6 +65,12 @@ export default function JsonLd() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
       />
+      {productJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+        />
+      )}
     </>
   );
 }

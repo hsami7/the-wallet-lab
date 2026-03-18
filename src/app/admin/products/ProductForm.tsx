@@ -33,6 +33,8 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingVariantIdx, setUploadingVariantIdx] = useState<number | null>(null);
   const [isUploadingPrimary, setIsUploadingPrimary] = useState(false);
+  const [lastAutoSaved, setLastAutoSaved] = useState<string | null>(null);
+  const [currentId, setCurrentId] = useState<string | null>(initialData?.id || null);
 
   // Form State
   const [name, setName] = useState(initialData?.name || "");
@@ -40,6 +42,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [price, setPrice] = useState(initialData?.price || "");
   const [category, setCategory] = useState(initialData?.category || "");
   const [sku, setSku] = useState(initialData?.sku || "");
+  const [slug, setSlug] = useState(initialData?.slug || "");
   const [stock, setStock] = useState<string | number>(initialData?.inventory_count !== undefined ? initialData.inventory_count : "");
   const [minStock, setMinStock] = useState(initialData?.min_stock_level || 10);
   const [trackInventory, setTrackInventory] = useState(initialData?.track_inventory !== false);
@@ -94,6 +97,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setPrice(initialData.price || "");
       setCategory(initialData.category || "");
       setSku(initialData.sku || "");
+      setSlug(initialData.slug || "");
       setStock(initialData.inventory_count !== undefined ? initialData.inventory_count : "");
       setMinStock(initialData.min_stock_level || 10);
       setTrackInventory(initialData.track_inventory !== false);
@@ -282,9 +286,9 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
     setSecondaryImages(secondaryImages.filter(url => url !== urlToRemove));
   };
 
-  const handleSave = async (status: string = 'active') => {
+  const handleSave = async (status: string = 'active', silent: boolean = false) => {
     // Enhanced Validation
-    if (status === 'active') {
+    if (status === 'active' && !silent) {
       const missing = [];
       if (!name.trim()) missing.push("Product Title");
       if (!price || Number(price) < 1) missing.push("Valid Price (Minimum 1 MAD)");
@@ -299,21 +303,25 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
-    } else {
+    } else if (!silent) {
       // For drafts, we only strictly require the name so it can be identified in the list
       if (!name.trim()) {
         showToast("Please enter at least a Product Title to save this draft.", "error");
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
+    } else if (silent && !name.trim()) {
+      // If silent save but no name, don't abort, just use a fallback so we don't lose other data
+      // but only if there is SOME content to save
+      if (!description.trim() && !price && tags.length === 0) return;
     }
 
-    setIsLoading(true);
+    if (!silent) setIsLoading(true);
     try {
-
+      const finalName = name.trim() || `[Untitled Draft ${new Date().toLocaleTimeString()}]`;
       const productData = {
-        name,
-        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+        name: finalName,
+        slug: slug || `${finalName.toLowerCase().replace(/ /g, '-')}-${Math.random().toString(36).substring(2, 7)}`,
         description,
         price: Number(price),
         inventory_count: Number(stock),
@@ -342,15 +350,21 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         updated_at: new Date().toISOString()
       };
 
-      let productId = initialData?.id;
+      let productId = currentId;
 
-      if (isEditing && productId) {
+      if (productId) {
         const { error } = await supabase.from('products').update(productData).eq('id', productId);
         if (error) throw error;
       } else {
         const { data, error } = await supabase.from('products').insert([productData]).select('id').single();
         if (error) throw error;
         productId = data.id;
+        setCurrentId(productId);
+        
+        // Update URL to the edit page so refreshes/further auto-saves work correctly
+        if (typeof window !== 'undefined') {
+          window.history.replaceState(null, '', `/admin/products/${productId}`);
+        }
       }
 
       // Save Highlights
@@ -372,21 +386,49 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         }
       }
 
-      const successMsg = status === 'active' 
-        ? (isEditing ? "Changes published successfully!" : "Product published successfully!")
-        : "Draft saved successfully!";
-      
-      showToast(successMsg, "success");
-      router.push("/admin/products");
-      router.refresh();
+      if (!silent) {
+        const successMsg = status === 'active' 
+          ? (isEditing ? "Changes published successfully!" : "Product published successfully!")
+          : "Draft saved successfully!";
+        
+        showToast(successMsg, "success");
+        router.push("/admin/products");
+        router.refresh();
+      } else {
+        setLastAutoSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      }
     } catch (err: any) {
       console.error("Save error:", err);
       showToast(err.message || "Failed to save product. Please try again.", "error");
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   };
+
+  // Auto-Save Effect (Debounced)
+  useEffect(() => {
+    // Don't auto-save if everything is empty (initial state)
+    const hasData = name.trim() || description.trim() || price || category || tags.length > 0;
+    if (!hasData) return;
+
+    const timer = setTimeout(() => {
+      handleSave('draft', true);
+    }, 1500); // 1.5 seconds debounce
+
+    const handleBeforeUnload = () => {
+      // Attempt a quick save if user leaves
+      handleSave('draft', true);
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+    // Explicit list of triggers for auto-save
+  }, [name, description, price, category, stock, featured, isWide, variants, highlights, tags]);
 
   return (
     <div className="flex flex-col h-full relative">
@@ -401,8 +443,14 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
           <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
             {isEditing ? "Edit Product" : "Add New Product"}
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium">
+          <p className="text-slate-500 dark:text-slate-400 mt-2 font-medium flex items-center gap-3">
             {isEditing ? `Refining details for ${name}` : "Create a new item for the premium collection"}
+            {lastAutoSaved && (
+              <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-wider animate-in fade-in duration-500">
+                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                Saved {lastAutoSaved}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">

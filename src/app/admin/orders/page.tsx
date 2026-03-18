@@ -11,14 +11,16 @@ export default async function AdminOrders() {
       *,
       profiles (
         full_name,
-        email
+        email,
+        phone
       ),
       order_items (
         quantity,
         unit_price,
         products (
           name,
-          sku
+          sku,
+          image_url
         )
       )
     `)

@@ -17,8 +17,10 @@ export async function createOrder(formData: {
   }[];
 }) {
   const supabase = await createClient();
-  const headersList = await headers();
-  const ip = headersList.get("x-forwarded-for")?.split(",")[0] || "127.0.0.1";
+   const headersList = await headers();
+   const ip = headersList.get("x-forwarded-for")?.split(",")[0] || 
+              headersList.get("x-real-ip") || 
+              "127.0.0.1";
 
   try {
     // 0. Security Checks (Rate Limiting)
@@ -185,5 +187,27 @@ export async function updateOrderTracking(orderId: string, trackingData: { track
   } catch (error: any) {
     console.error("Tracking update error:", error);
     return { success: false, error: error.message };
+  }
+}
+
+export async function deleteOrder(orderId: string | string[]) {
+  const supabase = await createClient();
+  const ids = Array.isArray(orderId) ? orderId : [orderId];
+
+  try {
+     // Order items usually have ON DELETE CASCADE, if not we'd delete them here.
+     const { error } = await supabase
+        .from("orders")
+        .delete()
+        .in("id", ids);
+
+     if (error) throw error;
+
+     revalidatePath("/admin/orders");
+     revalidatePath("/admin");
+     return { success: true };
+  } catch (error: any) {
+     console.error("Delete order error:", error);
+     return { success: false, error: error.message };
   }
 }

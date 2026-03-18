@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import { ProductDetailsClient } from "./ProductDetailsClient";
 import type { Metadata } from "next";
+import JsonLd from "@/components/seo/JsonLd";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -64,9 +65,24 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .select("*")
     .eq("active", true);
 
-  return <ProductDetailsClient 
-    product={product} 
-    highlights={highlights || []} 
-    shippingRules={shippingRules || []}
-  />;
+  return (
+    <>
+      <JsonLd 
+        product={{
+          name: product.name,
+          description: product.description || "",
+          image: product.image_url || "",
+          price: product.price,
+          slug: product.slug,
+          inStock: product.inventory_count > 0,
+          sku: product.sku
+        }}
+      />
+      <ProductDetailsClient 
+        product={product} 
+        highlights={highlights || []} 
+        shippingRules={shippingRules || []}
+      />
+    </>
+  );
 }

@@ -322,10 +322,10 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                     <p className="font-bold text-slate-900 dark:text-white text-lg">
                       {selectedOrder.shipping_address?.firstName} {selectedOrder.shipping_address?.lastName}
                     </p>
-                    <p className="text-sm text-slate-500 mt-1">{selectedOrder.profiles?.email}</p>
+                    <p className="text-sm text-slate-500 mt-1">{selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "Guest Checkout"}</p>
                     <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 space-y-2">
                        <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                          <span className="material-symbols-outlined text-xs">mail</span> {selectedOrder.profiles?.email}
+                           <span className="material-symbols-outlined text-xs">mail</span> {selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "No email provided"}
                        </p>
                        <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                           <span className="material-symbols-outlined text-xs">call</span> {selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone || "No phone provided"}
@@ -414,8 +414,12 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                 <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
                   {selectedOrder.order_items?.map((item: any, idx: number) => (
                     <div key={idx} className="flex items-center gap-4 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                       <div className="h-14 w-14 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
-                          <img src={item.products?.image_url} alt="" className="h-full w-full object-cover" />
+                       <div className="h-14 w-14 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                          {item.products?.image_url ? (
+                            <img src={item.products.image_url} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <span className="material-symbols-outlined text-slate-300">image</span>
+                          )}
                        </div>
                        <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-slate-900 dark:text-white truncate uppercase tracking-tight">{item.products?.name}</p>

@@ -235,6 +235,9 @@ export default function AccountPage() {
                     <div className="rounded-2xl bg-white dark:bg-slate-900/50 p-4 border border-slate-200 dark:border-slate-800 shadow-sm relative group overflow-hidden">
                       <div className="flex justify-between items-start mb-1">
                         <label className="text-xs font-bold uppercase text-slate-400">Email Address</label>
+                        <button onClick={handleEmailEdit} className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">
+                          {isEditingEmail ? "Save" : "Edit"}
+                        </button>
                       </div>
                       {isEditingEmail ? (
                         <input 
@@ -260,6 +263,9 @@ export default function AccountPage() {
                     <div className="rounded-2xl bg-white dark:bg-slate-900/50 p-4 border border-slate-200 dark:border-slate-800 shadow-sm relative group overflow-hidden">
                       <div className="flex justify-between items-start mb-1">
                         <label className="text-xs font-bold uppercase text-slate-400">Phone Number</label>
+                        <button onClick={handlePhoneEdit} className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">
+                          {isEditingPhone ? "Save" : "Edit"}
+                        </button>
                       </div>
                       {isEditingPhone ? (
                         <div className="flex bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden focus-within:ring-1 focus-within:ring-primary focus-within:border-primary">

@@ -49,7 +49,7 @@ export default async function AdminDashboard() {
     .from("order_items")
     .select(`
       quantity,
-      product:products(name, category:categories(name))
+      product:products(name, category)
     `);
 
   const productStats: Record<string, { name: string; category: string; units: number; revenue: number }> = {};
@@ -60,7 +60,7 @@ export default async function AdminDashboard() {
     if (!productStats[pName]) {
       productStats[pName] = { 
         name: pName, 
-        category: item.product?.category?.name || "Uncategorized", 
+        category: item.product?.category || "Uncategorized", 
         units: 0, 
         revenue: 0 
       };
