@@ -26,9 +26,18 @@ export default function AdminHeader({
   const [notifOpen, setNotifOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest(".admin-search-container")) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const navItems = [
@@ -43,6 +52,12 @@ export default function AdminHeader({
     { href: "/admin/settings", label: "Settings", icon: "settings" },
   ];
 
+  const filteredItems = searchQuery.trim() === "" 
+    ? [] 
+    : navItems.filter(item => 
+        item.label.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
   return (
     <>
       <header className="h-16 shrink-0 flex items-center justify-between px-4 md:px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
@@ -54,18 +69,49 @@ export default function AdminHeader({
           >
             <span className="material-symbols-outlined text-2xl">menu</span>
           </button>
-
+          
           <Link href="/admin" className="lg:hidden flex items-center">
             <Logo size={120} />
           </Link>
 
           {/* Search */}
-          <div className="relative w-40 md:w-80 hidden sm:block">
+          <div className="relative w-40 md:w-80 hidden sm:block admin-search-container">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
             <input
               className="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary/20 border-0 transition-all"
-              placeholder="Search..."
+              placeholder="Navigate to..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowResults(true);
+              }}
+              onFocus={() => setShowResults(true)}
             />
+
+            {/* Search Results */}
+            {showResults && filteredItems.length > 0 && (
+              <div className="absolute top-12 left-0 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200 origin-top">
+                <div className="p-2 flex flex-col gap-1">
+                  {filteredItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => {
+                        setShowResults(false);
+                        setSearchQuery("");
+                      }}
+                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group"
+                    >
+                      <div className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-primary transition-colors">
+                        <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-white">{item.label}</span>
+                      <span className="ml-auto material-symbols-outlined text-slate-400 text-[16px] opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">arrow_forward</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

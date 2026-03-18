@@ -206,7 +206,7 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
                       {product.inventory_count} in stock
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${displayStatus.color}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${displayStatus.color}`}>
                         {displayStatus.label}
                       </span>
                     </td>
