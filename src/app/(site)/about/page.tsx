@@ -2,6 +2,17 @@ import React from "react";
 import Link from "next/link";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { Logo } from "@/components/Logo";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "About Our Lab",
+  description: "Learn about The Embroidery's Lab manifesto, our blueprint for wearable architecture, and the techniques behind our precision-engineered embroidery.",
+  openGraph: {
+    title: "About Our Lab | The Embroidery's Lab",
+    description: "Learn about the intersection of laboratory precision and timeless needlework.",
+    images: ["/images/about/hero.png"],
+  },
+};
 
 export default function AboutPage() {
   return (

@@ -17,57 +17,53 @@ export const Logo: React.FC<LogoProps> = ({
   variant = "full",
   forceFull = false
 }) => {
-  const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const sizeClass = variant === "icon" || variant === "secondary" || variant === "solid" ? size / 4 : size / 4;
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div style={{ width: size, height: (size * 0.25) }} className={className} />;
-  }
-
-  const isDark = resolvedTheme === "dark";
-  const logoSrc = isDark ? "/branding/logo-dark.png" : "/branding/logo-light.png";
-  const mobileLogoSrc = isDark ? "/branding/logo-mobile-dark.png" : "/branding/logo-mobile-light.png";
+  const LogoImage = ({ src, alt, extraClass = "" }: { src: string, alt: string, extraClass?: string }) => (
+    <div className={`relative ${extraClass}`} style={{ width: sizeClass, height: sizeClass }}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-contain"
+        priority
+      />
+    </div>
+  );
 
   if (variant === "icon" || variant === "secondary" || variant === "solid") {
     return (
-      <div className={`relative ${className}`} style={{ width: size / 4, height: size / 4 }}>
-        <Image
-          src={mobileLogoSrc}
-          alt="The Embroidery's Lab Icon"
-          fill
-          className="object-contain"
-          priority
-        />
+      <div className={`relative ${className}`}>
+        <div className="show-light">
+          <LogoImage src="/branding/logo-mobile-light.png" alt="The Embroidery's Lab Icon (Light)" />
+        </div>
+        <div className="show-dark">
+          <LogoImage src="/branding/logo-mobile-dark.png" alt="The Embroidery's Lab Icon (Dark)" />
+        </div>
       </div>
     );
   }
 
   return (
     <div className={`flex items-center gap-2 sm:gap-3 ${className}`} style={{ height: size / 4 }}>
-      {/* Mobile Icon */}
-      <div className={`relative ${forceFull ? 'hidden' : 'flex sm:hidden'}`} style={{ width: size / 4, height: size / 4 }}>
-        <Image
-          src={mobileLogoSrc}
-          alt="The Embroidery's Lab Icon"
-          fill
-          className="object-contain"
-          priority
-        />
+      {/* Mobile Icon - rendered immediately, theme handled by CSS */}
+      <div className={forceFull ? 'hidden' : 'flex sm:hidden'}>
+        <div className="show-light">
+          <LogoImage src="/branding/logo-mobile-light.png" alt="The Embroidery's Lab Icon (Light)" />
+        </div>
+        <div className="show-dark">
+          <LogoImage src="/branding/logo-mobile-dark.png" alt="The Embroidery's Lab Icon (Dark)" />
+        </div>
       </div>
       
-      {/* Desktop Logo */}
-      <div className={`relative ${forceFull ? 'flex' : 'hidden sm:flex'}`} style={{ width: size / 4, height: size / 4 }}>
-        <Image
-          src={logoSrc}
-          alt="The Embroidery's Lab Logo"
-          fill
-          className="object-contain"
-          priority
-        />
+      {/* Desktop Logo - rendered immediately, theme handled by CSS */}
+      <div className={forceFull ? 'flex' : 'hidden sm:flex'}>
+        <div className="show-light">
+          <LogoImage src="/branding/logo-light.png" alt="The Embroidery's Lab Logo (Light)" />
+        </div>
+        <div className="show-dark">
+          <LogoImage src="/branding/logo-dark.png" alt="The Embroidery's Lab Logo (Dark)" />
+        </div>
       </div>
 
       <div className={`${forceFull ? 'flex' : 'hidden sm:flex'} flex-col leading-none`}>

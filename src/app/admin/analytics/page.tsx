@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { createClient } from "@/utils/supabase/client";
+import { useEffect, useState } from "react";
 
 // --- Data ---
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -15,17 +16,13 @@ const visitorData   = [1240, 980, 1530, 1880, 2100, 2450, 1760];
 const sessionData   = [890,  730, 1140, 1390, 1580, 1820, 1330];
 const maxVisitors   = Math.max(...visitorData);
 
-// Traffic sources
-const trafficSources = [
-  { name: "Instagram",      icon: "photo_camera",      color: "from-pink-500 to-purple-600", visitors: 4820, share: 31.7, change: "+18%" },
-  { name: "WhatsApp",       icon: "chat",              color: "from-green-500 to-emerald-600", visitors: 3290, share: 21.6, change: "+24%" },
-  { name: "Google Search",  icon: "search",            color: "from-blue-500 to-blue-600",    visitors: 2950, share: 19.4, change: "+9%"  },
-  { name: "Direct",         icon: "link",              color: "from-slate-500 to-slate-600",  visitors: 1870, share: 12.3, change: "+3%"  },
-  { name: "Facebook",       icon: "thumb_up",          color: "from-blue-600 to-indigo-700",  visitors: 1410, share: 9.3,  change: "+11%" },
-  { name: "TikTok",         icon: "music_note",        color: "from-rose-500 to-pink-600",    visitors: 870,  share: 5.7,  change: "+41%" },
+const topSellers = [
+  { rank: 1, name: "Carbon Series Pro",  category: "Carbon Fiber", sold: 312, revenue: "265,200 MAD", share: 100 },
+  { rank: 2, name: "Classic Cognac",     category: "Leather",      sold: 248, revenue: "161,200 MAD", share: 79  },
+  { rank: 3, name: "Titanium Minimalist",category: "Metal",        sold: 189, revenue: "226,800 MAD", share: 61  },
+  { rank: 4, name: "Stealth Black Edition",category:"Carbon Fiber",sold: 156, revenue: "148,200 MAD", share: 50  },
 ];
 
-// Global reach
 const countries = [
   { name: "Morocco",        flag: "🇲🇦", visitors: 8920, share: 58.7 },
   { name: "France",         flag: "🇫🇷", visitors: 2340, share: 15.4 },
@@ -38,15 +35,46 @@ const countries = [
   { name: "Other",          flag: "🌍",  visitors: 200,  share: 1.3  },
 ];
 
-const topSellers = [
-  { rank: 1, name: "Carbon Series Pro",  category: "Carbon Fiber", sold: 312, revenue: "265,200 MAD", share: 100 },
-  { rank: 2, name: "Classic Cognac",     category: "Leather",      sold: 248, revenue: "161,200 MAD", share: 79  },
-  { rank: 3, name: "Titanium Minimalist",category: "Metal",        sold: 189, revenue: "226,800 MAD", share: 61  },
-  { rank: 4, name: "Stealth Black Edition",category:"Carbon Fiber",sold: 156, revenue: "148,200 MAD", share: 50  },
-];
-
 export default function AdminAnalytics() {
   const [activeSeries, setActiveSeries] = useState<"revenue" | "orders">("revenue");
+  const [trafficSources, setTrafficSources] = useState<any[]>([]);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchTraffic() {
+      const { data: logs } = await supabase.from("traffic_logs").select("utm_source");
+      
+      if (logs) {
+        const counts: Record<string, number> = {};
+        logs.forEach(log => {
+          const source = log.utm_source || "Direct";
+          counts[source] = (counts[source] || 0) + 1;
+        });
+
+        const total = logs.length;
+        const mapped = Object.entries(counts).map(([name, count]) => ({
+          name,
+          icon: name === "Direct" ? "link" : 
+                name.toLowerCase().includes("insta") ? "photo_camera" :
+                name.toLowerCase().includes("tiktok") ? "music_note" :
+                name.toLowerCase().includes("face") ? "thumb_up" :
+                name.toLowerCase().includes("google") ? "search" :
+                name.toLowerCase().includes("wishlist") ? "favorite" : "open_in_new",
+          color: name === "Direct" ? "from-slate-500 to-slate-600" :
+                 name.toLowerCase().includes("insta") ? "from-pink-500 to-purple-600" :
+                 name.toLowerCase().includes("tiktok") ? "from-rose-500 to-pink-600" :
+                 name.toLowerCase().includes("wishlist") ? "from-red-500 to-orange-600" : "from-blue-500 to-indigo-600",
+          visitors: count,
+          share: total > 0 ? Number(((count / total) * 100).toFixed(1)) : 0,
+          change: "Real-time"
+        })).sort((a, b) => b.visitors - a.visitors);
+
+        setTrafficSources(mapped);
+      }
+    }
+
+    fetchTraffic();
+  }, []);
 
   const chartData  = activeSeries === "revenue" ? salesData  : ordersData;
   const chartMax   = activeSeries === "revenue" ? maxSales   : maxOrders;

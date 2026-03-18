@@ -47,7 +47,7 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
             <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-primary/10">
               <img
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                alt={product.name}
+                alt={`${product.name} - Premium Embroidery Art`}
                 src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"}
                 loading="lazy"
               />

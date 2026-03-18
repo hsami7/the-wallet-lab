@@ -33,4 +33,10 @@
     background-image: radial-gradient(#1e293b 0.5px, transparent 0.5px);
     background-size: 10px 10px;
   }
+
+  /* Robust theme-based visibility */
+  .show-light { display: block !important; }
+  .show-dark { display: none !important; }
+  :is(.dark *) .show-light { display: none !important; }
+  :is(.dark *) .show-dark { display: block !important; }
 }

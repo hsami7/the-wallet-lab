@@ -3,6 +3,40 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
 import { notFound } from "next/navigation";
 import { ProductDetailsClient } from "./ProductDetailsClient";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("name, description, image_url, price")
+    .eq("slug", slug)
+    .single();
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+    };
+  }
+
+  return {
+    title: product.name,
+    description: product.description || `Premium ${product.name} with unique embroidery art by The Embroidery's Lab.`,
+    openGraph: {
+      title: `${product.name} | The Embroidery's Lab`,
+      description: product.description || `Shop the ${product.name} featuring precision-engineered embroidery art.`,
+      images: product.image_url ? [product.image_url] : [],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${product.name} | The Embroidery's Lab`,
+      description: product.description,
+      images: product.image_url ? [product.image_url] : [],
+    },
+  };
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;

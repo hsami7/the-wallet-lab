@@ -203,18 +203,13 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2 lg:gap-4">
-          {/* Theme toggle */}
+          {/* Theme toggle - optimized for instant display */}
           <button
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
             className="flex items-center justify-center rounded-full size-9 lg:size-10 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:bg-primary hover:text-white dark:hover:bg-primary transition-all"
           >
-            {mounted && resolvedTheme === 'dark' ? (
-              <span className="material-symbols-outlined text-xl">light_mode</span>
-            ) : mounted ? (
-              <span className="material-symbols-outlined text-xl">dark_mode</span>
-            ) : (
-              <div className="size-5" />
-            )}
+            <span className="material-symbols-outlined text-xl show-light">dark_mode</span>
+            <span className="material-symbols-outlined text-xl show-dark">light_mode</span>
           </button>
 
           {/* Wishlist */}

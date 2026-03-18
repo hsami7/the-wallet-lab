@@ -53,9 +53,9 @@ export default function AdminHeader({
             className="lg:hidden flex items-center justify-center p-2 text-slate-600 dark:text-slate-400"
           >
             <span className="material-symbols-outlined text-2xl">menu</span>
-          </button>u
+          </button>
 
-          <Link href="/" className="lg:hidden flex items-center">
+          <Link href="/admin" className="lg:hidden flex items-center">
             <Logo size={120} />
           </Link>
 
@@ -79,15 +79,14 @@ export default function AdminHeader({
           >
             <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform duration-500">settings</span>
           </Link>
-          {/* Theme toggle */}
+          {/* Theme toggle - optimized for instant display */}
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
             title="Toggle theme"
           >
-            <span className="material-symbols-outlined text-[20px]">
-              {mounted && resolvedTheme === "dark" ? "light_mode" : "dark_mode"}
-            </span>
+            <span className="material-symbols-outlined text-[20px] show-light">dark_mode</span>
+            <span className="material-symbols-outlined text-[20px] show-dark">light_mode</span>
           </button>
 
           {/* Notifications */}
@@ -144,7 +143,7 @@ export default function AdminHeader({
           <div className="absolute inset-y-0 left-0 w-4/5 max-w-sm bg-white dark:bg-slate-900 shadow-2xl animate-in slide-in-from-left duration-500">
             <div className="p-6 flex flex-col h-full overflow-y-auto">
               <div className="flex items-center justify-between mb-8">
-                <Link href="/" onClick={() => setIsMenuOpen(false)}>
+                <Link href="/admin" onClick={() => setIsMenuOpen(false)}>
                   <Logo size={140} forceFull />
                 </Link>
                 <button

@@ -32,13 +32,17 @@ export default function WishlistPage() {
   };
 
   const handleCopyLink = async () => {
-    const url = window.location.href;
+    // Generate a trackable URL
+    const baseUrl = window.location.origin + window.location.pathname;
+    const sid = sessionStorage.getItem("tracking_session_id") || "anon";
+    const shareUrl = `${baseUrl}?utm_source=wishlist_share&utm_medium=social&utm_campaign=personal_wishlist&ref_user=${sid}`;
+
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     } catch {
-      window.prompt("Copy this link to share your wishlist:", url);
+      window.prompt("Copy this link to share your wishlist:", shareUrl);
     }
   };
 

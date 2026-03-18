@@ -231,7 +231,7 @@ function ShopContent({ products }: { products: any[] }) {
             >
               <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
                 <img
-                  alt={product.name}
+                  alt={`${product.name} - Premium Embroidery Art`}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"}
                   loading="lazy"

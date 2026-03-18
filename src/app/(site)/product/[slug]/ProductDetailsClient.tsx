@@ -103,7 +103,7 @@ export function ProductDetailsClient({
           <div className="aspect-square rounded-[2rem] overflow-hidden bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-primary/10">
             <img
               src={mainImage}
-              alt={product.name}
+              alt={`${product.name} - Premium Embroidery Art`}
               className="w-full h-full object-cover transition-all duration-500"
               loading="lazy"
             />
@@ -120,7 +120,7 @@ export function ProductDetailsClient({
                     : "border-slate-200 dark:border-white/5 hover:border-primary/50"
                     }`}
                 >
-                  <img src={img} alt={`${product.name} angle ${idx + 1}`} className="w-full h-full object-cover" />
+                  <img src={img} alt={`${product.name} - Embroidery Detail View ${idx + 1}`} className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

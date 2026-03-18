@@ -10,14 +10,62 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "The Embroidery's Lab",
-  description: "Next Generation Embroidery Art Lab",
+  title: {
+    default: "The Embroidery's Lab | Next Generation Embroidery Art",
+    template: "%s | The Embroidery's Lab",
+  },
+  description: "The Embroidery's Lab: Premium wallets, denims, jeans, and jackets featuring unique, precision-engineered art. Experience the fusion of traditional craftsmanship and modern technology.",
+  keywords: ["embroidery", "art wallets", "custom denim", "art jeans", "embroidered jackets", "tech accessories", "digital frontier", "premium embroidery", "wearable art"],
+  authors: [{ name: "The Embroidery's Lab Team" }],
+  creator: "The Embroidery's Lab",
+  publisher: "The Embroidery's Lab",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: {
+    title: "The Embroidery's Lab | Next Generation Embroidery Art",
+    description: "Experience the fusion of traditional craftsmanship and modern technology.",
+    url: "https://theembroideryslab.com",
+    siteName: "The Embroidery's Lab",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "The Embroidery's Lab - Next Generation Embroidery",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Embroidery's Lab | Next Generation Embroidery Art",
+    description: "Experience the fusion of traditional craftsmanship and modern technology.",
+    images: ["/og-image.png"],
+    creator: "@theembroideryslab",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { ToastContainer } from "@/components/ui/ToastContainer";
+import JsonLd from "@/components/seo/JsonLd";
+import TrackingProvider from "@/components/analytics/TrackingProvider";
 
 export default function RootLayout({
   children,
@@ -27,6 +75,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&display=swap"
           rel="stylesheet"
@@ -41,6 +91,8 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <JsonLd />
+          <TrackingProvider />
           <ToastProvider>
             <CartProvider>
               <WishlistProvider>
