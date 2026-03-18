@@ -237,10 +237,10 @@ function ShopContent({ products }: { products: any[] }) {
               href={`/product/${product.slug}`}
               className="group relative flex flex-col bg-white dark:bg-slate-900/50 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:border-primary transition-all duration-300"
             >
-              <div className="relative aspect-square overflow-hidden bg-slate-100 dark:bg-slate-800">
+              <div className={`relative aspect-square overflow-hidden ${product.is_wide ? 'p-3 bg-slate-200/5 dark:bg-white/5 border border-slate-200/50 dark:border-primary/10 rounded-lg' : 'bg-slate-200/5 dark:bg-white/5'} flex items-center justify-center`}>
                 <img
                   alt={`${product.name} - Premium Embroidery Art`}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  className={`${product.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} group-hover:scale-110 transition-transform duration-500`}
                   src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"}
                   loading="lazy"
                 />
@@ -265,9 +265,9 @@ function ShopContent({ products }: { products: any[] }) {
                     });
                     trackEvent("wishlist_add", { product_id: product.id, product_name: product.name });
                   }}
-                  className={`absolute bottom-4 right-4 size-10 backdrop-blur-md rounded-full flex items-center justify-center transition-all ${isWishlisted(product.id)
-                    ? "bg-red-500 text-white opacity-100"
-                    : "bg-white/10 text-white opacity-0 group-hover:opacity-100 hover:bg-red-500"
+                  className={`absolute bottom-4 right-4 size-10 backdrop-blur-md rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 ${isWishlisted(product.id)
+                    ? "bg-red-500 text-white"
+                    : "bg-white/10 text-white hover:bg-red-500"
                     }`}
                   title={isWishlisted(product.id) ? "Remove from wishlist" : "Save to wishlist"}
                 >

@@ -414,10 +414,10 @@ export default function AdminAnalytics() {
           </div>
         </div>
 
-        <div className="bg-slate-900 border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 group">
+        <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 group">
           <div className="flex-1 min-w-0 w-full overflow-hidden">
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Generated Tracking Link:</p>
-            <code className="text-primary-foreground/90 font-mono text-sm break-all">
+            <code className="text-primary dark:text-primary-foreground/90 font-mono text-sm break-all">
               {typeof window !== 'undefined' ? window.location.origin : 'https://the-wallet-lab.com'}
               {utmPath}?utm_source={utmSource}&utm_medium={utmMedium}&utm_campaign={utmCampaign}
             </code>

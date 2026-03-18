@@ -74,7 +74,7 @@ export default function AdminHeader({
           {/* Settings */}
           <Link
             href="/admin/settings"
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors group"
+            className="size-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all group"
             title="Settings"
           >
             <span className="material-symbols-outlined text-[20px] group-hover:rotate-90 transition-transform duration-500">settings</span>
@@ -82,7 +82,7 @@ export default function AdminHeader({
           {/* Theme toggle - optimized for instant display */}
           <button
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+            className="size-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all"
             title="Toggle theme"
           >
             <span className="material-symbols-outlined text-[20px] show-light">dark_mode</span>
@@ -93,11 +93,11 @@ export default function AdminHeader({
           <div className="relative">
             <button
               onClick={() => setNotifOpen((o) => !o)}
-              className="relative p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors"
+              className="relative size-10 flex items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-all"
               title="Notifications"
             >
               <span className="material-symbols-outlined text-[20px]">notifications</span>
-              <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-slate-900" />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full border-[1.5px] border-white dark:border-slate-900" />
             </button>
 
             {/* Dropdown */}

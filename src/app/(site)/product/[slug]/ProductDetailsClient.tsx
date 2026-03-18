@@ -112,11 +112,11 @@ export function ProductDetailsClient({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
         {/* Left: Images */}
         <div className="space-y-6">
-          <div className="aspect-square rounded-[2rem] overflow-hidden bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-primary/10">
+          <div className={`${product.is_wide ? 'aspect-[2.4/1] bg-slate-200/5 dark:bg-white/5 p-4 md:p-6' : 'aspect-square bg-slate-200/5 dark:bg-white/5'} rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-primary/10 flex items-center justify-center`}>
             <img
               src={mainImage}
               alt={`${product.name} - Premium Embroidery Art`}
-              className="w-full h-full object-cover transition-all duration-500"
+              className={`${product.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} transition-all duration-500`}
               loading="lazy"
             />
           </div>
@@ -127,12 +127,12 @@ export function ProductDetailsClient({
                 <button
                   key={idx}
                   onClick={() => setMainImage(img)}
-                  className={`relative size-20 rounded-2xl overflow-hidden border-2 transition-all ${mainImage === img
+                  className={`relative size-20 rounded-2xl overflow-hidden border-2 transition-all ${product.is_wide ? 'p-1 bg-slate-200/5 dark:bg-white/5' : ''} ${mainImage === img
                     ? "border-primary ring-4 ring-primary/10"
                     : "border-slate-200 dark:border-white/5 hover:border-primary/50"
                     }`}
                 >
-                  <img src={img} alt={`${product.name} - Embroidery Detail View ${idx + 1}`} className="w-full h-full object-cover" />
+                  <img src={img} alt={`${product.name} - Embroidery Detail View ${idx + 1}`} className={`${product.is_wide ? 'w-full h-full object-contain' : 'w-full h-full object-cover'}`} />
                 </button>
               ))}
             </div>

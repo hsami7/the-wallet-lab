@@ -44,9 +44,9 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
       {featuredProducts && featuredProducts.length > 0 ? (
         featuredProducts.map((product) => (
           <Link key={product.id} href={`/product/${product.slug}`} className="group flex flex-col gap-6 p-6 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 hover:border-primary/50 transition-all">
-            <div className="aspect-[4/5] overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-primary/10">
+            <div className={`overflow-hidden rounded-lg ${product.is_wide ? 'aspect-square p-3 bg-slate-200/5 dark:bg-white/5' : 'aspect-[4/5] bg-slate-200/5 dark:bg-white/5'} border border-slate-200/50 dark:border-primary/10 flex items-center justify-center`}>
               <img
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                className={`${product.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} transition-transform duration-500 group-hover:scale-110`}
                 alt={`${product.name} - Premium Embroidery Art`}
                 src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"}
                 loading="lazy"

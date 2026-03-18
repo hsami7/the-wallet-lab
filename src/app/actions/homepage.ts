@@ -9,8 +9,9 @@ export type HomepageCollection = {
   label: string;
   heading: string;
   image_url: string;
-  button_text: string;
+  button_text:string;
   button_link: string;
+  is_slider: boolean;
 };
 
 export async function getCollections(): Promise<HomepageCollection[]> {
@@ -57,7 +58,7 @@ export async function updateCollection(id: string, formData: FormData) {
   revalidatePath("/admin/collections");
   return { success: true };
 }
-export async function updateCollections(collectionsData: Array<{id?: string, slot_index: number, label: string, heading: string, image_url: string, button_text: string, button_link: string}>) {
+export async function updateCollections(collectionsData: Array<{id?: string, slot_index: number, label: string, heading: string, image_url: string, button_text: string, button_link: string, is_slider?: boolean}>) {
   const supabase = await createClient();
   
   for (const col of collectionsData) {
@@ -70,6 +71,7 @@ export async function updateCollections(collectionsData: Array<{id?: string, slo
           image_url: col.image_url,
           button_text: col.button_text,
           button_link: col.button_link,
+          is_slider: col.is_slider,
           updated_at: new Date().toISOString()
         })
         .eq("id", col.id);
@@ -86,6 +88,7 @@ export async function updateCollections(collectionsData: Array<{id?: string, slo
           image_url: col.image_url,
           button_text: col.button_text,
           button_link: col.button_link,
+          is_slider: col.is_slider,
         });
       
       if (error) throw new Error(`Slot ${col.slot_index + 1}: ${error.message}`);

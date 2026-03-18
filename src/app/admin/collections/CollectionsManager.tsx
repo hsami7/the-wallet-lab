@@ -13,10 +13,12 @@ interface Collection {
   image_url: string;
   button_text: string;
   button_link: string;
+  is_slider: boolean;
 }
 
 export function CollectionsManager({ initialCollections }: { initialCollections: Collection[] }) {
   const [collections, setCollections] = useState<Collection[]>(initialCollections);
+  const [isSlider, setIsSlider] = useState(initialCollections[0]?.is_slider || false);
   const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToast();
 
@@ -29,7 +31,12 @@ export function CollectionsManager({ initialCollections }: { initialCollections:
   async function handleSave() {
     setIsSaving(true);
     try {
-      await updateCollections(collections);
+      // Sync isSlider to all collections
+      const updatedCollections = collections.map(col => ({
+        ...col,
+        is_slider: isSlider
+      }));
+      await updateCollections(updatedCollections);
       showToast("All collections updated successfully!", "success");
     } catch (err: any) {
       console.error("Save error:", err);
@@ -45,8 +52,7 @@ export function CollectionsManager({ initialCollections }: { initialCollections:
         <div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Home Page Collections</h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-2 max-w-xl leading-relaxed">
-            Manage the triple-column grid in your hero section. Each slot can feature a custom image, 
-            label, and direct link. All changes are synced across the laboratory.
+            Manage the hero section of your home page. Switch between a 3-column grid or a single cinematic slider.
           </p>
         </div>
         <button 
@@ -63,12 +69,42 @@ export function CollectionsManager({ initialCollections }: { initialCollections:
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-2xl border border-slate-200 dark:border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+        <div className="flex items-center gap-4">
+          <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <span className="material-symbols-outlined text-primary">layers</span>
+          </div>
+          <div>
+            <p className="font-bold text-slate-900 dark:text-white">Section Layout Mode</p>
+            <p className="text-sm text-slate-500">Choose how your collections are displayed on the home page.</p>
+          </div>
+        </div>
+
+        <div className="flex p-1 bg-slate-200/50 dark:bg-white/5 rounded-xl border border-slate-300/50 dark:border-white/5">
+          <button
+            onClick={() => setIsSlider(false)}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${!isSlider ? 'bg-white dark:bg-slate-800 text-primary shadow-sm shadow-black/5' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+          >
+            <span className="material-symbols-outlined text-[18px]">grid_view</span>
+            Triple Grid
+          </button>
+          <button
+            onClick={() => setIsSlider(true)}
+            className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all ${isSlider ? 'bg-white dark:bg-slate-800 text-primary shadow-sm shadow-black/5' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+          >
+            <span className="material-symbols-outlined text-[18px]">view_carousel</span>
+            Single Slider
+          </button>
+        </div>
+      </div>
+
+      <div className={`grid grid-cols-1 ${isSlider ? '' : 'md:grid-cols-3'} gap-8`}>
         {collections.map((col, idx) => (
           <CollectionItem 
             key={idx} 
             col={col} 
             onChange={(updates) => handleUpdate(idx, updates)} 
+            isSlider={isSlider}
           />
         ))}
       </div>

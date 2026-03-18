@@ -230,12 +230,12 @@ function WishlistContent() {
                 className="group bg-white dark:bg-[#1a2234] rounded-3xl border border-slate-100 dark:border-white/5 overflow-hidden shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 flex flex-col"
               >
                 {/* Image */}
-                <div className="relative aspect-square overflow-hidden bg-slate-50 dark:bg-slate-800/50">
-                  <Link href={`/product/${item.slug}`}>
+                <div className={`relative aspect-square overflow-hidden ${item.is_wide ? 'bg-slate-200/5 dark:bg-white/5 p-3' : 'bg-slate-200/5 dark:bg-white/5'} flex items-center justify-center`}>
+                  <Link href={`/product/${item.slug}`} className="w-full h-full flex items-center justify-center">
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className={`${item.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} group-hover:scale-105 transition-transform duration-500`}
                     />
                   </Link>
                   {/* Action Icon Top-Right */}

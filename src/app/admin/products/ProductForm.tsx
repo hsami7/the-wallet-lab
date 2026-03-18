@@ -46,6 +46,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
   const [tags, setTags] = useState<string[]>(initialData?.tags || []);
   const [newTag, setNewTag] = useState("");
   const [featured, setFeatured] = useState(initialData?.featured || false);
+  const [isWide, setIsWide] = useState(initialData?.is_wide || false);
   const [primaryImage, setPrimaryImage] = useState(initialData?.image_url || "");
   const [secondaryImages, setSecondaryImages] = useState<string[]>(() => {
     const variantUrls = new Set(
@@ -98,6 +99,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       setTrackInventory(initialData.track_inventory !== false);
       setTags(initialData.tags || []);
       setFeatured(initialData.featured || false);
+      setIsWide(initialData.is_wide || false);
       setPrimaryImage(initialData.image_url || "");
       const loadedVariants = initialData.colors && Array.isArray(initialData.colors)
         ? initialData.colors.map((c: any) => typeof c === 'string' ? { name: c, hex: '#000000' } : c)
@@ -321,6 +323,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         sku,
         tags,
         featured,
+        is_wide: isWide,
         status,
         colors: showColors ? variants : [],
         // If variants exist, derive primary image from first variant with an image;
@@ -976,6 +979,19 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
                   placeholder="Press Enter to add tag..."
                   type="text"
                 />
+              </div>
+
+              <div
+                className="flex items-center gap-4 py-4 px-5 rounded-2xl border-2 border-transparent hover:border-primary/20 hover:bg-primary/5 transition-all cursor-pointer group"
+                onClick={() => setIsWide(!isWide)}
+              >
+                <div className={`size-6 rounded-lg border-2 flex items-center justify-center transition-all ${isWide ? 'bg-primary border-primary' : 'border-slate-300 dark:border-white/10'}`}>
+                  {isWide && <span className="material-symbols-outlined text-[18px] text-white font-bold">check</span>}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors">Wide Aspect Artwork</span>
+                  <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Show full image without cropping</span>
+                </div>
               </div>
 
               <div
