@@ -75,6 +75,7 @@ export default function CheckoutPage() {
           product_id: item.id.toString(),
           quantity: item.quantity,
           unit_price: item.price,
+          variant: item.variant,
         })),
       });
 

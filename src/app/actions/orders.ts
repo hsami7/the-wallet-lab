@@ -12,6 +12,7 @@ export async function createOrder(formData: {
     product_id: string;
     quantity: number;
     unit_price: number;
+    variant: any;
   }[];
 }) {
   const supabase = await createClient();
@@ -39,6 +40,7 @@ export async function createOrder(formData: {
       product_id: item.product_id,
       quantity: item.quantity,
       unit_price: item.unit_price,
+      variant: item.variant,
     }));
 
     const { error: itemsError } = await supabase
