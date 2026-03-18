@@ -142,6 +142,45 @@ export default async function AdminDashboard() {
         ))}
       </div>
 
+      {/* Revenue Chart Card */}
+      <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6 mb-8">
+        <div className="flex justify-between items-start">
+          <div>
+            <h4 className="text-lg font-bold">Revenue Over Time</h4>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-2xl font-bold">{totalRevenue.toLocaleString()} MAD</span>
+              <span className="text-sm text-emerald-500 font-bold">+10% vs last week</span>
+            </div>
+          </div>
+          <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-bold py-2 px-4 focus:ring-primary/30">
+            <option>Last 7 Days</option>
+            <option>Last 30 Days</option>
+          </select>
+        </div>
+        {/* Line Chart Simulation */}
+        <div className="relative h-48 w-full mt-4">
+          <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+            <defs>
+              <linearGradient id="neonGradient" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#0d59f2" stopOpacity="0.4"></stop>
+                <stop offset="100%" stopColor="#0d59f2" stopOpacity="0"></stop>
+              </linearGradient>
+            </defs>
+            <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10 V100 H0 Z" fill="url(#neonGradient)"></path>
+            <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10" fill="none" stroke="#0d59f2" strokeLinecap="round" strokeWidth="3"></path>
+          </svg>
+          <div className="flex justify-between mt-4 text-xs font-bold text-slate-400">
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+            <span>Sun</span>
+          </div>
+        </div>
+      </div>
+
       {/* Recent Orders */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 mb-6 font-geist">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
