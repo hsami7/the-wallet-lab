@@ -61,7 +61,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
             *,
             profiles(full_name, email),
             order_items(
-              quantity, price_at_time,
+              quantity, unit_price,
               products(name, sku)
             )
           `)

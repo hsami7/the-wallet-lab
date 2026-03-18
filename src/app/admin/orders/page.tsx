@@ -15,7 +15,7 @@ export default async function AdminOrders() {
       ),
       order_items (
         quantity,
-        price_at_time,
+        unit_price,
         products (
           name,
           sku

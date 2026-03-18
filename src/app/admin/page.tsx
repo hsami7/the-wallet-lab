@@ -1,65 +1,110 @@
 import Link from "next/link";
-
-const recentOrders = [
-  {
-    id: "#ORD-4821",
-    customer: "Jean Dupont",
-    product: "Carbon Series Pro",
-    amount: "850 MAD",
-    status: "Shipped",
-    date: "Mar 09, 2026",
-  },
-  {
-    id: "#ORD-4820",
-    customer: "Sara El Amrani",
-    product: "Titanium Minimalist",
-    amount: "1,200 MAD",
-    status: "Processing",
-    date: "Mar 09, 2026",
-  },
-  {
-    id: "#ORD-4819",
-    customer: "Omar Bensali",
-    product: "Classic Cognac",
-    amount: "650 MAD",
-    status: "Delivered",
-    date: "Mar 08, 2026",
-  },
-  {
-    id: "#ORD-4818",
-    customer: "Nadia Chaoui",
-    product: "Stealth Black Edition",
-    amount: "950 MAD",
-    status: "Shipped",
-    date: "Mar 08, 2026",
-  },
-  {
-    id: "#ORD-4817",
-    customer: "Yassine Mouhssine",
-    product: "Carbon Series Pro",
-    amount: "850 MAD",
-    status: "Pending",
-    date: "Mar 07, 2026",
-  },
-];
+import { createClient } from "@/utils/supabase/server";
 
 const statusColors: Record<string, string> = {
-  Delivered: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  Shipped: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  Processing: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  Pending: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
-  Refunded: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  delivered: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+  shipped: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  processing: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
+  pending: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400",
+  cancelled: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
-const topSellers = [
-  { rank: 1, name: "Carbon Series Pro", category: "Carbon Fiber", units: 312, revenue: "265,200 MAD", share: 100 },
-  { rank: 2, name: "Classic Cognac", category: "Leather", units: 248, revenue: "161,200 MAD", share: 79 },
-  { rank: 3, name: "Titanium Minimalist", category: "Metal", units: 189, revenue: "226,800 MAD", share: 61 },
-  { rank: 4, name: "Stealth Black Edition", category: "Carbon Fiber", units: 156, revenue: "148,200 MAD", share: 50 },
-  { rank: 5, name: "The Nomad Slim", category: "Leather", units: 134, revenue: "96,480 MAD", share: 43 },
-];
+export default async function AdminDashboard() {
+  const supabase = await createClient();
 
-export default function AdminDashboard() {
+  // 1. Fetch Stats
+  const { data: ordersData } = await supabase.from("orders").select("total_amount");
+  const { count: visitorCount } = await supabase.from("traffic_logs").select("*", { count: "exact", head: true });
+
+  const totalRevenue = ordersData?.reduce((acc, order) => acc + Number(order.total_amount), 0) || 0;
+  const totalOrders = ordersData?.length || 0;
+
+  // 2. Fetch Recent Orders
+  const { data: rawRecentOrders } = await supabase
+    .from("orders")
+    .select(`
+      id,
+      total_amount,
+      status,
+      created_at,
+      customer:profiles(full_name),
+      items:order_items(
+        product:products(name)
+      )
+    `)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const formattedRecentOrders = rawRecentOrders?.map((order: any) => ({
+    id: `#ORD-${order.id.slice(0, 4)}`,
+    customer: order.customer?.full_name || "Guest",
+    product: order.items?.[0]?.product?.name + (order.items?.length > 1 ? ` (+${order.items.length - 1} more)` : ""),
+    amount: `${Number(order.total_amount).toLocaleString()} MAD`,
+    status: order.status,
+    date: new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+  })) || [];
+
+  // 3. Fetch Top Sellers (simplified for now: just based on total units in order_items)
+  const { data: topSellersData } = await supabase
+    .from("order_items")
+    .select(`
+      quantity,
+      product:products(name, category:categories(name))
+    `);
+
+  const productStats: Record<string, { name: string; category: string; units: number; revenue: number }> = {};
+  
+  topSellersData?.forEach((item: any) => {
+    const pName = item.product?.name;
+    if (!pName) return;
+    if (!productStats[pName]) {
+      productStats[pName] = { 
+        name: pName, 
+        category: item.product?.category?.name || "Uncategorized", 
+        units: 0, 
+        revenue: 0 
+      };
+    }
+    productStats[pName].units += item.quantity;
+    // Note: In a real app we'd fetch price or store it in items. For now we use units.
+  });
+
+  const topSellers = Object.values(productStats)
+    .sort((a, b) => b.units - a.units)
+    .slice(0, 5)
+    .map((p, i) => ({
+      rank: i + 1,
+      name: p.name,
+      category: p.category,
+      units: p.units,
+      revenue: "Real-time sync", // Placeholder as we don't store historical price per item easily without a join
+      share: Math.round((p.units / (topSellersData?.reduce((acc, i) => acc + i.quantity, 0) || 1)) * 100)
+    }));
+
+  const stats = [
+    {
+      label: "Total Revenue",
+      value: `${totalRevenue.toLocaleString()} MAD`,
+      icon: "payments",
+      trend: "+--%", // Trends require historical data comparisons (future work)
+      trendUp: true,
+    },
+    {
+      label: "Total Orders",
+      value: totalOrders.toString(),
+      icon: "shopping_cart",
+      trend: "+--%",
+      trendUp: true,
+    },
+    {
+      label: "Total Visitors",
+      value: (visitorCount || 0).toLocaleString(),
+      icon: "group",
+      trend: "+--%",
+      trendUp: true,
+    },
+  ];
+
   return (
     <div className="p-8">
       {/* Header */}
@@ -68,35 +113,13 @@ export default function AdminDashboard() {
           Dashboard Overview
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-          Welcome back, here&apos;s what&apos;s happening today.
+          Welcome back, here&apos;s what&apos;s happening in the lab.
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {[
-          {
-            label: "Total Revenue",
-            value: "42,500 MAD",
-            icon: "payments",
-            trend: "+12.5%",
-            trendUp: true,
-          },
-          {
-            label: "Total Orders",
-            value: "1,284",
-            icon: "shopping_cart",
-            trend: "+8.2%",
-            trendUp: true,
-          },
-          {
-            label: "Total Visitors",
-            value: "15,200",
-            icon: "group",
-            trend: "+3.1%",
-            trendUp: true,
-          },
-        ].map((stat) => (
+        {stats.map((stat) => (
           <div
             key={stat.label}
             className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 flex items-start justify-between"
@@ -106,12 +129,8 @@ export default function AdminDashboard() {
               <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
                 {stat.value}
               </p>
-              <span
-                className={`text-xs font-medium mt-2 inline-block ${
-                  stat.trendUp ? "text-green-600 dark:text-green-400" : "text-red-600"
-                }`}
-              >
-                {stat.trend} vs last month
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2 inline-block">
+                Live Data Feed
               </span>
             </div>
             <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -124,7 +143,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Orders */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 mb-6">
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 mb-6 font-geist">
         <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <h2 className="text-base font-bold text-slate-900 dark:text-white">
             Recent Orders
@@ -162,71 +181,89 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody>
-              {recentOrders.map((order, i) => (
-                <tr
-                  key={order.id}
-                  className={`${
-                    i < recentOrders.length - 1
-                      ? "border-b border-slate-100 dark:border-slate-800"
-                      : ""
-                  } hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors`}
-                >
-                  <td className="px-6 py-4 font-medium text-primary">{order.id}</td>
-                  <td className="px-6 py-4 text-slate-900 dark:text-white">{order.customer}</td>
-                  <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{order.product}</td>
-                  <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{order.amount}</td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[order.status]}`}
-                    >
-                      {order.status}
-                    </span>
+              {formattedRecentOrders.length > 0 ? (
+                formattedRecentOrders.map((order, i) => (
+                  <tr
+                    key={order.id}
+                    className={`${
+                      i < formattedRecentOrders.length - 1
+                        ? "border-b border-slate-100 dark:border-slate-800"
+                        : ""
+                    } hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors`}
+                  >
+                    <td className="px-6 py-4 font-bold text-primary">{order.id}</td>
+                    <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">{order.customer}</td>
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400 italic line-clamp-1">{order.product}</td>
+                    <td className="px-6 py-4 font-black text-slate-900 dark:text-white">{order.amount}</td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${statusColors[order.status.toLowerCase()] || "bg-slate-100 text-slate-600"}`}
+                      >
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{order.date}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-20 text-center">
+                    <div className="flex flex-col items-center gap-2 opacity-30">
+                      <span className="material-symbols-outlined text-4xl">inventory_2</span>
+                      <p className="text-xs font-bold uppercase tracking-widest">No orders recorded yet</p>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 text-slate-500 dark:text-slate-400">{order.date}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
       {/* Top 5 Sellers */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 mt-6">
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white">Top 5 Sellers</h2>
-          <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">This Month</span>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 mt-6 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white uppercase tracking-tight">Product Performance</h2>
+          <span className="text-[10px] font-black uppercase tracking-widest text-primary bg-primary/10 px-3 py-1.5 rounded-full">Top Performers</span>
         </div>
-        <div className="p-6 flex flex-col gap-5">
-          {topSellers.map((p) => (
-            <div key={p.rank} className="flex items-center gap-4">
-              <span className={`text-sm font-bold w-5 shrink-0 ${
-                p.rank === 1 ? "text-yellow-500" :
-                p.rank === 2 ? "text-slate-400" :
-                p.rank === 3 ? "text-orange-400" :
-                "text-slate-500 dark:text-slate-500"
-              }`}>#{p.rank}</span>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="min-w-0">
-                    <span className="text-sm font-medium text-slate-900 dark:text-white truncate block">{p.name}</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">{p.category}</span>
+        <div className="p-8 flex flex-col gap-8">
+          {topSellers.length > 0 ? (
+            topSellers.map((p) => (
+              <div key={p.rank} className="flex items-center gap-6">
+                <span className={`text-xl font-black w-8 shrink-0 ${
+                  p.rank === 1 ? "text-primary" :
+                  p.rank === 2 ? "text-slate-400" :
+                  p.rank === 3 ? "text-slate-300" :
+                  "text-slate-200 dark:text-slate-700"
+                }`}>0{p.rank}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="min-w-0">
+                      <span className="text-sm font-black text-slate-900 dark:text-white truncate block uppercase tracking-tight">{p.name}</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{p.category}</span>
+                    </div>
+                    <div className="text-right shrink-0 ml-4">
+                      <span className="text-sm font-black text-slate-900 dark:text-white block">{p.units} UNITS</span>
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Best Seller</span>
+                    </div>
                   </div>
-                  <div className="text-right shrink-0 ml-4">
-                    <span className="text-sm font-bold text-slate-900 dark:text-white block">{p.units} units</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">{p.revenue}</span>
+                  <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                        p.rank === 1 ? "bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]" : "bg-primary/40"
+                      }`}
+                      style={{ width: `${p.share}%` }}
+                    />
                   </div>
-                </div>
-                <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      p.rank === 1 ? "bg-primary" : "bg-primary/50"
-                    }`}
-                    style={{ width: `${p.share}%` }}
-                  />
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="py-10 text-center opacity-30">
+              <span className="material-symbols-outlined text-4xl mb-2">analytics</span>
+              <p className="text-xs font-bold uppercase tracking-widest">Waiting for initial sales data</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

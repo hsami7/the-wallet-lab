@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { createOrder } from "@/app/actions/orders";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -24,8 +25,19 @@ export default function CheckoutPage() {
     isFreeShipping,
     shippingRates,
     selectedRateId,
-    setSelectedRateId
+    setSelectedRateId,
+    clearCart
   } = useCart();
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "" ,
+    address: "",
+    city: "",
+    zip: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [promoInput, setPromoInput] = useState("");
@@ -41,6 +53,41 @@ export default function CheckoutPage() {
     } else {
       setPromoStatus("error");
       setTimeout(() => setPromoStatus("idle"), 3000);
+    }
+  };
+
+  const handleCompletePurchase = async () => {
+    if (!formData.firstName || !formData.lastName || !formData.address || !formData.city || !formData.zip) {
+      setError("Please fill in all delivery information");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const result = await createOrder({
+        customer_id: user.id,
+        total_amount: total,
+        shipping_rate_id: selectedRateId,
+        shipping_address: formData,
+        items: cart.map(item => ({
+          product_id: item.id.toString(),
+          quantity: item.quantity,
+          unit_price: item.price,
+        })),
+      });
+
+      if (result.success) {
+        clearCart();
+        router.push(`/checkout/success?orderId=${result.orderId}`);
+      } else {
+        setError(result.error || "Failed to place order. Please try again.");
+      }
+    } catch (err: any) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -112,23 +159,58 @@ export default function CheckoutPage() {
             <ScrollReveal animation="fade-up" className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">First Name</span>
-                <input required className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="John" type="text" />
+                <input 
+                  required 
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  placeholder="John" 
+                  type="text" 
+                />
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Last Name</span>
-                <input required className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Doe" type="text" />
+                <input 
+                  required 
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  placeholder="Doe" 
+                  type="text" 
+                />
               </label>
               <label className="flex flex-col gap-1 md:col-span-2">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Street Address</span>
-                <input required className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="123 Innovation Drive" type="text" />
+                <input 
+                  required 
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  placeholder="123 Innovation Drive" 
+                  type="text" 
+                />
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">City</span>
-                <input required className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Fes" type="text" />
+                <input 
+                  required 
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  placeholder="Fes" 
+                  type="text" 
+                />
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">ZIP Code</span>
-                <input required className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="94103" type="text" />
+                <input 
+                  required 
+                  value={formData.zip}
+                  onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
+                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  placeholder="94103" 
+                  type="text" 
+                />
               </label>
             </ScrollReveal>
           </section>
@@ -332,10 +414,29 @@ export default function CheckoutPage() {
               <span className="text-3xl font-black text-primary">{total.toFixed(2)} MAD</span>
             </div>
 
-            <button className="w-full bg-primary text-white font-bold py-4 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-primary/20">
-              <span className="material-symbols-outlined text-xl">lock</span>
-              Complete Purchase
+            <button 
+              disabled={isSubmitting}
+              onClick={handleCompletePurchase}
+              className="w-full bg-primary text-white font-bold py-4 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-primary/20 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-xl">lock</span>
+                  Complete Purchase
+                </>
+              )}
             </button>
+
+            {error && (
+              <p className="mt-4 text-center text-red-500 text-xs font-bold uppercase tracking-wider animate-in fade-in slide-in-from-top-1">
+                {error}
+              </p>
+            )}
 
             <div className="mt-8 flex items-center justify-center gap-4 opacity-30">
               <span className="material-symbols-outlined text-sm">verified_user</span>
