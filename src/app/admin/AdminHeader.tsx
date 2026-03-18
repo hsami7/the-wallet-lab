@@ -55,7 +55,8 @@ export default function AdminHeader({
   const filteredItems = searchQuery.trim() === "" 
     ? [] 
     : navItems.filter(item => 
-        item.label.toLowerCase().includes(searchQuery.toLowerCase())
+        item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.href.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
   return (
