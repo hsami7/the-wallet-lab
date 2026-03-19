@@ -175,15 +175,36 @@ export default function AdminAnalytics() {
         .eq("event_type", "wishlist_add");
       
       if (wishlistEvents) {
-        const stats: Record<string, number> = {};
+        const counts: Record<string, number> = {};
         wishlistEvents.forEach(e => {
-          const name = (e.metadata as any)?.product_name || "Unknown";
-          stats[name] = (stats[name] || 0) + 1;
+          const id = (e.metadata as any)?.product_id;
+          if (id) counts[id] = (counts[id] || 0) + 1;
         });
-        setTopWishlisted(Object.entries(stats)
-          .map(([name, count]) => ({ name, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 4));
+        
+        const topIds = Object.entries(counts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([id]) => id);
+          
+        if (topIds.length > 0) {
+          const { data: products } = await supabase
+            .from("products")
+            .select("id, name, image_url, category")
+            .in("id", topIds);
+            
+          if (products) {
+            setTopWishlisted(topIds.map(id => {
+              const p = products.find(prod => String(prod.id) === String(id));
+              return {
+                id,
+                name: p?.name || "Archived Product",
+                image: p?.image_url,
+                category: p?.category,
+                count: counts[id]
+              };
+            }).filter(Boolean));
+          }
+        }
       }
 
       // 5. Fetch Cart Interest
@@ -193,15 +214,36 @@ export default function AdminAnalytics() {
       
       if (cartEvents) {
         setTotalCartAdds(cartEvents.length);
-        const stats: Record<string, number> = {};
+        const counts: Record<string, number> = {};
         cartEvents.forEach(e => {
-          const name = (e.metadata as any)?.product_name || "Unknown";
-          stats[name] = (stats[name] || 0) + 1;
+          const id = (e.metadata as any)?.product_id;
+          if (id) counts[id] = (counts[id] || 0) + 1;
         });
-        setTopCarted(Object.entries(stats)
-          .map(([name, count]) => ({ name, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 4));
+        
+        const topIds = Object.entries(counts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 10)
+          .map(([id]) => id);
+          
+        if (topIds.length > 0) {
+          const { data: products } = await supabase
+            .from("products")
+            .select("id, name, image_url, category")
+            .in("id", topIds);
+            
+          if (products) {
+            setTopCarted(topIds.map(id => {
+              const p = products.find(prod => String(prod.id) === String(id));
+              return {
+                id,
+                name: p?.name || "Archived Product",
+                image: p?.image_url,
+                category: p?.category,
+                count: counts[id]
+              };
+            }).filter(Boolean));
+          }
+        }
       }
     }
 
@@ -361,16 +403,25 @@ export default function AdminAnalytics() {
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Wishlist Trends</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">Products in customer wishlists (Desire)</p>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {topWishlisted.length > 0 ? topWishlisted.map((item, i) => (
-              <div key={item.name} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
+              <div key={item.id || item.name} className="flex items-center justify-between p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 group hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-3 shrink-0 min-w-0">
-                  <span className="size-6 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center shrink-0">#{i+1}</span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2">{item.name}</span>
+                  <div className="size-12 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105">
+                    {item.image ? (
+                      <img src={item.image} alt="" className="size-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-300">image</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2 leading-tight">{item.name}</p>
+                    <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest opacity-60 mt-0.5">{item.category || 'Laboratory Item'}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-bold text-primary">{item.count}</span>
-                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Saves</span>
+                <div className="flex items-center gap-2 shrink-0 pr-2">
+                  <span className="text-xs font-black text-primary bg-primary/10 px-2 py-1 rounded-md">{item.count}</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter hidden sm:inline">Saves</span>
                 </div>
               </div>
             )) : (
@@ -413,16 +464,25 @@ export default function AdminAnalytics() {
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Cart Trends</h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">Products in shopping carts (Intent)</p>
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-3">
             {topCarted.length > 0 ? topCarted.map((item, i) => (
-              <div key={item.name} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5">
+              <div key={item.id || item.name} className="flex items-center justify-between p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 group hover:border-orange-500/30 transition-all">
                 <div className="flex items-center gap-3 shrink-0 min-w-0">
-                  <span className="size-6 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-bold flex items-center justify-center shrink-0">#{i+1}</span>
-                  <span className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2">{item.name}</span>
+                  <div className="size-12 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105">
+                    {item.image ? (
+                      <img src={item.image} alt="" className="size-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-slate-300">image</span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2 leading-tight">{item.name}</p>
+                    <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest opacity-60 mt-0.5">{item.category || 'Laboratory Item'}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-bold text-orange-600 dark:text-orange-400">{item.count}</span>
-                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Adds</span>
+                <div className="flex items-center gap-2 shrink-0 pr-2">
+                  <span className="text-xs font-black text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-1 rounded-md">{item.count}</span>
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter hidden sm:inline">Adds</span>
                 </div>
               </div>
             )) : (
