@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 
 export async function login(formData: FormData) {
@@ -70,4 +71,35 @@ export async function logout() {
   
   revalidatePath('/', 'layout')
   redirect('/login')
+}
+
+export async function forgotPassword(formData: FormData) {
+  const supabase = await createClient()
+  const email = (formData.get('email') as string).trim()
+  const origin = (await headers()).get("origin");
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  })
+
+  if (error) {
+    redirect(`/login?error=${encodeURIComponent(error.message)}`)
+  }
+
+  redirect('/login?message=Check your email for the password reset link.')
+}
+
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient()
+  const password = formData.get('password') as string
+
+  const { error } = await supabase.auth.updateUser({
+    password: password
+  })
+
+  if (error) {
+    redirect(`/reset-password?error=${encodeURIComponent(error.message)}`)
+  }
+
+  redirect('/login?message=Password updated successfully! Please sign in.')
 }
