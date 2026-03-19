@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/context/ToastContext";
 import { useAdminSearch } from "@/context/AdminSearchContext";
-import { updateOrderStatus, updateOrderTracking } from "@/app/actions/orders";
+import { updateOrderStatus, updateOrderTracking, deleteOrder } from "@/app/actions/orders";
 
 const statusColors: Record<string, string> = {
   delivered: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -60,21 +60,20 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
   const [isDeleting, setIsDeleting] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
 
-  async function handleDeleteOrder(orderId: string) {
+  async function handleDeleteOrder(orderId: string | string[]) {
     if (isDeleting) return;
     setIsDeleting(true);
     
     try {
-      const { error: itemsError } = await supabase.from("order_items").delete().eq("order_id", orderId);
-      if (itemsError) throw itemsError;
+      const ids = Array.isArray(orderId) ? orderId : (typeof orderId === 'string' && orderId.includes(',') ? orderId.split(',') : [orderId]);
+      const res = await deleteOrder(ids);
+      if (!res.success) throw new Error(res.error);
 
-      const { error } = await supabase.from("orders").delete().eq("id", orderId);
-      if (error) throw error;
-
-      setOrders(orders.filter(o => o.id !== orderId));
-      showToast("Order deleted successfully", "success");
+      setOrders(orders.filter(o => !ids.includes(o.id)));
+      showToast(`${ids.length} order${ids.length > 1 ? 's' : ''} deleted successfully`, "success");
       setOrderToDelete(null);
       setSelectedOrderId(null);
+      setSelectedIds(new Set());
     } catch (err: any) {
       showToast(err.message, "error");
     } finally {
@@ -184,9 +183,20 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
               <button key={s} onClick={() => setFilter(s)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${filter === s ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}>{s}</button>
             ))}
           </div>
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 gap-2 border border-slate-200 dark:border-slate-700">
-            <span className="material-symbols-outlined text-slate-400 text-sm">search</span>
-            <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none w-40" placeholder="Search orders..." />
+          <div className="flex items-center gap-3">
+             {selectedIds.size > 0 && (
+               <button 
+                 onClick={() => setOrderToDelete(Array.from(selectedIds).join(','))}
+                 className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 rounded-lg text-xs font-bold hover:bg-red-500 hover:text-white transition-all animate-in slide-in-from-left-2"
+               >
+                 <span className="material-symbols-outlined text-sm">delete</span>
+                 Delete Selection ({selectedIds.size})
+               </button>
+             )}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-2 gap-2 border border-slate-200 dark:border-slate-700">
+              <span className="material-symbols-outlined text-slate-400 text-sm">search</span>
+              <input value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none w-40" placeholder="Search orders..." />
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -227,7 +237,10 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                     <td className="px-6 py-4 font-medium text-primary cursor-pointer hover:underline" onClick={() => setSelectedOrderId(order.id)}>
                       {order.id.slice(0, 8).toUpperCase()}
                     </td>
-                    <td className="px-6 py-4 text-slate-900 dark:text-white">{customerName}</td>
+                    <td className="px-6 py-4">
+                      <p className="text-slate-900 dark:text-white font-medium">{customerName}</p>
+                      <p className="text-[10px] text-slate-400 font-normal uppercase tracking-wider leading-none mt-1">{order.profiles?.email || order.shipping_address?.email || "No Email"}</p>
+                    </td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{getMainProduct(order.order_items)}</td>
                     <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{formatCurrency(order.total_amount)}</td>
                     <td className="px-6 py-4">
@@ -329,7 +342,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                     <p className="font-bold text-slate-900 dark:text-white text-lg">
                       {selectedOrder.shipping_address?.firstName} {selectedOrder.shipping_address?.lastName}
                     </p>
-                    <p className="text-sm text-slate-500 mt-1">{selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "Guest Checkout"}</p>
+                    <p className="text-sm text-slate-500 mt-1 font-medium">{selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "Guest Checkout"}</p>
                     <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 space-y-2">
                        <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                            <span className="material-symbols-outlined text-xs">mail</span> {selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "No email provided"}
@@ -419,45 +432,106 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                   <span className="material-symbols-outlined text-sm">inventory_2</span> Order Items
                 </h4>
                 <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
-                  {selectedOrder.order_items?.map((item: any, idx: number) => (
-                    <div key={idx} className="flex items-center gap-4 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
-                       <div className="h-14 w-14 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
-                          {item.products?.image_url ? (
-                            <img src={item.products.image_url} alt="" className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="material-symbols-outlined text-slate-300">image</span>
-                          )}
-                       </div>
-                       <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white truncate uppercase tracking-tight">{item.products?.name}</p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.quantity} × {formatCurrency(item.unit_price)}</span>
-                             {item.variant && (
-                               <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/5 rounded-full border border-primary/10">
-                                  <div className="size-2 rounded-full border border-white/20" style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }} />
-                                  <span className="text-[8px] font-black text-primary uppercase tracking-widest">{typeof item.variant === 'object' ? item.variant.name : 'Custom'}</span>
-                               </div>
+                   {selectedOrder.order_items?.map((item: any, idx: number) => {
+                      const variantImageUrl = item.variant?.imageUrl || item.variant?.image;
+                      
+                      const productDefaultColor = item.products?.colors?.[0];
+                      const fallbackName = typeof productDefaultColor === 'object' ? productDefaultColor.name : productDefaultColor;
+                      
+                      const variantName = (item.variant && typeof item.variant === 'object') 
+                        ? item.variant.name 
+                        : (typeof item.variant === 'string' ? item.variant : null);
+                      
+                      const displayVariant = (variantName && variantName !== 'Default') ? variantName : (fallbackName !== 'Default' ? fallbackName : null);
+                      
+                      const itemImage = variantImageUrl || item.products?.image_url;
+                     
+                     return (
+                       <div key={idx} className="flex items-center gap-4 p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm">
+                          <div className="h-14 w-14 rounded-lg bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                             {itemImage ? (
+                               <img src={itemImage} alt="" className="h-full w-full object-cover" />
+                             ) : (
+                               <span className="material-symbols-outlined text-slate-300">image</span>
                              )}
                           </div>
+                          <div className="flex-1 min-w-0">
+                             <div className="flex justify-between items-start">
+                                <div>
+                                   <p className="text-sm font-bold text-slate-900 dark:text-white truncate uppercase tracking-tight leading-none">{item.products?.name}</p>
+                                   <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest mt-1 mb-2">{item.products?.sku || 'NO-SKU'}</p>
+                                </div>
+                             </div>
+                             
+                             <div className="flex items-center justify-between mt-auto">
+                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.quantity} × {formatCurrency(item.unit_price)}</span>
+                                {displayVariant && (
+                                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/5 rounded-full border border-primary/10">
+                                     <div 
+                                       className="size-2 rounded-full border border-white/20" 
+                                       style={{ 
+                                         backgroundColor: (item.variant && typeof item.variant === 'object') 
+                                           ? (item.variant.hex || item.variant.color || '#000000') 
+                                           : (typeof item.variant === 'string' ? item.variant : (typeof productDefaultColor === 'object' ? productDefaultColor.hex : '#000000'))
+                                       }} 
+                                     />
+                                     <span className="text-[9px] font-black text-primary uppercase tracking-widest">{displayVariant}</span>
+                                  </div>
+                                )}
+                             </div>
+                          </div>
                        </div>
-                    </div>
-                  ))}
+                     );
+                   })}
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                   <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Subtotal</span>
-                      <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(selectedOrder.total_amount - 20)}</span>
-                   </div>
-                   <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Delivery</span>
-                      <span className="font-bold text-slate-900 dark:text-white">20.00 MAD</span>
-                   </div>
-                   <div className="flex justify-between items-center pt-3 border-t border-slate-50 dark:border-slate-800">
-                      <span className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">Total Amount</span>
-                      <span className="text-2xl font-black text-primary">{formatCurrency(selectedOrder.total_amount)}</span>
-                   </div>
-                </div>
+                 <div className="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                    {/* Dynamic Financial Summary */}
+                    {(() => {
+                      const shipping = selectedOrder.shipping_address || {};
+                      const discountAmount = selectedOrder.discount_amount || shipping.discount_amount || 0;
+                      const promoCode = selectedOrder.promo_code || shipping.promo_code || null;
+                      const shippingAmount = selectedOrder.shipping_amount !== undefined ? selectedOrder.shipping_amount : (shipping.shipping_amount !== undefined ? shipping.shipping_amount : 20);
+                      
+                      const itemsSubtotal = selectedOrder.order_items?.reduce((acc: number, item: any) => acc + (item.unit_price * item.quantity), 0) || 0;
+                      
+                      return (
+                        <>
+                          <div className="flex justify-between items-center text-sm">
+                             <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Subtotal</span>
+                             <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(itemsSubtotal)}</span>
+                          </div>
+
+                          {promoCode && (
+                            <div className="flex justify-between items-center text-sm">
+                               <div className="flex items-center gap-2">
+                                  <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Promo Code</span>
+                                  <span className="px-2 py-0.5 bg-primary/10 text-primary text-[8px] font-black rounded uppercase tracking-widest border border-primary/20">{promoCode}</span>
+                               </div>
+                               <span className="font-bold text-green-600 dark:text-green-400">-{formatCurrency(discountAmount)}</span>
+                            </div>
+                          )}
+
+                          {discountAmount > 0 && !promoCode && (
+                            <div className="flex justify-between items-center text-sm">
+                               <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Discount</span>
+                               <span className="font-bold text-green-600 dark:text-green-400">-{formatCurrency(discountAmount)}</span>
+                            </div>
+                          )}
+
+                          <div className="flex justify-between items-center text-sm">
+                             <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Delivery</span>
+                             <span className="font-bold text-slate-900 dark:text-white">{shippingAmount === 0 ? 'FREE' : formatCurrency(shippingAmount)}</span>
+                          </div>
+
+                          <div className="flex justify-between items-center pt-3 border-t border-slate-50 dark:border-slate-800">
+                             <span className="text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">Total Amount</span>
+                             <span className="text-2xl font-black text-primary">{formatCurrency(selectedOrder.total_amount)}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
+                 </div>
               </div>
             </div>
 
@@ -492,7 +566,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
               </h3>
 
               <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed max-w-[280px] mx-auto">
-                Are you absolutely sure? This will permanently delete this order and all its history.
+                Are you absolutely sure? This will permanently delete {orderToDelete.includes(',') ? 'these orders' : 'this order'} and all {orderToDelete.includes(',') ? 'their' : 'its'} history.
               </p>
 
               <div className="flex flex-col gap-3">
@@ -505,10 +579,10 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                   {isDeleting ? (
                     <>
                       <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
-                      Deleting Order...
+                      Deleting {orderToDelete.includes(',') ? 'Orders' : 'Order'}...
                     </>
                   ) : (
-                    'Yes, Delete Permanently'
+                    `Yes, Delete ${orderToDelete.includes(',') ? `${orderToDelete.split(',').length} Orders` : 'Permanently'}`
                   )}
                 </button>
                 <button

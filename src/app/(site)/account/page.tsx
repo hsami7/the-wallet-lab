@@ -5,21 +5,27 @@ import Link from "next/link";
 import { logout } from "@/app/actions/auth";
 import { updateProfile } from "@/app/actions/profile";
 import { createClient } from "@/utils/supabase/client";
+import { useToast } from "@/context/ToastContext";
 
 type TabType = "account" | "wallet" | "orders" | "privacy";
 
 export default function AccountPage() {
+  const { showToast } = useToast();
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [zip, setZip] = useState("");
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("account");
   const [isPendingPhone, setIsPendingPhone] = useState(false);
   const [isPendingEmail, setIsPendingEmail] = useState(false);
+  const [isPendingAddress, setIsPendingAddress] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [stats, setStats] = useState({ orders: 0, address: "No address saved", twoFa: "2FA is currently active" });
+  const [stats, setStats] = useState({ orders: 0, address: "Add your address", twoFa: "2FA is currently active" });
   
   // Validation Patterns
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -33,11 +39,11 @@ export default function AccountPage() {
         setEmail(user.email || "");
         const { data } = await supabase
           .from("profiles")
-          .select("phone, full_name, address")
+          .select("phone, full_name, address, city, zip")
           .eq("id", user.id)
           .single();
           
-        let profileAddress = "123 Main St, NY"; // Fallback to user requested text if no DB address
+        let profileAddress = "Add your address"; 
         
         if (data) {
           // If the phone number from DB has +212, strip it for the input field to avoid duplication
@@ -47,7 +53,10 @@ export default function AccountPage() {
           }
           setPhone(dbPhone);
           setFullName(data.full_name || "");
-          if (data.address) profileAddress = data.address;
+          setAddress(data.address || "");
+          setCity(data.city || "");
+          setZip(data.zip || "");
+          if (data.address) profileAddress = `${data.address}${data.city ? `, ${data.city}` : ""}`;
         }
         
         // Count orders
@@ -71,7 +80,6 @@ export default function AccountPage() {
 
   const handlePhoneEdit = async () => {
     setErrorMessage("");
-    setSuccessMessage("");
     if (isEditingPhone) {
       if (!phone || phone.trim() === "") {
         setIsEditingPhone(false);
@@ -89,10 +97,10 @@ export default function AccountPage() {
       try {
         const fullPhone = `+212${strippedPhone}`;
         await updateProfile({ phone: fullPhone });
-        setSuccessMessage("Phone number updated successfully!");
+        showToast("Phone number updated successfully!", "success");
       } catch (err) {
         console.error("Failed to update phone", err);
-        setErrorMessage("Database update failed. Try again.");
+        showToast("Database update failed. Try again.", "error");
         hasError = true;
       }
       setIsPendingPhone(false);
@@ -102,9 +110,31 @@ export default function AccountPage() {
     }
   };
 
+  const handleAddressEdit = async () => {
+    setErrorMessage("");
+    if (isEditingAddress) {
+      setIsPendingAddress(true);
+      try {
+        await updateProfile({ 
+          address: address.trim(),
+          city: city.trim(),
+          zip: zip.trim()
+        });
+        setStats(prev => ({ ...prev, address: `${address.trim()}${city ? `, ${city.trim()}` : ""}` }));
+        showToast("Address updated successfully!", "success");
+        setIsEditingAddress(false);
+      } catch (err: any) {
+        console.error("Failed to update address", err);
+        showToast(err.message || "Failed to update address.", "error");
+      }
+      setIsPendingAddress(false);
+    } else {
+      setIsEditingAddress(true);
+    }
+  };
+
   const handleEmailEdit = async () => {
     setErrorMessage("");
-    setSuccessMessage("");
     if (isEditingEmail) {
       if (!email || email.trim() === "") {
         setIsEditingEmail(false);
@@ -112,7 +142,7 @@ export default function AccountPage() {
       }
       
       if (!emailRegex.test(email.trim())) {
-        setErrorMessage("Please enter a valid email address (e.g., name@example.com).");
+        showToast("Please enter a valid email address.", "warning");
         return;
       }
       
@@ -120,10 +150,10 @@ export default function AccountPage() {
       let hasError = false;
       try {
         await updateProfile({ email: email.trim() });
-        setSuccessMessage("Update requested. Please check your inbox (and old inbox) for a confirmation link to finalize the email change.");
+        showToast("Verification email sent to " + email.trim(), "info", 5000);
       } catch (err: any) {
         console.error("Failed to update email", err);
-        setErrorMessage(err.message || "Failed to update email.");
+        showToast(err.message || "Failed to update email.", "error");
         hasError = true;
       }
       setIsPendingEmail(false);
@@ -223,13 +253,6 @@ export default function AccountPage() {
                         {errorMessage}
                     </div>
                   )}
-
-                  {successMessage && (
-                    <div className="mb-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 p-3 rounded-xl border border-green-200 dark:border-green-800 text-sm font-medium flex items-start gap-2">
-                        <span className="material-symbols-outlined text-lg mt-0.5">check_circle</span>
-                        <span>{successMessage}</span>
-                    </div>
-                  )}
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="rounded-2xl bg-white dark:bg-slate-900/50 p-4 border border-slate-200 dark:border-slate-800 shadow-sm relative group overflow-hidden">
@@ -246,7 +269,6 @@ export default function AccountPage() {
                           onChange={(e) => {
                               setEmail(e.target.value);
                               if (errorMessage) setErrorMessage("");
-                              if (successMessage) setSuccessMessage("");
                           }}
                           onKeyDown={(e) => e.key === 'Enter' && handleEmailEdit()}
                           disabled={isPendingEmail}
@@ -278,7 +300,6 @@ export default function AccountPage() {
                             onChange={(e) => {
                                 setPhone(e.target.value.replace(/[^0-9]/g, ''));
                                 if (errorMessage) setErrorMessage("");
-                                if (successMessage) setSuccessMessage("");
                             }} // only allow numbers
                             onKeyDown={(e) => e.key === 'Enter' && handlePhoneEdit()}
                             disabled={isPendingPhone}
@@ -299,32 +320,75 @@ export default function AccountPage() {
                 <div id="primary-location" className="scroll-mt-8">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary">map</span>
+                      <span className="material-symbols-outlined text-primary">location_on</span>
                       Primary Location
                     </h2>
-                    <button className="text-primary text-sm font-bold hover:underline">Manage all</button>
+                    <button onClick={handleAddressEdit} className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">
+                      {isEditingAddress ? "Save" : "Edit"}
+                    </button>
                   </div>
-                  <div className="rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 shadow-sm">
-                    <div className="h-48 w-full bg-slate-200 dark:bg-slate-800 relative">
-                      <div 
-                        className="absolute inset-0 bg-cover bg-center opacity-70 grayscale hover:grayscale-0 transition-all duration-500" 
-                        style={{ backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDHxNIvIScGBZcLu9l-pmdaJ-0pXdde3JTfDxVrbw2tQoaqorVcZFU12R8ps09zDdq0bijL8ighpo9P7ox6lOEbnbS67DptRRrtrKysvTHTunwrxGqowRiq41E0hE3xS58QOuDyOJXoTSyyN5KQugHttd-9WED6ZY4HQBCM_-fhccqUKFGDNaCMfp1JVJThREAFwCSmkq33qRElTpQg04GF5wI6DuXQj-CwTIkSrnoXDUCWBd8lVyJtz6WPI5iHs4lNX9ynDsau_qU')" }}
-                      ></div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="size-8 bg-primary rounded-full border-4 border-white dark:border-slate-900 shadow-lg animate-pulse"></div>
-                      </div>
-                    </div>
-                    <div className="p-6">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h4 className="font-bold">Home (Default)</h4>
-                          <p className="text-slate-500 dark:text-slate-400 text-sm">{stats.address}</p>
+                  
+                  <div className="rounded-2xl bg-white dark:bg-slate-900/50 p-6 border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                    {isEditingAddress ? (
+                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="grid grid-cols-1 gap-4">
+                          <div className="flex flex-col gap-1.5">
+                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Street Address</label>
+                            <input 
+                              type="text" 
+                              value={address}
+                              onChange={(e) => setAddress(e.target.value)}
+                              placeholder="e.g. 123 Rue de la Liberté"
+                              disabled={isPendingAddress}
+                              className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 font-medium outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
+                            />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">City</label>
+                              <input 
+                                type="text" 
+                                value={city}
+                                onChange={(e) => setCity(e.target.value)}
+                                placeholder="Casablanca"
+                                disabled={isPendingAddress}
+                                className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 font-medium outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
+                              />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">ZIP Code</label>
+                              <input 
+                                type="text" 
+                                value={zip}
+                                onChange={(e) => setZip(e.target.value)}
+                                placeholder="20000"
+                                disabled={isPendingAddress}
+                                className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 font-medium outline-none focus:ring-2 focus:ring-primary transition-all disabled:opacity-50"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <button className="text-slate-300 hover:text-primary transition-colors">
-                          <span className="material-symbols-outlined">more_vert</span>
-                        </button>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="flex items-start gap-4">
+                        <div className="size-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                          <span className="material-symbols-outlined">home_pin</span>
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-slate-900 dark:text-white">Default Shipping Address</h4>
+                          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1 leading-relaxed">
+                            {address ? (
+                              <>
+                                {address} <br />
+                                {city} {zip && `${zip}`}
+                              </>
+                            ) : (
+                                <span className="text-slate-400 italic font-normal">No address saved yet. Fill it during checkout or edit here.</span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

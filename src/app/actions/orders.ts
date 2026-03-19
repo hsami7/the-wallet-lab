@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 
@@ -9,6 +9,9 @@ export async function createOrder(formData: {
   total_amount: number;
   shipping_rate_id: string | null;
   shipping_address: any;
+  discount_amount?: number;
+  promo_code?: string | null;
+  shipping_amount?: number;
   items: {
     product_id: string;
     quantity: number;
@@ -52,7 +55,12 @@ export async function createOrder(formData: {
         customer_id: formData.customer_id,
         total_amount: formData.total_amount,
         shipping_rate_id: formData.shipping_rate_id,
-        shipping_address: formData.shipping_address,
+        shipping_address: {
+          ...formData.shipping_address,
+          promo_code: formData.promo_code || null,
+          discount_amount: formData.discount_amount || 0,
+          shipping_amount: formData.shipping_amount || 0,
+        },
         status: "pending",
         payment_status: "unpaid",
         ip_address: ip,
@@ -90,6 +98,26 @@ export async function createOrder(formData: {
         console.warn(`Failed to update inventory for product ${item.product_id}:`, stockError);
         // We don't necessarily want to fail the whole order if inventory update fails
         // but in a real system we would.
+      }
+    }
+
+    // 4. Update Promo Code Usage Count
+    if (formData.promo_code) {
+      try {
+        const { data: promo } = await supabase
+          .from('promo_codes')
+          .select('used_count')
+          .eq('code', formData.promo_code.toUpperCase())
+          .single();
+        
+        if (promo) {
+          await supabase
+            .from('promo_codes')
+            .update({ used_count: (promo.used_count || 0) + 1 })
+            .eq('code', formData.promo_code.toUpperCase());
+        }
+      } catch (err) {
+        console.warn("Failed to increment promo usage count:", err);
       }
     }
 
@@ -191,23 +219,59 @@ export async function updateOrderTracking(orderId: string, trackingData: { track
 }
 
 export async function deleteOrder(orderId: string | string[]) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const ids = Array.isArray(orderId) ? orderId : [orderId];
 
   try {
-     // Order items usually have ON DELETE CASCADE, if not we'd delete them here.
-     const { error } = await supabase
-        .from("orders")
+     console.log(`[Admin] Attempting to delete ${ids.length} orders:`, ids);
+
+     // 1. Delete associated order items first to handle foreign key constraints
+     const { error: itemsError } = await supabase
+        .from("order_items")
         .delete()
+        .in("order_id", ids);
+
+     if (itemsError) {
+        console.error("Error deleting order_items:", itemsError);
+        throw itemsError;
+     }
+
+     // 2. Delete the orders themselves
+     const { error, count } = await supabase
+        .from("orders")
+        .delete({ count: 'exact' })
         .in("id", ids);
 
-     if (error) throw error;
+     if (error) {
+        console.error("Error deleting orders:", error);
+        throw error;
+     }
 
-     revalidatePath("/admin/orders");
+     console.log(`[Admin] Successfully deleted ${count} orders. Performing post-deletion verification...`);
+
+     // 2.1 Verification Step: Check if they are actually gone
+     const { data: verifyData } = await supabase
+        .from("orders")
+        .select("id")
+        .in("id", ids);
+
+     if (verifyData && verifyData.length > 0) {
+        console.error("CRITICAL: Deletion reported success but records still exist:", verifyData);
+        throw new Error(`Critical Failure: Supabase reported success but ${verifyData.length} records still exist in the database. This may be a trigger or constraint issue.`);
+     }
+
+     if (count === 0) {
+        throw new Error("Deletion failed: No records were affected. Small possibility of RLS blocking even Service Role if misconfigured.");
+     }
+
+     // 3. Clear all relevant caches
      revalidatePath("/admin");
-     return { success: true };
+     revalidatePath("/admin/orders");
+     revalidatePath("/admin/analytics");
+     
+     return { success: true, deletedCount: count };
   } catch (error: any) {
-     console.error("Delete order error:", error);
-     return { success: false, error: error.message };
+     console.error("Delete order execution failed:", error);
+     return { success: false, error: error.message || "Internal server error during deletion" };
   }
 }

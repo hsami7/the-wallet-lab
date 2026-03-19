@@ -7,10 +7,14 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { createOrder } from "@/app/actions/orders";
+import { useToast } from "@/context/ToastContext";
+import { updateProfile } from "@/app/actions/profile";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { showToast } = useToast();
+  
   const {
     cart,
     updateQuantity,
@@ -32,14 +36,29 @@ export default function CheckoutPage() {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "" ,
+    email: "",
     address: "",
     city: "",
     zip: "",
     phone: "",
   });
+
+  const syncPhoneWithProfile = async () => {
+    const moroccanPhoneRegex = /^[6-7]\d{8}$/;
+    if (user && formData.phone && moroccanPhoneRegex.test(formData.phone)) {
+      try {
+        await updateProfile({ phone: `+212${formData.phone}` });
+        showToast("Contact information synchronized with your profile.", "success");
+      } catch (err) {
+        console.warn("Failed to sync phone with profile:", err);
+      }
+    }
+  };
   const [saveToProfile, setSaveToProfile] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [promoInput, setPromoInput] = useState("");
@@ -59,20 +78,42 @@ export default function CheckoutPage() {
   };
 
   const handleCompletePurchase = async () => {
-    if (!formData.firstName || !formData.lastName || !formData.address || !formData.city || !formData.zip || !formData.phone) {
-      setError("Please fill in all delivery information including phone");
+    const moroccanPhoneRegex = /^[6-7]\d{8}$/;
+    const newFieldErrors: Record<string, string> = {};
+
+    // Validate fields individually
+    if (!formData.firstName) newFieldErrors.firstName = "First name is required";
+    if (!formData.lastName) newFieldErrors.lastName = "Last name is required";
+    if (!formData.address) newFieldErrors.address = "Street address is required";
+    if (!formData.city) newFieldErrors.city = "City is required";
+    if (!formData.zip) newFieldErrors.zip = "ZIP code is required";
+    
+    if (!formData.phone) {
+      newFieldErrors.phone = "Phone number is required";
+    } else if (!moroccanPhoneRegex.test(formData.phone)) {
+      newFieldErrors.phone = "Please enter a valid Moroccan phone number (9 digits starting with 6 or 7).";
+    }
+
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
+      setError("Please correct the errors in the delivery information.");
       return;
     }
 
     setIsSubmitting(true);
     setError(null);
+    setFieldErrors({});
 
     try {
-      // Sync profile if checked
-      if (user && saveToProfile) {
-        await supabase.from("profiles").update({
+      // Sync profile - Always update phone if logged in
+      if (user) {
+        await updateProfile({
           full_name: `${formData.firstName} ${formData.lastName}`,
-          phone: formData.phone,
+          phone: `+212${formData.phone}`,
+        });
+
+        // Other fields direct sync
+        await supabase.from("profiles").update({
           address: formData.address,
           city: formData.city,
           zip: formData.zip,
@@ -84,7 +125,10 @@ export default function CheckoutPage() {
         customer_id: user.id,
         total_amount: total,
         shipping_rate_id: selectedRateId,
-        shipping_address: formData,
+        shipping_address: { ...formData, phone: `+212${formData.phone}` },
+        discount_amount: discount,
+        promo_code: promoCode,
+        shipping_amount: shippingFee,
         items: cart.map(item => ({
           product_id: item.id.toString(),
           quantity: item.quantity,
@@ -94,14 +138,15 @@ export default function CheckoutPage() {
       });
 
       if (result.success) {
+        setIsSuccess(true);
         clearCart();
         router.push(`/checkout/success?orderId=${result.orderId}`);
       } else {
         setError(result.error || "Failed to place order. Please try again.");
+        setIsSubmitting(false);
       }
     } catch (err: any) {
       setError("An unexpected error occurred. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -126,17 +171,21 @@ export default function CheckoutPage() {
             ...prev,
             firstName: names[0] || "",
             lastName: names.slice(1).join(" ") || "",
-            phone: profile.phone || "",
+            email: currentUser.email || "",
+            phone: profile.phone ? profile.phone.replace("+212", "").trim() : "",
             address: profile.address || "",
             city: profile.city || "",
             zip: profile.zip || "",
           }));
+        } else {
+          setFormData(prev => ({ ...prev, email: currentUser.email || "" }));
         }
       }
 
       setLoading(false);
 
-      if (!loading && cart.length === 0 && !isSubmitting) {
+      if (!loading && cart.length === 0 && !isSubmitting && !isSuccess) {
+        // Only redirect if we ARE NOT currently submitting or just finished
         router.push("/shop");
       }
     }
@@ -201,66 +250,96 @@ export default function CheckoutPage() {
                 <input 
                   required 
                   value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  onChange={(e) => {
+                    setFormData({ ...formData, firstName: e.target.value });
+                    if (fieldErrors.firstName) setFieldErrors(prev => ({ ...prev, firstName: "" }));
+                  }}
+                  className={`w-full bg-slate-100 dark:bg-slate-900 border ${fieldErrors.firstName ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all`} 
                   placeholder="John" 
                   type="text" 
                 />
+                {fieldErrors.firstName && <p className="text-[10px] text-red-500 font-bold uppercase mt-1 ml-1">{fieldErrors.firstName}</p>}
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Last Name</span>
                 <input 
                   required 
                   value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  onChange={(e) => {
+                    setFormData({ ...formData, lastName: e.target.value });
+                    if (fieldErrors.lastName) setFieldErrors(prev => ({ ...prev, lastName: "" }));
+                  }}
+                  className={`w-full bg-slate-100 dark:bg-slate-900 border ${fieldErrors.lastName ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all`} 
                   placeholder="Doe" 
                   type="text" 
                 />
+                {fieldErrors.lastName && <p className="text-[10px] text-red-500 font-bold uppercase mt-1 ml-1">{fieldErrors.lastName}</p>}
               </label>
               <label className="flex flex-col gap-1 md:col-span-2">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Street Address</span>
                 <input 
                   required 
                   value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  onChange={(e) => {
+                    setFormData({ ...formData, address: e.target.value });
+                    if (fieldErrors.address) setFieldErrors(prev => ({ ...prev, address: "" }));
+                  }}
+                  className={`w-full bg-slate-100 dark:bg-slate-900 border ${fieldErrors.address ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all`} 
                   placeholder="Hay Oued Fes, No 123" 
                   type="text" 
                 />
+                {fieldErrors.address && <p className="text-[10px] text-red-500 font-bold uppercase mt-1 ml-1">{fieldErrors.address}</p>}
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">City</span>
                 <input 
                   required 
                   value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  onChange={(e) => {
+                    setFormData({ ...formData, city: e.target.value });
+                    if (fieldErrors.city) setFieldErrors(prev => ({ ...prev, city: "" }));
+                  }}
+                  className={`w-full bg-slate-100 dark:bg-slate-900 border ${fieldErrors.city ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all`} 
                   placeholder="Fes" 
                   type="text" 
                 />
+                {fieldErrors.city && <p className="text-[10px] text-red-500 font-bold uppercase mt-1 ml-1">{fieldErrors.city}</p>}
               </label>
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">ZIP Code</span>
                 <input 
                   required 
                   value={formData.zip}
-                  onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
-                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                  onChange={(e) => {
+                    setFormData({ ...formData, zip: e.target.value });
+                    if (fieldErrors.zip) setFieldErrors(prev => ({ ...prev, zip: "" }));
+                  }}
+                  className={`w-full bg-slate-100 dark:bg-slate-900 border ${fieldErrors.zip ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all`} 
                   placeholder="30000" 
                   type="text" 
                 />
+                {fieldErrors.zip && <p className="text-[10px] text-red-500 font-bold uppercase mt-1 ml-1">{fieldErrors.zip}</p>}
               </label>
               <label className="flex flex-col gap-1 md:col-span-2">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Phone Number</span>
-                <input 
-                  required 
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
-                  placeholder="+212 600-000000" 
-                  type="tel" 
-                />
+                <div className={`flex w-full bg-slate-100 dark:bg-slate-900 border ${fieldErrors.phone ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary transition-all`}>
+                  <div className="bg-slate-200 dark:bg-slate-800 px-4 flex items-center justify-center text-sm font-bold text-slate-500 border-r border-slate-200 dark:border-slate-700">
+                    +212
+                  </div>
+                  <input 
+                    required 
+                    value={formData.phone}
+                    onChange={(e) => {
+                      setFormData({ ...formData, phone: e.target.value.replace(/[^0-9]/g, '').slice(0, 9) });
+                      if (fieldErrors.phone) setFieldErrors(prev => ({ ...prev, phone: "" }));
+                    }}
+                    className="flex-1 bg-transparent p-4 outline-none text-slate-900 dark:text-white" 
+                    placeholder="600000000" 
+                    type="tel" 
+                    onBlur={syncPhoneWithProfile}
+                  />
+                </div>
+                {fieldErrors.phone && <p className="text-[10px] text-red-500 font-bold uppercase mt-1 ml-1 animate-in fade-in slide-in-from-top-1">{fieldErrors.phone}</p>}
               </label>
 
               {user && (
@@ -332,18 +411,18 @@ export default function CheckoutPage() {
                   <label className="flex flex-col gap-2">
                     <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Card Number</span>
                     <div className="relative">
-                      <input className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pl-12 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="0000 0000 0000 0000" type="text" />
+                      <input required className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pl-12 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="0000 0000 0000 0000" type="text" />
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">credit_card</span>
                     </div>
                   </label>
                   <div className="grid grid-cols-2 gap-6">
                     <label className="flex flex-col gap-2">
                       <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Expiry Date</span>
-                      <input className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="MM/YY" type="text" />
+                      <input required className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="MM/YY" type="text" />
                     </label>
                     <label className="flex flex-col gap-2">
                       <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">CVC</span>
-                      <input className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="123" type="text" />
+                      <input required className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="123" type="text" />
                     </label>
                   </div>
                 </ScrollReveal>
@@ -376,26 +455,6 @@ export default function CheckoutPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mt-1">
                       <p className="font-bold text-sm line-clamp-2 leading-tight flex-1">{item.name}</p>
-                      {item.variant && (
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <div
-                            className="size-2.5 rounded-full border border-white/20 shadow-inner overflow-hidden flex"
-                            style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }}
-                          >
-                            {typeof item.variant === 'object' && item.variant.secondaryHex ? (
-                              <>
-                                <div className="w-1/2 h-full" style={{ backgroundColor: item.variant.hex }} />
-                                <div className="w-[calc(50%+1px)] h-full -ml-[1px]" style={{ backgroundColor: item.variant.secondaryHex }} />
-                              </>
-                            ) : (
-                              <div className="size-full" style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }} />
-                            )}
-                          </div>
-                          <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">
-                            {typeof item.variant === 'object' ? item.variant.name : 'Finish'}
-                          </span>
-                        </div>
-                      )}
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                       <button

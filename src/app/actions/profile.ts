@@ -3,7 +3,14 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
-export async function updateProfile(data: { phone?: string, full_name?: string, email?: string }) {
+export async function updateProfile(data: { 
+  phone?: string, 
+  full_name?: string, 
+  email?: string,
+  address?: string,
+  city?: string,
+  zip?: string
+}) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -31,6 +38,7 @@ export async function updateProfile(data: { phone?: string, full_name?: string, 
   }
 
   revalidatePath('/account')
+  revalidatePath('/checkout')
   revalidatePath('/admin')
   return { success: true }
 }

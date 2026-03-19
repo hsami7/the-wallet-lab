@@ -1,21 +1,65 @@
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/server";
 import { CustomersClient } from "./CustomersClient";
 
 export default async function AdminCustomers() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   
-  // 1. Fetch ALL orders (Primary source of truth for customers)
-  const { data: allOrders } = await supabase
+  // 1. Fetch ALL orders with items and products (Deep data source)
+  const { data: allOrders, error: ordersError } = await supabase
     .from("orders")
-    .select("id, total_amount, shipping_address, customer_id, created_at")
+    .select(`
+      id, 
+      total_amount, 
+      shipping_address, 
+      customer_id, 
+      created_at,
+      ip_address,
+      order_items(
+        quantity,
+        unit_price,
+        variant,
+        products(name, image_url)
+      )
+    `)
     .order("created_at", { ascending: false });
 
+  if (ordersError) {
+    console.error("Orders Fetch Error:", ordersError);
+  }
+
   // 2. Fetch profiles (Supplemental identity data)
-  const { data: profiles } = await supabase
+  let profiles: any[] | null = null;
+  const { data: initialProfiles, error: profilesError } = await supabase
     .from("profiles")
-    .select("id, email, full_name, role, created_at");
+    .select("id, email, full_name, role, created_at, phone, status");
+
+  if (profilesError) {
+     console.warn("[Admin] Profiles fetch optimized fallback due to:", profilesError.message);
+     const { data: fallbackProfiles } = await supabase
+       .from("profiles")
+       .select("id, email, full_name, role, created_at");
+     profiles = fallbackProfiles;
+  } else {
+     profiles = initialProfiles;
+  }
+
+  console.log(`[Admin] Data Sync: ${allOrders?.length || 0} orders found. ${profiles?.length || 0} profiles found.`);
 
   const customerMap = new Map<string, any>();
+
+  // Helper to aggregate items
+  const aggregateItems = (existing: any[], newItems: any[]) => {
+    const map = new Map();
+    [...existing, ...newItems].forEach(item => {
+      const key = `${item.products?.name}-${JSON.stringify(item.variant)}`;
+      if (map.has(key)) {
+        map.get(key).quantity += item.quantity;
+      } else {
+        map.set(key, { ...item });
+      }
+    });
+    return Array.from(map.values());
+  };
 
   // Build customer list from all orders to ensure no one is missed
   allOrders?.forEach((o: any) => {
@@ -31,11 +75,16 @@ export default async function AdminCustomers() {
         id: o.customer_id || `guest-${o.id}`,
         name: name,
         email: o.shipping_address.email,
+        phone: o.shipping_address.phone || "",
         orders: 0,
         spent: 0,
         joined: o.created_at,
+        lastActive: o.created_at,
+        lastIp: o.ip_address || "Unknown",
         status: o.customer_id ? "Active" : "Guest",
-        isRegistered: !!o.customer_id
+        isRegistered: !!o.customer_id,
+        itemsBought: [],
+        rawItems: []
       });
     }
 
@@ -43,9 +92,19 @@ export default async function AdminCustomers() {
     customer.orders += 1;
     customer.spent += Number(o.total_amount);
     
+    // Aggregating items bought
+    if (o.order_items) {
+      customer.rawItems = aggregateItems(customer.rawItems, o.order_items);
+    }
+    
     // Use earliest interaction as joined date
     if (new Date(o.created_at) < new Date(customer.joined)) {
       customer.joined = o.created_at;
+    }
+    // Use most recent as last active
+    if (new Date(o.created_at) > new Date(customer.lastActive)) {
+      customer.lastActive = o.created_at;
+      customer.lastIp = o.ip_address || customer.lastIp;
     }
   });
 
@@ -66,6 +125,8 @@ export default async function AdminCustomers() {
       existing.id = p.id;
       if (p.full_name && p.full_name !== "User") existing.name = p.full_name;
       existing.joined = p.created_at; // Real signup date
+      existing.phone = p.phone || existing.phone;
+      existing.status = p.status || existing.status;
       if (existing.status === "Guest") existing.status = "Active";
     } else {
       // User who registered but hasn't ordered
@@ -73,11 +134,16 @@ export default async function AdminCustomers() {
         id: p.id,
         name: p.full_name || email.split("@")[0],
         email: p.email,
+        phone: (p as any).phone || "",
         orders: 0,
         spent: 0,
         joined: p.created_at,
-        status: "New",
-        isRegistered: true
+        lastActive: p.created_at,
+        lastIp: "No History",
+        status: (p as any).status || "New",
+        isRegistered: true,
+        itemsBought: [],
+        rawItems: []
       });
     }
   });
@@ -85,8 +151,24 @@ export default async function AdminCustomers() {
   const formattedCustomers = Array.from(customerMap.values())
     .map(c => ({
       ...c,
+      ltv: c.spent,
       spent: `${c.spent.toLocaleString()} MAD`,
-      joined: new Date(c.joined).toLocaleDateString("en-US", {
+      itemsCount: c.rawItems.reduce((acc: number, i: any) => acc + i.quantity, 0),
+      itemsList: c.rawItems.map((i: any) => {
+        const variantImageUrl = i.variant?.imageUrl || i.variant?.image;
+        return {
+          name: i.products?.name || "Unknown Product",
+          quantity: i.quantity,
+          variant: i.variant,
+          image: variantImageUrl || i.products?.image_url
+        };
+      }),
+      joinedFormatted: new Date(c.joined).toLocaleDateString("en-US", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric"
+      }),
+      lastActiveFormatted: new Date(c.lastActive).toLocaleDateString("en-US", {
         month: "short",
         day: "2-digit",
         year: "numeric"
@@ -94,5 +176,9 @@ export default async function AdminCustomers() {
     }))
     .sort((a, b) => b.orders - a.orders);
 
+  // If we have data, show it. If we have a critical error and no data, show an error state if possible
+  // For now, we'll just pass empty list which shows the "Neural search found no matches" 
+  // but with the console logs we'll know why.
+  
   return <CustomersClient initialCustomers={formattedCustomers} />;
 }

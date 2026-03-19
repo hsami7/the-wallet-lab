@@ -56,6 +56,23 @@ export async function signup(formData: FormData) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`)
   }
 
+  // Manually ensure profile is created if trigger is missing
+  if (authData.user) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: authData.user.id,
+        email: authData.user.email,
+        full_name: data.options.data.full_name,
+        role: 'customer' // Default role
+      })
+      .select();
+    
+    if (profileError) {
+      console.warn("Manual profile creation failed (likely handled by trigger):", profileError.message);
+    }
+  }
+
   // If Supabase confirms the user needs to check their email:
   if (authData.user && authData.session === null) {
       redirect('/login?message=Account created! Please check your email to verify your account.')

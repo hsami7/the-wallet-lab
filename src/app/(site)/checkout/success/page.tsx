@@ -9,7 +9,7 @@ export default function OrderSuccessPage() {
   const orderId = searchParams.get("orderId");
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-6">
+    <div className="min-h-[100vh] flex items-center justify-center px-6">
       <div className="max-w-md w-full text-center">
         <ScrollReveal animation="fade-up">
           <div className="size-24 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce">

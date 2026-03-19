@@ -1,8 +1,8 @@
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/server";
 import { SettingsClient } from "./SettingsClient";
 
 export default async function AdminSettings() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data: { user } } = await supabase.auth.getUser();
   
   // Fetch profiles for the staff section

@@ -61,7 +61,7 @@ export function ProductDetailsClient({
       name: product.name,
       price: product.price,
       quantity: 1,
-      image: product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image",
+      image: selectedVariant?.imageUrl || selectedVariant?.image || product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image",
       description: product.category || "Premium Carry",
       variant: selectedVariant || undefined
     });

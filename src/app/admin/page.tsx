@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/server";
-import { AdminOverview } from "./AdminOverview";
+import { createAdminClient } from "@/utils/supabase/server";
 
 const statusColors: Record<string, string> = {
   delivered: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -11,7 +10,7 @@ const statusColors: Record<string, string> = {
 };
 
 export default async function AdminPage() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   // 1. Fetch Stats
   const { data: allOrders } = await supabase.from("orders").select("total_amount, created_at, status");

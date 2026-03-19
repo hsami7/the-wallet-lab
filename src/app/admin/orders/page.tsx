@@ -1,8 +1,8 @@
-import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/server";
 import { OrdersClient } from "./OrdersClient";
 
 export default async function AdminOrders() {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   
   // Fetch orders with their related customer data and order items & products
   const { data: orders, error } = await supabase
@@ -17,10 +17,12 @@ export default async function AdminOrders() {
       order_items (
         quantity,
         unit_price,
+        variant,
         products (
           name,
           sku,
-          image_url
+          image_url,
+          colors
         )
       )
     `)

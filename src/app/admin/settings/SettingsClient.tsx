@@ -42,26 +42,28 @@ export function SettingsClient({
 
   const supabase = createClient();
 
-  // Map the Supabase profiles into the format expected by the UI
-  const staffMembers = profiles.map(profile => {
-    const initials = profile.full_name
-      ? profile.full_name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase()
-      : "AU";
+  // Filter for only admins/staff
+  const staffMembers = profiles
+    .filter(profile => profile.role === "admin" || profile.role === "Administrator")
+    .map(profile => {
+      const initials = profile.full_name
+        ? profile.full_name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase()
+        : profile.email?.split("@")[0].substring(0, 2).toUpperCase() || "ST";
 
-    const isCurrentUser = profile.id === currentUserId;
-    const color = isCurrentUser ? "bg-primary" : "bg-slate-500";
+      const isCurrentUser = profile.id === currentUserId;
+      const color = isCurrentUser ? "bg-primary" : "bg-slate-500";
 
-    return {
-      id: profile.id,
-      name: profile.full_name || "Admin User",
-      email: profile.email,
-      role: profile.role || "Administrator",
-      active: true,
-      initials,
-      color,
-      isCurrentUser
-    }
-  });
+      return {
+        id: profile.id,
+        name: profile.full_name || "Admin User",
+        email: profile.email,
+        role: profile.role || "Administrator",
+        active: true,
+        initials,
+        color,
+        isCurrentUser
+      }
+    });
 
   const handleSave = async () => {
     setIsSaving(true);
