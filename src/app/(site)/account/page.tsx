@@ -47,21 +47,7 @@ export default function AccountPage() {
           
         let profileAddress = "Add your address"; 
         
-        if (data) {
-          // If the phone number from DB has +212, strip it for the input field to avoid duplication
-          let dbPhone = data.phone || "";
-          if (dbPhone.startsWith("+212")) {
-            dbPhone = dbPhone.substring(4).trim();
-          }
-          setPhone(dbPhone);
-          setFullName(data.full_name || "");
-          setAddress(data.address || "");
-          setCity(data.city || "");
-          setZip(data.zip || "");
-          if (data.address) profileAddress = `${data.address}${data.city ? `, ${data.city}` : ""}`;
-        }
-        
-        // Fetch orders
+        // Fetch orders first to use as fallback
         setIsLoadingOrders(true);
         const { data: realOrders } = await supabase
           .from("orders")
@@ -70,6 +56,7 @@ export default function AccountPage() {
             created_at,
             status,
             total_amount,
+            shipping_address,
             order_items (
               quantity,
               unit_price,
@@ -85,6 +72,30 @@ export default function AccountPage() {
           
         setOrders(realOrders || []);
         setIsLoadingOrders(false);
+        
+        if (data) {
+          // Latest order fallback
+          const latestOrder = (realOrders && realOrders.length > 0) ? realOrders[0] : null;
+          const orderShipping = latestOrder?.shipping_address || {};
+          
+          // If the phone number from DB has +212, strip it for the input field to avoid duplication
+          let dbPhone = data.phone || orderShipping.phone || "";
+          if (dbPhone.startsWith("+212")) {
+            dbPhone = dbPhone.substring(4).trim();
+          }
+          setPhone(dbPhone);
+          setFullName(data.full_name || "");
+          
+          const finalAddress = data.address || orderShipping.address1 || "";
+          const finalCity = data.city || orderShipping.city || "";
+          const finalZip = data.zip || orderShipping.zip || "";
+          
+          setAddress(finalAddress);
+          setCity(finalCity);
+          setZip(finalZip);
+          
+          if (finalAddress) profileAddress = `${finalAddress}${finalCity ? `, ${finalCity}` : ""}`;
+        }
         
         // Check 2FA
         const twoFaActive = user.factors && user.factors.length > 0;

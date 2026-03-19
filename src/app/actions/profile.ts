@@ -31,8 +31,11 @@ export async function updateProfile(data: {
   if (Object.keys(profileData).length > 0) {
     const { error } = await supabase
       .from('profiles')
-      .update(profileData)
-      .eq('id', user.id)
+      .upsert({
+        id: user.id,
+        ...profileData,
+        updated_at: new Date().toISOString()
+      })
 
     if (error) throw new Error(error.message)
   }
