@@ -5,7 +5,6 @@ import { FeaturedProductsClient } from "@/components/home/FeaturedProductsClient
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Next Generation Embroidery Art Lab",
   description: "Shop premium wallets, denims, jeans, and jackets with precision-engineered art. Experience the future of wearable art at The Embroidery's Lab.",
   openGraph: {
     title: "The Embroidery's Lab | Next Generation Embroidery Art",

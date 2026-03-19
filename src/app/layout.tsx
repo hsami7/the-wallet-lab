@@ -11,7 +11,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "The Embroidery's Lab | Next Generation Embroidery Art",
+    default: "The Embroidery's Lab",
     template: "%s | The Embroidery's Lab",
   },
   description: "The Embroidery's Lab: Premium wallets, denims, jeans, and jackets featuring unique, precision-engineered art. Experience the fusion of traditional craftsmanship and modern technology.",
