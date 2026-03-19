@@ -49,7 +49,14 @@ export default function AdminAnalytics() {
   const [utmCampaign, setUtmCampaign] = useState("winter_sale");
   const [utmPath, setUtmPath] = useState("/shop");
   const [copied, setCopied] = useState(false);
+  const [origin, setOrigin] = useState("https://the-wallet-lab.com");
   const supabase = createClient();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setOrigin(window.location.origin);
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchTraffic() {
@@ -165,74 +172,85 @@ export default function AdminAnalytics() {
         ))}
       </div>
 
-      {/* ── Sales Trends ── */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-base font-bold text-slate-900 dark:text-white">Sales Trends — 2025</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Monthly performance</p>
-          </div>
-          <div className="flex gap-2">
-            {(["revenue", "orders"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setActiveSeries(s)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all capitalize ${
-                  activeSeries === s ? "bg-primary text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+      {/* ── Charts Grid ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        {/* Sales Trends — 2025 */}
+        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white">Sales Trends — 2025</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 uppercase font-bold tracking-tight">Monthly performance</p>
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setActiveSeries("revenue")}
+                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full transition-all ${
+                  activeSeries === "revenue" ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
                 }`}
               >
-                {s}
+                Revenue
               </button>
-            ))}
+              <button 
+                onClick={() => setActiveSeries("orders")}
+                className={`text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full transition-all ${
+                  activeSeries === "orders" ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                }`}
+              >
+                Orders
+              </button>
+            </div>
+          </div>
+          
+          <div className="relative h-64 w-full mt-4 flex flex-col justify-between">
+             <div className="flex-1 relative">
+               <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1100 100">
+                 <path 
+                   d="M0,80 L100,70 L200,85 L300,50 L400,60 L500,40 L600,55 L700,30 L800,45 L900,15 L1000,20 L1100,5" 
+                   fill="none" 
+                   stroke="#8b5cf6" 
+                   strokeLinecap="round" 
+                   strokeWidth="4"
+                   className="drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+                 />
+               </svg>
+             </div>
+             <div className="flex justify-between mt-6 text-[10px] font-bold text-slate-400 uppercase tracking-tighter overflow-hidden shrink-0">
+                {months.map(m => <span key={m}>{m}</span>)}
+             </div>
           </div>
         </div>
-        {/* Bar chart */}
-        <div className="flex items-end gap-2 h-44">
-          {chartData.map((val, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-              <div
-                className="w-full rounded-t-md bg-primary/20 hover:bg-primary transition-colors relative"
-                style={{ height: `${(val / chartMax) * 100}%` }}
-              >
-                <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                  {activeSeries === "revenue" ? `${(val / 1000).toFixed(0)}k MAD` : `${val} ${chartLabel}`}
-                </div>
-              </div>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">{months[i]}</span>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* ── Visitor Activity ── */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 mb-6">
-        <div className="mb-6">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white">Visitor Activity</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Last 7 days — unique visitors vs sessions</p>
-        </div>
-        <div className="flex items-end gap-3 h-36 mb-3">
-          {visitorData.map((visitors, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1 group">
-              <div className="w-full flex gap-0.5 items-end" style={{ height: `${(visitors / maxVisitors) * 100}%` }}>
-                {/* Visitors bar */}
-                <div className="flex-1 bg-primary/70 hover:bg-primary rounded-t-sm transition-colors h-full relative">
-                  <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                    {visitors.toLocaleString()} visitors
-                  </div>
-                </div>
-                {/* Sessions bar */}
-                <div
-                  className="flex-1 bg-primary/25 rounded-t-sm"
-                  style={{ height: `${(sessionData[i] / visitors) * 100}%` }}
-                />
-              </div>
-              <span className="text-[10px] text-slate-400 dark:text-slate-500">{days[i]}</span>
+        {/* Visitor Activity Card */}
+        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white">Visitor Activity</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 uppercase font-bold tracking-tight">Last 7 days — unique visitors vs sessions</p>
             </div>
-          ))}
-        </div>
-        <div className="flex items-center gap-6 text-xs text-slate-500 dark:text-slate-400">
-          <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-primary/70 inline-block" /> Unique Visitors</span>
-          <span className="flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-primary/25 inline-block" /> Sessions</span>
+          </div>
+          
+          <div className="flex items-end justify-between h-64 w-full mt-4 px-2 gap-4 flex-1">
+             {visitorData.map((visitors, i) => (
+               <div key={days[i]} className="flex flex-col items-center w-full h-full justify-end gap-3">
+                 <div className="flex items-end gap-1.5 h-full w-full justify-center">
+                    <div className="w-1.5 sm:w-2.5 rounded-t-sm bg-[#8b5cf6]/30 transition-all duration-700" style={{ height: `${(sessionData[i] / maxVisitors) * 100}%` }} />
+                    <div className="w-1.5 sm:w-2.5 rounded-t-sm bg-[#8b5cf6] transition-all duration-700" style={{ height: `${(visitors / maxVisitors) * 100}%` }} />
+                 </div>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{days[i]}</span>
+               </div>
+             ))}
+          </div>
+          
+          <div className="flex gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]/30" />
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unique Visitors</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]" />
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sessions</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -418,13 +436,13 @@ export default function AdminAnalytics() {
           <div className="flex-1 min-w-0 w-full overflow-hidden">
             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Generated Tracking Link:</p>
             <code className="text-primary dark:text-primary-foreground/90 font-mono text-sm break-all">
-              {typeof window !== 'undefined' ? window.location.origin : 'https://the-wallet-lab.com'}
+              {origin}
               {utmPath}?utm_source={utmSource}&utm_medium={utmMedium}&utm_campaign={utmCampaign}
             </code>
           </div>
           <button
             onClick={() => {
-              const url = `${window.location.origin}${utmPath}?utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}`;
+              const url = `${origin}${utmPath}?utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}`;
               navigator.clipboard.writeText(url);
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
