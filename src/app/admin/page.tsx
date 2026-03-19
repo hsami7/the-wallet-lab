@@ -233,7 +233,7 @@ export default async function AdminDashboard() {
                   { day: "Sat", height: "80%" },
                   { day: "Sun", height: "40%" },
                 ].map((bar) => (
-                  <div key={bar.day} className="flex flex-col items-center w-full">
+                  <div key={bar.day} className="flex flex-col items-center w-full h-full justify-end">
                     <div 
                       className={`w-6 sm:w-8 rounded-full transition-all duration-500 ${
                         bar.active 
