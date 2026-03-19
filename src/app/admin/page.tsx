@@ -212,29 +212,49 @@ export default async function AdminDashboard() {
             </select>
           </div>
           
-          {/* Bar Chart Simulation */}
-          <div className="flex items-end justify-between h-48 w-full mt-4 px-2">
-            {[
-              { day: "Mon", height: "40%" },
-              { day: "Tue", height: "70%" },
-              { day: "Wed", height: "85%", active: true },
-              { day: "Thu", height: "45%" },
-              { day: "Fri", height: "60%" },
-              { day: "Sat", height: "75%" },
-              { day: "Sun", height: "35%" },
-            ].map((bar) => (
-              <div key={bar.day} className="flex flex-col items-center gap-4 w-full">
-                <div 
-                  className={`w-8 rounded-full transition-all duration-500 ${
-                    bar.active 
-                      ? "bg-[#6366f1] shadow-[0_0_15px_rgba(99,102,241,0.6)]" 
-                      : "bg-slate-200 dark:bg-slate-700/50"
-                  }`}
-                  style={{ height: bar.height }}
-                />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{bar.day}</span>
+          <div className="relative pt-4 flex gap-4">
+            {/* Y-axis Labels for Order Volume */}
+            <div className="flex flex-col justify-between h-48 grow-0 shrink-0 min-w-[30px] text-[10px] font-bold text-slate-400 py-1 text-right">
+              <span>1.5k</span>
+              <span>1k</span>
+              <span>500</span>
+              <span className="text-primary font-black uppercase tracking-tight">0</span>
+            </div>
+            
+            <div className="flex-1">
+              {/* Bar Chart Simulation */}
+              <div className="flex items-end justify-between h-48 w-full px-2">
+                {[
+                  { day: "Mon", height: "45%" },
+                  { day: "Tue", height: "75%" },
+                  { day: "Wed", height: "90%", active: true },
+                  { day: "Thu", height: "55%" },
+                  { day: "Fri", height: "65%" },
+                  { day: "Sat", height: "80%" },
+                  { day: "Sun", height: "40%" },
+                ].map((bar) => (
+                  <div key={bar.day} className="flex flex-col items-center w-full">
+                    <div 
+                      className={`w-6 sm:w-8 rounded-full transition-all duration-500 ${
+                        bar.active 
+                          ? "bg-[#6366f1] shadow-[0_0_15px_rgba(99,102,241,0.6)]" 
+                          : "bg-slate-200 dark:bg-slate-700/50"
+                      }`}
+                      style={{ height: bar.height }}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
+              <div className="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
