@@ -464,6 +464,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                              </div>
                              
                              <div className="flex items-center gap-3 mt-auto">
+                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.quantity} × {formatCurrency(item.unit_price)}</span>
                                 {displayVariant && (
                                   <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/5 rounded-full border border-primary/10">
                                      <div 
@@ -477,7 +478,6 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                                      <span className="text-[9px] font-black text-primary uppercase tracking-widest">{displayVariant}</span>
                                   </div>
                                 )}
-                                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.quantity} × {formatCurrency(item.unit_price)}</span>
                              </div>
                           </div>
                        </div>
