@@ -120,6 +120,10 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
     return matchFilter && matchSearch;
   });
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(amount);
+  };
+
   const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
 
   return (
@@ -429,18 +433,25 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                                     <span className="material-symbols-outlined text-slate-300">image</span>
                                  )}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                 <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight truncate">{item.name}</p>
-                                 <div className="flex items-center gap-3 mt-1.5">
-                                    <span className="px-2.5 py-1 rounded-lg bg-primary text-white text-[9px] font-black">{item.quantity} UNITS</span>
-                                    {item.variant && (
-                                       <div className="flex items-center gap-2 px-2.5 py-1 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                                          <div className="size-2 rounded-full shadow-sm" style={{ backgroundColor: typeof item.variant === 'object' ? item.variant.hex : item.variant }} />
-                                          <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{typeof item.variant === 'object' ? item.variant.name : 'Custom'}</span>
-                                       </div>
-                                    )}
-                                 </div>
-                              </div>
+                               <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight truncate mb-2">{item.name}</p>
+                                  <div className="flex items-center gap-3 mt-auto">
+                                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.quantity} × {formatCurrency(item.unit_price)}</span>
+                                     {item.variant && (
+                                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/5 rounded-full border border-primary/10">
+                                           <div 
+                                             className="size-2 rounded-full border border-white/20" 
+                                             style={{ 
+                                               backgroundColor: (item.variant && typeof item.variant === 'object') 
+                                                 ? (item.variant.hex || item.variant.color || '#000000') 
+                                                 : (typeof item.variant === 'string' ? item.variant : '#000000')
+                                             }} 
+                                           />
+                                           <span className="text-[9px] font-black text-primary uppercase tracking-widest">{typeof item.variant === 'object' ? item.variant.name : 'Custom'}</span>
+                                        </div>
+                                     )}
+                                  </div>
+                               </div>
                            </div>
                         ))
                       ) : (

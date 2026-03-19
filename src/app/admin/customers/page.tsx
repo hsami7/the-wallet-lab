@@ -159,6 +159,7 @@ export default async function AdminCustomers() {
         return {
           name: i.products?.name || "Unknown Product",
           quantity: i.quantity,
+          unit_price: i.unit_price,
           variant: i.variant,
           image: variantImageUrl || i.products?.image_url
         };
