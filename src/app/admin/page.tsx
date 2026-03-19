@@ -27,22 +27,29 @@ export default async function AdminDashboard() {
       total_amount,
       status,
       created_at,
+      shipping_address,
       customer:profiles(full_name),
       items:order_items(
         product:products(name)
       )
     `)
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(10); // increased limit to show more recent activity
 
-  const formattedRecentOrders = rawRecentOrders?.map((order: any) => ({
-    id: `#ORD-${order.id.slice(0, 4)}`,
-    customer: order.customer?.full_name || "Guest",
-    product: order.items?.[0]?.product?.name + (order.items?.length > 1 ? ` (+${order.items.length - 1} more)` : ""),
-    amount: `${Number(order.total_amount).toLocaleString()} MAD`,
-    status: order.status,
-    date: new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
-  })) || [];
+  const formattedRecentOrders = rawRecentOrders?.map((order: any) => {
+    const shipping = order.shipping_address;
+    const nameFromShipping = shipping?.firstName ? `${shipping.firstName} ${shipping.lastName}` : null;
+    const customerName = nameFromShipping || order.customer?.full_name || "Guest";
+
+    return {
+      id: `#ORD-${order.id.slice(0, 4).toUpperCase()}`,
+      customer: customerName,
+      product: order.items?.[0]?.product?.name + (order.items?.length > 1 ? ` (+${order.items.length - 1} more)` : ""),
+      amount: `${Number(order.total_amount).toLocaleString()} MAD`,
+      status: order.status,
+      date: new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+    };
+  }) || [];
 
   // 3. Fetch Top Sellers (simplified for now: just based on total units in order_items)
   const { data: topSellersData } = await supabase
