@@ -26,6 +26,8 @@ export default function AccountPage() {
   const [isPendingAddress, setIsPendingAddress] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [stats, setStats] = useState({ orders: 0, address: "Add your address", twoFa: "2FA is currently active" });
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   
   // Validation Patterns
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -39,7 +41,7 @@ export default function AccountPage() {
         setEmail(user.email || "");
         const { data } = await supabase
           .from("profiles")
-          .select("phone, full_name, address, city, zip")
+          .select("phone, full_name, address, city, zip, status")
           .eq("id", user.id)
           .single();
           
@@ -59,19 +61,38 @@ export default function AccountPage() {
           if (data.address) profileAddress = `${data.address}${data.city ? `, ${data.city}` : ""}`;
         }
         
-        // Count orders
-        const { count } = await supabase
+        // Fetch orders
+        setIsLoadingOrders(true);
+        const { data: realOrders } = await supabase
           .from("orders")
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+          .select(`
+            id,
+            created_at,
+            status,
+            total_amount,
+            order_items (
+              quantity,
+              unit_price,
+              variant,
+              products (
+                name,
+                image_url
+              )
+            )
+          `)
+          .eq('customer_id', user.id)
+          .order('created_at', { ascending: false });
           
+        setOrders(realOrders || []);
+        setIsLoadingOrders(false);
+        
         // Check 2FA
         const twoFaActive = user.factors && user.factors.length > 0;
         
         setStats({
-          orders: count || 0,
+          orders: realOrders?.length || 0,
           address: profileAddress,
-          twoFa: twoFaActive ? "2FA is currently active" : "2FA is currently active", // Kept default to user requested text until real 2FA feature exists
+          twoFa: twoFaActive ? "2FA is currently active" : "2FA is not enabled", 
         });
       }
     }
@@ -430,7 +451,7 @@ export default function AccountPage() {
                         <div className="flex justify-between items-end">
                           <div>
                             <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Card Holder</p>
-                            <p className="text-sm font-bold tracking-wider">ALEX JOHNSON</p>
+                            <p className="text-sm font-bold tracking-wider uppercase">{fullName || "MEMBER"}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Expires</p>
@@ -469,32 +490,68 @@ export default function AccountPage() {
 
           {activeTab === "orders" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h1 className="text-3xl font-bold tracking-tight mb-8">Order History</h1>
+              <h1 className="text-3xl font-bold tracking-tight mb-8">Purchase History</h1>
               <div className="space-y-4">
-                {[
-                  { id: "#TWL-8492", date: "Oct 12, 2023", status: "Delivered", total: "$249.00" },
-                  { id: "#TWL-8311", date: "Sep 28, 2023", status: "In Transit", total: "$125.50" },
-                  { id: "#TWL-7928", date: "Aug 15, 2023", status: "Delivered", total: "$399.00" }
-                ].map((order, i) => (
-                  <div key={i} className="bg-white dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-center justify-between hover:border-primary transition-colors cursor-pointer group">
-                    <div className="flex items-center gap-6">
-                      <div className="size-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-primary">package_2</span>
-                      </div>
-                      <div>
-                        <p className="font-bold">{order.id}</p>
-                        <p className="text-sm text-slate-500">{order.date}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-12">
-                      <div className="text-right">
-                        <p className="font-bold">{order.total}</p>
-                        <p className={`text-xs font-bold uppercase tracking-widest ${order.status === 'Delivered' ? 'text-green-500' : 'text-blue-500'}`}>{order.status}</p>
-                      </div>
-                      <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors">chevron_right</span>
-                    </div>
+                {isLoadingOrders ? (
+                  <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <span className="material-symbols-outlined text-4xl text-slate-300 animate-spin mb-4">progress_activity</span>
+                    <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Authenticating History...</p>
                   </div>
-                ))}
+                ) : orders.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <span className="material-symbols-outlined text-5xl text-slate-200 mb-6 font-thin">receipt_long</span>
+                    <p className="text-slate-900 dark:text-white font-bold mb-1">No orders found</p>
+                    <p className="text-slate-500 text-sm mb-10">Your laboratory journey hasn&apos;t started yet.</p>
+                    <Link href="/shop" className="px-8 py-3 bg-primary text-white font-bold rounded-full shadow-lg shadow-primary/20 hover:scale-[1.05] transition-all">
+                      Explore the Shop
+                    </Link>
+                  </div>
+                ) : (
+                  orders.map((order, i) => {
+                    const date = new Date(order.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "2-digit",
+                      year: "numeric"
+                    });
+                    
+                    return (
+                      <div key={order.id} className="bg-white dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-center justify-between hover:border-primary transition-all cursor-pointer group shadow-sm">
+                        <div className="flex items-center gap-6">
+                          <div className="size-14 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative overflow-hidden">
+                            {order.order_items?.[0]?.products?.image_url ? (
+                              <img src={order.order_items[0].products.image_url} alt="" className="size-full object-cover" />
+                            ) : (
+                              <span className="material-symbols-outlined text-primary text-2xl">package_2</span>
+                            )}
+                            {order.order_items?.length > 1 && (
+                              <div className="absolute bottom-0 right-0 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded-tl-lg">
+                                +{order.order_items.length - 1}
+                              </div>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900 dark:text-white uppercase tracking-tight">#{order.id.slice(0, 8)}</p>
+                            <p className="text-xs text-slate-400 font-medium">{date}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-10">
+                          <div className="text-right">
+                            <p className="font-black text-slate-900 dark:text-white">{Number(order.total_amount).toLocaleString()} MAD</p>
+                            <p className={`text-[9px] font-black uppercase tracking-[0.2em] px-2 py-0.5 rounded-full inline-block ${
+                              order.status === 'delivered' ? 'bg-green-500/10 text-green-500' :
+                              order.status === 'shipped' ? 'bg-blue-500/10 text-blue-500' :
+                              order.status === 'pending' ? 'bg-amber-500/10 text-amber-500' :
+                              'bg-slate-500/10 text-slate-500'
+                            }`}>
+                              {order.status}
+                            </p>
+                          </div>
+                          <span className="material-symbols-outlined text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           )}
@@ -509,22 +566,25 @@ export default function AccountPage() {
                     Security Activity
                   </h2>
                   <div className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-                    <div className="p-4 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                      <span className="material-symbols-outlined text-green-500">laptop</span>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold">New login from Chrome on MacOS</p>
-                        <p className="text-xs text-slate-400">Just now • New York, US</p>
+                    {orders.length > 0 && orders[0].notification_history?.length > 0 ? (
+                      orders[0].notification_history.slice(0, 3).map((notif: any, idx: number) => (
+                        <div key={idx} className="p-4 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                          <span className="material-symbols-outlined text-primary">notifications</span>
+                          <div className="flex-1">
+                            <p className="text-sm font-bold">{notif.message}</p>
+                            <p className="text-xs text-slate-400">{new Date(notif.timestamp).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-10 text-center">
+                        <span className="material-symbols-outlined text-4xl text-slate-200 mb-4">shield_with_heart</span>
+                        <p className="text-sm font-bold text-slate-900 dark:text-white">Your account is secure</p>
+                        <p className="text-xs text-slate-400 mt-1">No suspicious activity detected in the lab.</p>
                       </div>
-                    </div>
-                    <div className="p-4 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                      <span className="material-symbols-outlined text-slate-400">smartphone</span>
-                      <div className="flex-1">
-                        <p className="text-sm font-bold">iPhone 15 Pro signed in</p>
-                        <p className="text-xs text-slate-400">Yesterday • New York, US</p>
-                      </div>
-                    </div>
-                    <div className="p-4 text-center">
-                      <button className="text-primary text-sm font-bold hover:underline">View full log</button>
+                    )}
+                    <div className="p-4 text-center border-t border-slate-100 dark:border-slate-800/50">
+                      <button className="text-primary text-sm font-bold hover:underline">View full security log</button>
                     </div>
                   </div>
                 </div>
