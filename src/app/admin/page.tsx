@@ -258,6 +258,73 @@ export default async function AdminDashboard() {
           </div>
         </div>
       </div>
+      {/* Extended Analytics Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Sales Trends — 2025 */}
+        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="text-lg font-bold">Sales Trends — 2025</h4>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-2xl font-bold">Growth Phase</span>
+                <span className="text-sm text-primary font-bold uppercase tracking-widest">Projection Active</span>
+              </div>
+            </div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">Annual View</div>
+          </div>
+          
+          <div className="relative pt-4 flex gap-4">
+            {/* Y-axis */}
+            <div className="flex flex-col justify-between h-40 text-[10px] font-bold text-slate-400 py-1">
+              <span>High</span>
+              <span>Med</span>
+              <span className="text-primary">Low</span>
+            </div>
+            <div className="flex-1">
+               <div className="relative h-40 w-full">
+                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                  <path d="M0,80 L50,70 L100,75 L150,60 L200,65 L250,40 L300,45 L350,20 L400,25" fill="none" stroke="#0d59f2" strokeLinecap="round" strokeWidth="3" className="drop-shadow-[0_0_8px_rgba(13,89,242,0.5)]"></path>
+                </svg>
+              </div>
+              <div className="flex justify-between mt-4 text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Visitor Activity Card */}
+        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="text-lg font-bold">Visitor Activity</h4>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-2xl font-bold">{(visitorCount || 0).toLocaleString()}</span>
+                <span className="text-sm text-emerald-500 font-bold">Unique Sessions</span>
+              </div>
+            </div>
+            <div className="flex gap-2 items-center">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Real-time</span>
+            </div>
+          </div>
+          
+          <div className="flex items-end justify-between h-40 w-full mt-4 px-2 gap-2">
+            {[60, 40, 80, 50, 90, 70, 45, 65, 55, 75, 85, 40, 30, 50].map((h, i) => (
+              <div key={i} className="flex flex-col items-center w-full h-full justify-end">
+                <div 
+                  className="w-full max-w-[8px] rounded-t-lg bg-slate-200 dark:bg-slate-700/50 hover:bg-primary transition-colors cursor-help"
+                  style={{ height: `${h}%` }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
+            <span>Period Overview</span>
+            <span>Current Velocity</span>
+          </div>
+        </div>
+      </div>
 
       {/* Recent Orders */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 mb-6 font-geist">
