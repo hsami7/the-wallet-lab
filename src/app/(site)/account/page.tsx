@@ -41,7 +41,7 @@ export default function AccountPage() {
         setEmail(user.email || "");
         const { data } = await supabase
           .from("profiles")
-          .select("phone, full_name, address, city, zip, status")
+          .select("phone, full_name, address, city, zip")
           .eq("id", user.id)
           .single();
           
