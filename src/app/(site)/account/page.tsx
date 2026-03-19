@@ -632,20 +632,22 @@ export default function AccountPage() {
                         className="bg-white dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-center justify-between hover:border-primary transition-all cursor-pointer group shadow-sm"
                       >
                         <div className="flex items-center gap-6">
-                          <div className="size-14 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative overflow-hidden">
+                          <div className="size-14 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-200 dark:border-slate-800">
                             {order.order_items?.[0]?.products?.image_url ? (
                               <img src={order.order_items[0].products.image_url} alt="" className="size-full object-cover" />
                             ) : (
                               <span className="material-symbols-outlined text-primary text-2xl">package_2</span>
                             )}
-                            {order.order_items?.length > 1 && (
-                              <div className="absolute bottom-0 right-0 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded-tl-lg">
-                                +{order.order_items.length - 1}
-                              </div>
-                            )}
                           </div>
-                          <div>
-                            <p className="font-bold text-slate-900 dark:text-white uppercase tracking-tight">#{order.id.slice(0, 8)}</p>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="font-bold text-slate-900 dark:text-white uppercase tracking-tight">#{order.id.slice(0, 8)}</p>
+                              {order.order_items?.length > 1 && (
+                                <span className="bg-primary/10 text-primary text-[9px] font-black px-1.5 py-0.5 rounded-md">
+                                  +{order.order_items.length - 1} Items
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs text-slate-400 font-medium">{date}</p>
                           </div>
                         </div>
@@ -769,22 +771,29 @@ export default function AccountPage() {
                 <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400 px-1">Laboratory Contents</h3>
                 <div className="space-y-3">
                   {selectedOrder.order_items?.map((item: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 transition-all hover:bg-white dark:hover:bg-slate-900 shadow-sm hover:shadow-md">
-                      <div className="flex items-center gap-4">
-                        <div className="size-16 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white">
+                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 transition-all hover:bg-white dark:hover:bg-slate-900 shadow-sm hover:shadow-md group/item">
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="size-16 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white shrink-0">
                           <img src={item.products?.image_url} alt="" className="size-full object-cover" />
                         </div>
-                        <div>
-                          <p className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.products?.name}</p>
-                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
-                            {item.quantity} × {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(item.unit_price)}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.products?.name}</p>
+                            {Number(item.quantity) > 1 && (
+                              <span className="bg-primary/10 text-primary text-[9px] font-black px-1.5 py-0.5 rounded-md flex-shrink-0">
+                                Qty: {item.quantity}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
+                            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(item.unit_price)} per unit
                           </p>
                           {item.variant && (
                             <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1 bg-primary/5 w-fit px-2 py-0.5 rounded-full">{item.variant}</p>
                           )}
                         </div>
                       </div>
-                      <p className="font-black text-slate-900 dark:text-white text-lg">
+                      <p className="font-black text-slate-900 dark:text-white text-lg shrink-0">
                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(item.quantity * item.unit_price)}
                       </p>
                     </div>
