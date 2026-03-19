@@ -365,24 +365,23 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
                     <span className="material-symbols-outlined text-sm">shield</span> Security Assessment
                   </h4>
-                  <div className="grid grid-cols-1 gap-6">
-                    {[
-                      { label: "IP Address", value: selectedOrder.ip_address || "Unknown", icon: "language", mono: true },
-                      { 
-                        label: "Fraud Score", 
-                        value: `${selectedOrder.fraud_score || 0}%`, 
-                        icon: "gpp_maybe",
-                        custom: <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${(selectedOrder.fraud_score || 0) > 50 ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>{selectedOrder.fraud_score || 0}%</span> 
-                      },
-                    ].map((item) => (
-                      <div key={item.label} className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
-                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">{item.label}</p>
-                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
-                          <span className="material-symbols-outlined text-slate-400 text-lg">{item.icon}</span>
-                          <span className={item.mono ? 'font-mono' : ''}>{item.custom || item.value}</span>
-                        </div>
+                  <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-6">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">IP Address</p>
+                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                        <span className="material-symbols-outlined text-slate-400 text-lg">language</span>
+                        <span className="font-mono">{selectedOrder.ip_address || "Unknown"}</span>
                       </div>
-                    ))}
+                    </div>
+                    <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">Fraud Score</p>
+                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                        <span className="material-symbols-outlined text-slate-400 text-lg">gpp_maybe</span>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${(selectedOrder.fraud_score || 0) > 50 ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
+                          {selectedOrder.fraud_score || 0}%
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </section>
 
