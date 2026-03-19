@@ -129,7 +129,7 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
   return (
     <div className="p-8 pb-32">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white uppercase tracking-tight">Customer Intelligence</h1>
+        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Customer Intelligence</h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
           Deep insights and management for your unified customer base.
         </p>
@@ -230,7 +230,7 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${statusColors[c.status] || statusColors["Active"]}`}>
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusColors[c.status] || statusColors["Active"]}`}>
                         {c.status}
                       </span>
                     </td>
@@ -245,13 +245,13 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                     </td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2">
-                         <span className="text-sm font-black text-slate-900 dark:text-white">{c.orders}</span>
+                         <span className="text-sm font-bold text-slate-900 dark:text-white">{c.orders}</span>
                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Orders</span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <p className="text-sm font-black text-emerald-500 tracking-tight">{c.spent}</p>
-                      <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest leading-none mt-1">LTV</p>
+                      <p className="text-sm font-bold text-emerald-500 tracking-tight">{c.spent}</p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest leading-none mt-1">LTV</p>
                     </td>
                     <td className="py-4 px-6">
                       <p className="text-[11px] font-bold text-slate-900 dark:text-white whitespace-nowrap">{c.lastActiveFormatted}</p>
@@ -314,14 +314,14 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-8 animate-in slide-in-from-bottom-4">
           <div className="flex items-center gap-2 border-r border-slate-700 dark:border-slate-200 pr-8">
             <span className="text-xl font-bold">{selectedIds.size}</span>
-            <span className="text-xs uppercase font-black tracking-widest text-slate-400">Selected</span>
+            <span className="text-xs uppercase font-bold tracking-widest text-slate-400">Selected</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Bulk Actions:</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Bulk Actions:</span>
             <button 
               onClick={() => handleDelete(Array.from(selectedIds))}
               disabled={isProcessing === "bulk"}
-              className="px-6 py-2 bg-red-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 flex items-center gap-2 disabled:opacity-50"
+              className="px-6 py-2 bg-red-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110 flex items-center gap-2 disabled:opacity-50"
             >
               {isProcessing === "bulk" ? 'Processing...' : 'Delete Selected'}
             </button>
@@ -337,13 +337,13 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
             {/* Modal Header */}
             <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/20">
               <div className="flex items-center gap-4">
-                <div className={`size-14 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 shadow-lg border ${
+                <div className={`size-14 rounded-2xl flex items-center justify-center font-bold text-lg shrink-0 shadow-lg border ${
                   selectedCustomer.status === 'Banned' ? 'bg-red-50 text-red-500 border-red-100' : 'bg-primary text-white border-primary/10'
                 }`}>
                   {selectedCustomer.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)}
                 </div>
                 <div>
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">{selectedCustomer.name}</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white leading-none">{selectedCustomer.name}</h3>
                   <p className="text-xs text-slate-400 mt-2 font-mono font-bold tracking-widest flex items-center gap-2">
                     ID: {selectedCustomer.id}
                     <button className="hover:text-primary active:scale-90 transition-all" onClick={() => { navigator.clipboard.writeText(selectedCustomer.id); showToast("ID copied", "info"); }}>
@@ -364,7 +364,7 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
               {/* Profile & Technical Section */}
               <div className="space-y-10">
                 <section>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-6 flex items-center gap-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
                     <span className="material-symbols-outlined text-sm">contact_page</span> Account Identity
                   </h4>
                   <div className="grid grid-cols-1 gap-6">
@@ -372,11 +372,11 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                       { label: "Email Address", value: selectedCustomer.email, icon: "mail" },
                       { label: "Phone Number", value: selectedCustomer.phone || "No phone recorded", icon: "call" },
                       { label: "Account Status", value: selectedCustomer.status, icon: "shield", 
-                        custom: <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${statusColors[selectedCustomer.status]}`}>{selectedCustomer.status}</span> 
+                        custom: <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${statusColors[selectedCustomer.status]}`}>{selectedCustomer.status}</span> 
                       },
                     ].map((item) => (
                       <div key={item.label} className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
-                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">{item.label}</p>
+                        <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">{item.label}</p>
                         <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
                           <span className="material-symbols-outlined text-slate-400 text-lg">{item.icon}</span>
                           {item.custom || item.value}
@@ -387,25 +387,25 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                 </section>
 
                 <section>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mb-6 flex items-center gap-3">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
                     <span className="material-symbols-outlined text-sm">analytics</span> Technical Analytics
                   </h4>
                   <div className="bg-slate-900 dark:bg-white rounded-[2rem] p-8 text-white dark:text-slate-900 space-y-6 shadow-xl">
                     <div className="flex items-center justify-between border-b border-slate-800 dark:border-slate-100 pb-4">
                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">Last IP Address</p>
-                          <p className="text-lg font-mono font-black">{selectedCustomer.lastIp || "—"}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-1">Last IP Address</p>
+                          <p className="text-lg font-mono font-bold">{selectedCustomer.lastIp || "—"}</p>
                        </div>
                        <span className="material-symbols-outlined text-3xl opacity-20">language</span>
                     </div>
                     <div className="grid grid-cols-2 gap-8">
                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">Joined Date</p>
-                          <p className="text-xs font-black">{selectedCustomer.joinedFormatted}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-1">Joined Date</p>
+                          <p className="text-xs font-bold">{selectedCustomer.joinedFormatted}</p>
                        </div>
                        <div>
-                          <p className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-1">Last Login</p>
-                          <p className="text-xs font-black">{selectedCustomer.lastActiveFormatted}</p>
+                          <p className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-1">Last Login</p>
+                          <p className="text-xs font-bold">{selectedCustomer.lastActiveFormatted}</p>
                        </div>
                     </div>
                   </div>
@@ -416,10 +416,10 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
               <div className="space-y-10">
                 <section>
                    <div className="flex items-center justify-between mb-6">
-                      <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-primary flex items-center gap-3">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary flex items-center gap-3">
                          <span className="material-symbols-outlined text-sm">history</span> Purchase History
                       </h4>
-                      <span className="text-[10px] font-black text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">{selectedCustomer.itemsCount} Total Units</span>
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">{selectedCustomer.itemsCount} Total Units</span>
                    </div>
                    
                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
@@ -443,7 +443,7 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                                   )}
                                </div>
                                 <div className="flex-1 min-w-0">
-                                   <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight truncate mb-2">{item.name}</p>
+                                   <p className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-tight truncate mb-2">{item.name}</p>
                                    <div className="flex items-center gap-3 mt-auto">
                                       <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.quantity} × {formatCurrency(item.unit_price)}</span>
                                       {displayVariant && (
@@ -456,7 +456,7 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                                                   : (typeof item.variant === 'string' ? item.variant : (typeof productDefaultColor === 'object' ? productDefaultColor.hex : '#000000'))
                                               }} 
                                             />
-                                            <span className="text-[9px] font-black text-primary uppercase tracking-widest">{displayVariant}</span>
+                                            <span className="text-[9px] font-bold text-primary uppercase tracking-widest">{displayVariant}</span>
                                          </div>
                                       )}
                                    </div>
@@ -468,7 +468,7 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                         <div className="py-20 border-3 border-dashed border-slate-100 dark:border-slate-800 rounded-[3rem] flex flex-col items-center gap-6 opacity-30 text-center px-10">
                            <span className="material-symbols-outlined text-6xl">shopping_cart</span>
                            <div>
-                              <p className="text-xs font-black uppercase tracking-[0.2em]">No commercial logs</p>
+                              <p className="text-xs font-bold uppercase tracking-widest">No commercial logs</p>
                               <p className="text-[10px] uppercase font-bold text-slate-400 mt-2">This customer hasn't made any purchases yet.</p>
                            </div>
                         </div>
@@ -479,8 +479,8 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                 <section className="bg-primary/5 rounded-[2.5rem] p-8 border border-primary/10">
                    <div className="flex items-center justify-between">
                       <div>
-                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary opacity-60">Customer Life-Time Value</p>
-                         <p className="text-4xl font-black text-primary mt-2">{selectedCustomer.spent}</p>
+                         <p className="text-[10px] font-bold uppercase tracking-widest text-primary opacity-60">Customer Life-Time Value</p>
+                         <p className="text-4xl font-bold text-primary mt-2">{selectedCustomer.spent}</p>
                       </div>
                       <div className="size-16 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/30">
                          <span className="material-symbols-outlined text-white text-3xl">payments</span>
@@ -494,7 +494,7 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
             <div className="p-8 bg-slate-50/80 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-4">
                <button 
                  onClick={() => setSelectedCustomerId(null)}
-                 className="px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-900/10"
+                 className="px-10 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-slate-900/10"
                >
                  Close Overview
                </button>

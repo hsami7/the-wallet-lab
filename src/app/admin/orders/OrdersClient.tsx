@@ -249,7 +249,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                       </span>
                     </td>
                     <td className="px-6 py-4 text-center">
-                       <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border border-current ${riskColor}`}>
+                       <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest border border-current ${riskColor}`}>
                           {order.fraud_score || 0}%
                        </span>
                     </td>
@@ -291,17 +291,17 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
             <span className="text-xs uppercase font-black tracking-widest text-slate-400">Selected</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Bulk Status:</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Bulk Status:</span>
             <div className="flex gap-2">
               <button 
                 onClick={() => handleStatusUpdate([...selectedIds], "processing")}
-                className="px-4 py-2 bg-yellow-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110"
+                className="px-4 py-2 bg-yellow-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110"
               >
                 Processing
               </button>
               <button 
                 onClick={() => handleStatusUpdate([...selectedIds], "shipped")}
-                className="px-4 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110"
+                className="px-4 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110"
               >
                 Shipped
               </button>
@@ -335,45 +335,52 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
             <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
               <div className="space-y-8">
                 <section>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-sm">person</span> Customer Info
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-sm">contact_page</span> Account Identity
                   </h4>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
-                    <p className="font-bold text-slate-900 dark:text-white text-lg">
-                      {selectedOrder.shipping_address?.firstName} {selectedOrder.shipping_address?.lastName}
-                    </p>
-                    <p className="text-sm text-slate-500 mt-1 font-medium">{selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "Guest Checkout"}</p>
-                    <div className="mt-4 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 space-y-2">
-                       <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                           <span className="material-symbols-outlined text-xs">mail</span> {selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "No email provided"}
-                       </p>
-                       <p className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                          <span className="material-symbols-outlined text-xs">call</span> {selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone || "No phone provided"}
-                       </p>
-                    </div>
+                  <div className="grid grid-cols-1 gap-6">
+                    {[
+                      { label: "Email Address", value: selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "Guest Checkout", icon: "mail" },
+                      { label: "Phone Number", value: selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone || "No phone recorded", icon: "call" },
+                    ].map((item) => (
+                      <div key={item.label} className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">{item.label}</p>
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                          <span className="material-symbols-outlined text-slate-400 text-lg">{item.icon}</span>
+                          {item.value}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </section>
 
                 <section>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
                     <span className="material-symbols-outlined text-sm">shield</span> Security Assessment
                   </h4>
-                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 space-y-3">
-                    <div className="flex items-center justify-between">
-                       <span className="text-xs text-slate-500">IP Address</span>
-                       <span className="text-xs font-mono font-bold text-slate-900 dark:text-white px-2 py-1 bg-slate-200 dark:bg-slate-700 rounded-md">{selectedOrder.ip_address || 'Unknown'}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                       <span className="text-xs text-slate-500">Fraud Score</span>
-                       <span className={`text-xs font-black px-2 py-0.5 rounded ${selectedOrder.fraud_score > 50 ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
-                          {selectedOrder.fraud_score || 0}%
-                       </span>
-                    </div>
+                  <div className="grid grid-cols-1 gap-6">
+                    {[
+                      { label: "IP Address", value: selectedOrder.ip_address || "Unknown", icon: "language", mono: true },
+                      { 
+                        label: "Fraud Score", 
+                        value: `${selectedOrder.fraud_score || 0}%`, 
+                        icon: "gpp_maybe",
+                        custom: <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${(selectedOrder.fraud_score || 0) > 50 ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>{selectedOrder.fraud_score || 0}%</span> 
+                      },
+                    ].map((item) => (
+                      <div key={item.label} className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">{item.label}</p>
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                          <span className="material-symbols-outlined text-slate-400 text-lg">{item.icon}</span>
+                          <span className={item.mono ? 'font-mono' : ''}>{item.custom || item.value}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </section>
 
                 <section>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-sm">notifications_active</span> Notification History
                   </h4>
                   <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 space-y-4 max-h-[150px] overflow-y-auto custom-scrollbar">
@@ -394,7 +401,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                 </section>
 
                 <section>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4 flex items-center gap-2">
                     <span className="material-symbols-outlined text-sm">local_shipping</span> Fulfillment Details
                   </h4>
                   <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 space-y-4">
@@ -419,7 +426,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                     </div>
                     <button 
                       onClick={handleTrackingUpdate}
-                      className="w-full py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
+                      className="w-full py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all"
                     >
                       Update Tracking Info
                     </button>
@@ -428,7 +435,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
               </div>
 
               <div>
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-4 flex items-center gap-2">
+                <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-4 flex items-center gap-2">
                   <span className="material-symbols-outlined text-sm">inventory_2</span> Order Items
                 </h4>
                 <div className="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scrollbar">
@@ -536,14 +543,14 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
             </div>
 
             <div className="p-6 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-               <button onClick={() => setOrderToDelete(selectedOrder.id)} className="px-6 py-2.5 bg-red-500/10 text-red-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+               <button onClick={() => setOrderToDelete(selectedOrder.id)} className="px-6 py-2.5 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
                   Delete Order
                </button>
                <div className="flex gap-3">
-                  <button onClick={() => setSelectedOrderId(null)} className="px-6 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-white rounded-xl text-xs font-black uppercase tracking-widest hover:brightness-110 transition-all">
+                  <button onClick={() => setSelectedOrderId(null)} className="px-6 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all">
                     Close
                   </button>
-                  <button onClick={() => showToast("Print functionality coming soon", "info")} className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center gap-2">
+                  <button onClick={() => showToast("Print functionality coming soon", "info")} className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center gap-2">
                     <span className="material-symbols-outlined text-sm">print</span> Print Invoice
                   </button>
                </div>
