@@ -367,22 +367,33 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
                     <span className="material-symbols-outlined text-sm">contact_page</span> Account Identity
                   </h4>
-                  <div className="grid grid-cols-1 gap-6">
-                    {[
-                      { label: "Email Address", value: selectedCustomer.email, icon: "mail" },
-                      { label: "Phone Number", value: selectedCustomer.phone || "No phone recorded", icon: "call" },
-                      { label: "Account Status", value: selectedCustomer.status, icon: "shield", 
-                        custom: <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${statusColors[selectedCustomer.status]}`}>{selectedCustomer.status}</span> 
-                      },
-                    ].map((item) => (
-                      <div key={item.label} className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
-                        <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">{item.label}</p>
+                  <div className="space-y-6">
+                    <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-6">
+                      <div>
+                        <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">Email Address</p>
                         <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
-                          <span className="material-symbols-outlined text-slate-400 text-lg">{item.icon}</span>
-                          {item.custom || item.value}
+                          <span className="material-symbols-outlined text-slate-400 text-lg">mail</span>
+                          {selectedCustomer.email}
                         </div>
                       </div>
-                    ))}
+                      <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                        <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">Phone Number</p>
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                          <span className="material-symbols-outlined text-slate-400 text-lg">call</span>
+                          {selectedCustomer.phone || "No phone recorded"}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
+                      <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">Account Status</p>
+                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                        <span className="material-symbols-outlined text-slate-400 text-lg">shield</span>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${statusColors[selectedCustomer.status]}`}>
+                          {selectedCustomer.status}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </section>
 

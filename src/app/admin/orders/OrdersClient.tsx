@@ -343,19 +343,21 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
                     <span className="material-symbols-outlined text-sm">contact_page</span> Account Identity
                   </h4>
-                  <div className="grid grid-cols-1 gap-6">
-                    {[
-                      { label: "Email Address", value: selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "Guest Checkout", icon: "mail" },
-                      { label: "Phone Number", value: selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone || "No phone recorded", icon: "call" },
-                    ].map((item) => (
-                      <div key={item.label} className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all">
-                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">{item.label}</p>
-                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
-                          <span className="material-symbols-outlined text-slate-400 text-lg">{item.icon}</span>
-                          {item.value}
-                        </div>
+                  <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-6">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">Email Address</p>
+                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                        <span className="material-symbols-outlined text-slate-400 text-lg">mail</span>
+                        {selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "Guest Checkout"}
                       </div>
-                    ))}
+                    </div>
+                    <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">Phone Number</p>
+                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                        <span className="material-symbols-outlined text-slate-400 text-lg">call</span>
+                        {selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone || "No phone recorded"}
+                      </div>
+                    </div>
                   </div>
                 </section>
 
