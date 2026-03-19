@@ -139,8 +139,8 @@ export function ProductDetailsClient({
               loading="lazy"
             />
             {/* Zoom Indicator Hint */}
-            <div className="absolute bottom-6 right-6 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-300 pointer-events-none">
-              <span className="material-symbols-outlined text-white text-xl">zoom_in</span>
+            <div className="absolute bottom-6 right-6 size-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-300 pointer-events-none flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-xl font-light">zoom_in</span>
             </div>
           </div>
 
