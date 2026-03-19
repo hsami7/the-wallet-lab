@@ -159,26 +159,39 @@ export default async function AdminDashboard() {
               <option>Last 30 Days</option>
             </select>
           </div>
-          {/* Line Chart Simulation */}
-          <div className="relative h-48 w-full mt-4">
-            <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
-              <defs>
-                <linearGradient id="neonGradient" x1="0" x2="0" y1="0" y2="1">
-                  <stop offset="0%" stopColor="#0d59f2" stopOpacity="0.4"></stop>
-                  <stop offset="100%" stopColor="#0d59f2" stopOpacity="0"></stop>
-                </linearGradient>
-              </defs>
-              <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10 V100 H0 Z" fill="url(#neonGradient)"></path>
-              <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10" fill="none" stroke="#0d59f2" strokeLinecap="round" strokeWidth="3"></path>
-            </svg>
-            <div className="flex justify-between mt-4 text-xs font-bold text-slate-400">
-              <span>Mon</span>
-              <span>Tue</span>
-              <span>Wed</span>
-              <span>Thu</span>
-              <span>Fri</span>
-              <span>Sat</span>
-              <span>Sun</span>
+          
+          <div className="relative pt-4 flex gap-4">
+            {/* Y-axis Labels */}
+            <div className="flex flex-col justify-between h-48 grow-0 shrink-0 min-w-[50px] text-[10px] font-bold text-slate-400 py-1">
+              <span>{Math.round(totalRevenue * 1.2).toLocaleString()}</span>
+              <span>{Math.round(totalRevenue * 0.8).toLocaleString()}</span>
+              <span>{Math.round(totalRevenue * 0.4).toLocaleString()}</span>
+              <span className="text-primary font-black uppercase tracking-tight">0 MAD</span>
+            </div>
+            
+            <div className="flex-1">
+              {/* Line Chart Simulation */}
+              <div className="relative h-48 w-full">
+                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                  <defs>
+                    <linearGradient id="neonGradient" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#0d59f2" stopOpacity="0.4"></stop>
+                      <stop offset="100%" stopColor="#0d59f2" stopOpacity="0"></stop>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10 V100 H0 Z" fill="url(#neonGradient)"></path>
+                  <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10" fill="none" stroke="#0d59f2" strokeLinecap="round" strokeWidth="3"></path>
+                </svg>
+              </div>
+              <div className="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
+                <span>Mon</span>
+                <span>Tue</span>
+                <span>Wed</span>
+                <span>Thu</span>
+                <span>Fri</span>
+                <span>Sat</span>
+                <span>Sun</span>
+              </div>
             </div>
           </div>
         </div>
