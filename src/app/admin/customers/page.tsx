@@ -14,6 +14,7 @@ export default async function AdminCustomers() {
       customer_id, 
       created_at,
       ip_address,
+      fraud_score,
       order_items(
         quantity,
         unit_price,
@@ -81,6 +82,7 @@ export default async function AdminCustomers() {
         joined: o.created_at,
         lastActive: o.created_at,
         lastIp: o.ip_address || "Unknown",
+        fraudScore: o.fraud_score || 0,
         status: o.customer_id ? "Active" : "Guest",
         isRegistered: !!o.customer_id,
         itemsBought: [],
@@ -105,6 +107,7 @@ export default async function AdminCustomers() {
     if (new Date(o.created_at) > new Date(customer.lastActive)) {
       customer.lastActive = o.created_at;
       customer.lastIp = o.ip_address || customer.lastIp;
+      customer.fraudScore = o.fraud_score || customer.fraudScore;
     }
   });
 
@@ -140,6 +143,7 @@ export default async function AdminCustomers() {
         joined: p.created_at,
         lastActive: p.created_at,
         lastIp: "No History",
+        fraudScore: 0,
         status: (p as any).status || "New",
         isRegistered: true,
         itemsBought: [],
@@ -152,6 +156,7 @@ export default async function AdminCustomers() {
     .map(c => ({
       ...c,
       ltv: c.spent,
+      fraudScore: c.fraudScore,
       spent: `${c.spent.toLocaleString()} MAD`,
       itemsCount: c.rawItems.reduce((acc: number, i: any) => acc + i.quantity, 0),
       itemsList: c.rawItems.map((i: any) => {

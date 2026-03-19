@@ -399,26 +399,41 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
 
                 <section>
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
-                    <span className="material-symbols-outlined text-sm">analytics</span> Technical Analytics
+                    <span className="material-symbols-outlined text-sm">shield</span> Security Assessment
                   </h4>
-                  <div className="bg-slate-900 dark:bg-white rounded-[2rem] p-8 text-white dark:text-slate-900 space-y-6 shadow-xl">
-                    <div className="flex items-center justify-between border-b border-slate-800 dark:border-slate-100 pb-4">
-                       <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-1">Last IP Address</p>
-                          <p className="text-lg font-mono font-bold">{selectedCustomer.lastIp || "—"}</p>
-                       </div>
-                       <span className="material-symbols-outlined text-3xl opacity-20">language</span>
+                  <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-6">
+                    <div>
+                      <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">Last IP Address</p>
+                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                        <span className="material-symbols-outlined text-slate-400 text-lg">language</span>
+                        <span className="font-mono">{selectedCustomer.lastIp || "—"}</span>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-8">
-                       <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-1">Joined Date</p>
-                          <p className="text-xs font-bold">{selectedCustomer.joinedFormatted}</p>
-                       </div>
-                       <div>
-                          <p className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-1">Last Login</p>
-                          <p className="text-xs font-bold">{selectedCustomer.lastActiveFormatted}</p>
-                       </div>
+                    <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                      <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">Fraud Index</p>
+                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                        <span className="material-symbols-outlined text-slate-400 text-lg">gpp_maybe</span>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${(selectedCustomer.fraudScore || 0) > 50 ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-green-500/10 text-green-500 border border-green-500/20'}`}>
+                          {selectedCustomer.fraudScore || 0}%
+                        </span>
+                      </div>
                     </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-sm">history</span> Activity Timeline
+                  </h4>
+                  <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-4">
+                     <div className="flex items-center justify-between">
+                        <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em]">Joined Date</p>
+                        <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-widest">{selectedCustomer.joinedFormatted}</p>
+                     </div>
+                     <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em]">Last Active</p>
+                        <p className="text-[10px] font-bold text-slate-900 dark:text-white uppercase tracking-widest">{selectedCustomer.lastActiveFormatted}</p>
+                     </div>
                   </div>
                 </section>
               </div>
