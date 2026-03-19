@@ -435,12 +435,15 @@ export default function AdminAnalytics() {
             {topWishlisted.length > 0 ? topWishlisted.map((item, i) => (
               <div key={item.id || item.name} className="flex items-center justify-between p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 group hover:border-primary/30 transition-all">
                 <div className="flex items-center gap-3 shrink-0 min-w-0">
-                  <div className="size-12 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105">
+                  <div className="relative size-12 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105">
                     {item.image ? (
                       <img src={item.image} alt="" className="size-full object-cover" />
                     ) : (
                       <span className="material-symbols-outlined text-slate-300">image</span>
                     )}
+                    <div className="absolute top-0 left-0 bg-primary text-white text-[8px] font-black px-1.5 py-0.5 rounded-br-lg shadow-sm">
+                      #{i+1}
+                    </div>
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2 leading-tight">{item.name}</p>
@@ -468,12 +471,15 @@ export default function AdminAnalytics() {
             {topCarted.length > 0 ? topCarted.map((item, i) => (
               <div key={item.id || item.name} className="flex items-center justify-between p-2 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-white/5 group hover:border-orange-500/30 transition-all">
                 <div className="flex items-center gap-3 shrink-0 min-w-0">
-                  <div className="size-12 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105">
+                  <div className="relative size-12 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-105">
                     {item.image ? (
                       <img src={item.image} alt="" className="size-full object-cover" />
                     ) : (
                       <span className="material-symbols-outlined text-slate-300">image</span>
                     )}
+                    <div className="absolute top-0 left-0 bg-orange-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-br-lg shadow-sm">
+                      #{i+1}
+                    </div>
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-slate-900 dark:text-white truncate pr-2 leading-tight">{item.name}</p>
