@@ -81,9 +81,6 @@ export default function AccountPage() {
             status,
             total_amount,
             shipping_address,
-            shipping_amount,
-            discount_amount,
-            promo_code,
             order_items (
               quantity,
               unit_price,
@@ -231,6 +228,50 @@ export default function AccountPage() {
     { id: "orders", icon: "package_2", label: "Orders" },
     { id: "privacy", icon: "shield", label: "Privacy" },
   ];
+
+  const OrderSummary = ({ order }: { order: any }) => {
+    const shipping = order.shipping_address || {};
+    const discountAmount = order.discount_amount || shipping.discount_amount || 0;
+    const promoCode = order.promo_code || shipping.promo_code || null;
+    const shippingAmount = order.shipping_amount !== undefined ? order.shipping_amount : (shipping.shipping_amount !== undefined ? shipping.shipping_amount : 20);
+    const itemsSubtotal = order.order_items?.reduce((acc: number, item: any) => acc + (item.unit_price * item.quantity), 0) || 0;
+
+    return (
+      <div className="space-y-3 max-w-sm ml-auto">
+        <div className="flex justify-between text-sm">
+          <span className="text-slate-500 font-semibold">Subtotal</span>
+          <span className="text-slate-900 dark:text-white font-black">
+            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(itemsSubtotal)}
+          </span>
+        </div>
+        {shippingAmount > 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-slate-500 font-semibold">Standard Shipping</span>
+            <span className="text-slate-900 dark:text-white font-black">
+              +{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(shippingAmount)}
+            </span>
+          </div>
+        )}
+        {discountAmount > 0 && (
+          <div className="flex justify-between text-sm px-3 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20">
+            <span className="text-red-500 font-bold flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-sm">sell</span>
+              Promo Code ({promoCode || 'PROMO'})
+            </span>
+            <span className="text-red-500 font-black">
+              -{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(discountAmount)}
+            </span>
+          </div>
+        )}
+        <div className="flex justify-between text-xl pt-3 border-t border-slate-200 dark:border-slate-700">
+          <span className="text-slate-900 dark:text-white font-black uppercase tracking-tight">Final Total</span>
+          <span className="text-primary font-black">
+            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(order.total_amount)}
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
@@ -775,31 +816,7 @@ export default function AccountPage() {
 
             {/* Modal Footer (Summary) */}
             <div className="p-8 bg-slate-50 dark:bg-slate-900/40 border-t border-slate-100 dark:border-slate-800">
-               <div className="space-y-3 max-w-sm ml-auto">
-                 <div className="flex justify-between text-sm">
-                   <span className="text-slate-500 font-semibold">Subtotal</span>
-                   <span className="text-slate-900 dark:text-white font-black">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(selectedOrder.total_amount - (selectedOrder.shipping_amount || 0) + (selectedOrder.discount_amount || 0))}</span>
-                 </div>
-                 {selectedOrder.shipping_amount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-500 font-semibold">Standard Shipping</span>
-                      <span className="text-slate-900 dark:text-white font-black">+{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(selectedOrder.shipping_amount)}</span>
-                    </div>
-                 )}
-                 {selectedOrder.discount_amount > 0 && (
-                    <div className="flex justify-between text-sm px-3 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20">
-                      <span className="text-red-500 font-bold flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-sm">sell</span>
-                        Promo Code ({selectedOrder.promo_code || 'LAB20'})
-                      </span>
-                      <span className="text-red-500 font-black">-{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(selectedOrder.discount_amount)}</span>
-                    </div>
-                 )}
-                 <div className="flex justify-between text-xl pt-3 border-t border-slate-200 dark:border-slate-700">
-                   <span className="text-slate-900 dark:text-white font-black uppercase tracking-tight">Final Total</span>
-                   <span className="text-primary font-black">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(selectedOrder.total_amount)}</span>
-                 </div>
-               </div>
+               <OrderSummary order={selectedOrder} />
             </div>
           </div>
         </div>
