@@ -259,37 +259,42 @@ export default async function AdminDashboard() {
         </div>
       </div>
       {/* Extended Analytics Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         {/* Sales Trends — 2025 */}
         <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
           <div className="flex justify-between items-start">
             <div>
-              <h4 className="text-lg font-bold">Sales Trends — 2025</h4>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-2xl font-bold">Growth Phase</span>
-                <span className="text-sm text-primary font-bold uppercase tracking-widest">Projection Active</span>
-              </div>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white">Sales Trends — 2025</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 uppercase font-bold tracking-tight">Monthly performance</p>
             </div>
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-lg">Annual View</div>
+            <div className="flex gap-2">
+              <button className="text-[10px] font-black uppercase tracking-widest bg-primary text-white px-4 py-2 rounded-full hover:bg-primary/90 transition-all shadow-lg shadow-primary/20">Revenue</button>
+              <button className="text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-slate-800 text-slate-500 px-4 py-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">Orders</button>
+            </div>
           </div>
           
-          <div className="relative pt-4 flex gap-4">
-            {/* Y-axis */}
-            <div className="flex flex-col justify-between h-40 text-[10px] font-bold text-slate-400 py-1">
-              <span>High</span>
-              <span>Med</span>
-              <span className="text-primary">Low</span>
-            </div>
-            <div className="flex-1">
-               <div className="relative h-40 w-full">
-                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
-                  <path d="M0,80 L50,70 L100,75 L150,60 L200,65 L250,40 L300,45 L350,20 L400,25" fill="none" stroke="#0d59f2" strokeLinecap="round" strokeWidth="3" className="drop-shadow-[0_0_8px_rgba(13,89,242,0.5)]"></path>
-                </svg>
-              </div>
-              <div className="flex justify-between mt-4 text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
-                <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
-              </div>
-            </div>
+          <div className="relative h-64 w-full mt-4 flex flex-col justify-between">
+             <div className="flex-1 relative">
+               {/* Simple Grid Lines Simulation */}
+               <div className="absolute inset-x-0 top-0 h-[1px] bg-slate-100 dark:bg-slate-800/50" />
+               <div className="absolute inset-x-0 top-1/4 h-[1px] bg-slate-100 dark:bg-slate-800/50" />
+               <div className="absolute inset-x-0 top-2/4 h-[1px] bg-slate-100 dark:bg-slate-800/50" />
+               <div className="absolute inset-x-0 top-3/4 h-[1px] bg-slate-100 dark:bg-slate-800/50" />
+
+               <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 1100 100">
+                 <path 
+                   d="M0,80 L100,70 L200,85 L300,50 L400,60 L500,40 L600,55 L700,30 L800,45 L900,15 L1000,20 L1100,5" 
+                   fill="none" 
+                   stroke="#8b5cf6" 
+                   strokeLinecap="round" 
+                   strokeWidth="4"
+                   className="drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+                 />
+               </svg>
+             </div>
+             <div className="flex justify-between mt-6 text-[10px] font-bold text-slate-400 uppercase tracking-tighter overflow-hidden shrink-0">
+                {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map(m => <span key={m}>{m}</span>)}
+             </div>
           </div>
         </div>
 
@@ -297,34 +302,44 @@ export default async function AdminDashboard() {
         <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
           <div className="flex justify-between items-start">
             <div>
-              <h4 className="text-lg font-bold">Visitor Activity</h4>
-              <div className="flex items-center gap-2 mt-1">
-                <span className="text-2xl font-bold">{(visitorCount || 0).toLocaleString()}</span>
-                <span className="text-sm text-emerald-500 font-bold">Unique Sessions</span>
-              </div>
-            </div>
-            <div className="flex gap-2 items-center">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-              <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">Real-time</span>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white">Visitor Activity</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 uppercase font-bold tracking-tight">Last 7 days — unique visitors vs sessions</p>
             </div>
           </div>
           
-          <div className="flex items-end justify-between h-40 w-full mt-4 px-2 gap-2">
-            {[60, 40, 80, 50, 90, 70, 45, 65, 55, 75, 85, 40, 30, 50].map((h, i) => (
-              <div key={i} className="flex flex-col items-center w-full h-full justify-end">
-                <div 
-                  className="w-full max-w-[8px] rounded-t-lg bg-slate-200 dark:bg-slate-700/50 hover:bg-primary transition-colors cursor-help"
-                  style={{ height: `${h}%` }}
-                />
-              </div>
-            ))}
+          <div className="flex items-end justify-between h-64 w-full mt-4 px-2 gap-4 flex-1">
+             {[
+               { day: "Mon", v: 40, s: 60 },
+               { day: "Tue", v: 50, s: 75 },
+               { day: "Wed", v: 70, s: 90 },
+               { day: "Thu", v: 45, s: 55 },
+               { day: "Fri", v: 60, s: 80 },
+               { day: "Sat", v: 65, s: 85 },
+               { day: "Sun", v: 35, s: 50 }
+             ].map((group) => (
+               <div key={group.day} className="flex flex-col items-center w-full h-full justify-end gap-3">
+                 <div className="flex items-end gap-1.5 h-full w-full justify-center">
+                    <div className="w-1.5 sm:w-2.5 rounded-t-sm bg-[#8b5cf6]/30 transition-all duration-700" style={{ height: `${group.v}%` }} />
+                    <div className="w-1.5 sm:w-2.5 rounded-t-sm bg-[#8b5cf6] transition-all duration-700" style={{ height: `${group.s}%` }} />
+                 </div>
+                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{group.day}</span>
+               </div>
+             ))}
           </div>
-          <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
-            <span>Period Overview</span>
-            <span>Current Velocity</span>
+          
+          <div className="flex gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]/30" />
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unique Visitors</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]" />
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sessions</span>
+            </div>
           </div>
         </div>
       </div>
+
 
       {/* Recent Orders */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 mb-6 font-geist">
