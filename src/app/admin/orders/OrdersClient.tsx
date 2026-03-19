@@ -383,6 +383,49 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
 
                 <section>
                   <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-sm">location_on</span> Shipping Destination
+                  </h4>
+                  <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-6">
+                    <div>
+                      <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">Street Address</p>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                          <span className="material-symbols-outlined text-slate-400 text-lg">home</span>
+                          {selectedOrder.shipping_address?.address1} {selectedOrder.shipping_address?.address2 ? `, ${selectedOrder.shipping_address.address2}` : ''}
+                        </div>
+                        {selectedOrder.profiles?.address && selectedOrder.shipping_address?.address1 !== selectedOrder.profiles.address && (
+                          <div className="flex items-center gap-2 ml-8">
+                            <span className="text-[8px] font-bold uppercase py-0.5 px-1.5 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded">Supabase</span>
+                            <p className="text-[10px] text-slate-400 font-medium italic truncate">{selectedOrder.profiles.address}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="pt-6 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">City</p>
+                        <div className="flex flex-col gap-1">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedOrder.shipping_address?.city || "N/A"}</p>
+                          {selectedOrder.profiles?.city && selectedOrder.shipping_address?.city !== selectedOrder.profiles.city && (
+                            <p className="text-[10px] text-slate-400 font-medium italic">Account: {selectedOrder.profiles.city}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">Postal Code</p>
+                        <div className="flex flex-col gap-1">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedOrder.shipping_address?.zip || "N/A"}</p>
+                          {selectedOrder.profiles?.zip && selectedOrder.shipping_address?.zip !== selectedOrder.profiles.zip && (
+                            <p className="text-[10px] text-slate-400 font-medium italic">Account: {selectedOrder.profiles.zip}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section>
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-6 flex items-center gap-3">
                     <span className="material-symbols-outlined text-sm">shield</span> Security Assessment
                   </h4>
                   <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-6">

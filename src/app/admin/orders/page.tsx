@@ -12,7 +12,12 @@ export default async function AdminOrders() {
       profiles (
         full_name,
         email,
-        phone
+        phone,
+        address,
+        city,
+        zip,
+        address1,
+        address2
       ),
       order_items (
         quantity,

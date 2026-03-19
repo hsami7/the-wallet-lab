@@ -110,6 +110,9 @@ export default function CheckoutPage() {
         await updateProfile({
           full_name: `${formData.firstName} ${formData.lastName}`,
           phone: `+212${formData.phone}`,
+          address: formData.address,
+          city: formData.city,
+          zip: formData.zip,
         });
 
         // Other fields direct sync
