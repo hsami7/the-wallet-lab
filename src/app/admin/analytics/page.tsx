@@ -5,16 +5,7 @@ import { useEffect, useState } from "react";
 
 // --- Data ---
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const salesData  = [28000, 34000, 42500, 38000, 45000, 52000, 48000, 55000, 61000, 58000, 63000, 70000];
-const ordersData = [310,   390,   480,   420,   510,   590,   545,   625,   690,   660,   715,   790];
-const maxSales   = Math.max(...salesData);
-const maxOrders  = Math.max(...ordersData);
-
-// Visitor activity — last 7 days
 const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const visitorData   = [1240, 980, 1530, 1880, 2100, 2450, 1760];
-const sessionData   = [890,  730, 1140, 1390, 1580, 1820, 1330];
-const maxVisitors   = Math.max(...visitorData);
 
 const topSellers = [
   { rank: 1, name: "Carbon Series Pro",  category: "Carbon Fiber", sold: 312, revenue: "265,200 MAD", share: 100 },
@@ -43,6 +34,12 @@ export default function AdminAnalytics() {
   const [topCarted, setTopCarted] = useState<any[]>([]);
   const [totalCartAdds, setTotalCartAdds] = useState<number>(0);
   
+  // Real Data State
+  const [monthlyRevenue, setMonthlyRevenue] = useState<number[]>(new Array(12).fill(0));
+  const [monthlyOrders, setMonthlyOrders] = useState<number[]>(new Array(12).fill(0));
+  const [visitorActivity, setVisitorActivity] = useState<number[]>(new Array(7).fill(0));
+  const [sessionActivity, setSessionActivity] = useState<number[]>(new Array(7).fill(0));
+
   // UTM Generator State
   const [utmSource, setUtmSource] = useState("instagram");
   const [utmMedium, setUtmMedium] = useState("social");
@@ -59,8 +56,82 @@ export default function AdminAnalytics() {
   }, []);
 
   useEffect(() => {
-    async function fetchTraffic() {
-      // 1. Fetch Visitors
+    async function fetchAnalyticsData() {
+      // 1. Fetch Orders for 2026 Trends
+      const start2026 = "2026-01-01T00:00:00Z";
+      const end2026 = "2026-12-31T23:59:59Z";
+      
+      const { data: orders } = await supabase
+        .from("orders")
+        .select("total_amount, created_at")
+        .gte("created_at", start2026)
+        .lte("created_at", end2026);
+      
+      if (orders) {
+        const rev = new Array(12).fill(0);
+        const ord = new Array(12).fill(0);
+        
+        orders.forEach(o => {
+          const date = new Date(o.created_at);
+          const month = date.getUTCMonth();
+          rev[month] += Number(o.total_amount);
+          ord[month] += 1;
+        });
+        
+        setMonthlyRevenue(rev);
+        setMonthlyOrders(ord);
+      }
+
+      // 2. Fetch Traffic Logs for Last 7 Days
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setUTCDate(sevenDaysAgo.getUTCDate() - 6);
+      sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+      
+      const { data: traffic } = await supabase
+        .from("traffic_logs")
+        .select("created_at, session_id, event_type")
+        .gte("created_at", sevenDaysAgo.toISOString());
+      
+      if (traffic) {
+        const vAct = new Array(7).fill(0);
+        const sAct = new Array(7).fill(0);
+        
+        // Map day indexes to relative days (0 to 6)
+        const dayMap: Record<string, number> = {};
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(sevenDaysAgo);
+          d.setUTCDate(sevenDaysAgo.getUTCDate() + i);
+          dayMap[d.getUTCDay()] = i;
+        }
+
+        const sessionsByDay: Record<number, Set<string>> = {};
+        
+        traffic.forEach(t => {
+          const date = new Date(t.created_at);
+          const dayOfWeek = date.getUTCDay();
+          const index = dayMap[dayOfWeek];
+          
+          if (index !== undefined) {
+            // Count all page views for sessions
+            if (t.event_type === "page_view") {
+              sAct[index] += 1;
+            }
+            
+            // Count unique sessions for visitors
+            if (!sessionsByDay[index]) sessionsByDay[index] = new Set();
+            sessionsByDay[index].add(t.session_id);
+          }
+        });
+
+        for (let i = 0; i < 7; i++) {
+          vAct[i] = sessionsByDay[i]?.size || 0;
+        }
+        
+        setVisitorActivity(vAct);
+        setSessionActivity(sAct);
+      }
+
+      // 3. Fetch Overall Traffic Stats (Existing Logic)
       const { data: logs } = await supabase.from("traffic_logs")
         .select("utm_source, metadata")
         .eq("event_type", "page_view");
@@ -98,7 +169,7 @@ export default function AdminAnalytics() {
         setTrafficSources(mapped);
       }
 
-      // 2. Fetch Wishlist Trends
+      // 4. Fetch Wishlist Trends
       const { data: wishlistEvents } = await supabase.from("traffic_logs")
         .select("metadata")
         .eq("event_type", "wishlist_add");
@@ -115,7 +186,7 @@ export default function AdminAnalytics() {
           .slice(0, 4));
       }
 
-      // 3. Fetch Cart Interest & Trends
+      // 5. Fetch Cart Interest
       const { data: cartEvents } = await supabase.from("traffic_logs")
         .select("metadata")
         .eq("event_type", "add_to_cart");
@@ -134,12 +205,14 @@ export default function AdminAnalytics() {
       }
     }
 
-    fetchTraffic();
+    fetchAnalyticsData();
   }, []);
 
-  const chartData  = activeSeries === "revenue" ? salesData  : ordersData;
-  const chartMax   = activeSeries === "revenue" ? maxSales   : maxOrders;
-  const chartLabel = activeSeries === "revenue" ? "MAD"      : "orders";
+  const chartData  = activeSeries === "revenue" ? monthlyRevenue : monthlyOrders;
+  const chartMax   = Math.max(...chartData, 10);
+  const chartLabel = activeSeries === "revenue" ? "MAD" : "orders";
+
+  const maxVisitors = Math.max(...visitorActivity, ...sessionActivity, 10);
 
   return (
     <div className="p-8">
@@ -178,7 +251,7 @@ export default function AdminAnalytics() {
         <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
           <div className="flex justify-between items-start">
             <div>
-              <h4 className="text-lg font-bold text-slate-900 dark:text-white">Sales Trends — 2025</h4>
+              <h4 className="text-lg font-bold text-slate-900 dark:text-white">Sales Trends — 2026</h4>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 uppercase font-bold tracking-tight">Monthly performance</p>
             </div>
             <div className="flex gap-2">
@@ -230,10 +303,10 @@ export default function AdminAnalytics() {
           </div>
           
           <div className="flex items-end justify-between h-64 w-full mt-4 px-2 gap-4 flex-1">
-             {visitorData.map((visitors, i) => (
+             {visitorActivity.map((visitors: number, i: number) => (
                <div key={days[i]} className="flex flex-col items-center w-full h-full justify-end gap-3">
                  <div className="flex items-end gap-1.5 h-full w-full justify-center">
-                    <div className="w-1.5 sm:w-2.5 rounded-t-sm bg-[#8b5cf6]/30 transition-all duration-700" style={{ height: `${(sessionData[i] / maxVisitors) * 100}%` }} />
+                    <div className="w-1.5 sm:w-2.5 rounded-t-sm bg-[#8b5cf6]/30 transition-all duration-700" style={{ height: `${(sessionActivity[i] / maxVisitors) * 100}%` }} />
                     <div className="w-1.5 sm:w-2.5 rounded-t-sm bg-[#8b5cf6] transition-all duration-700" style={{ height: `${(visitors / maxVisitors) * 100}%` }} />
                  </div>
                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{days[i]}</span>
