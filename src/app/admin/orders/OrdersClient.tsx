@@ -5,6 +5,7 @@ import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/context/ToastContext";
 import { useAdminSearch } from "@/context/AdminSearchContext";
 import { updateOrderStatus, updateOrderTracking, deleteOrder } from "@/app/actions/orders";
+import { Logo } from "@/components/Logo";
 
 const statusColors: Record<string, string> = {
   delivered: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -128,6 +129,10 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
       productNames.toLowerCase().includes(searchLower)
     );
   });
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   const selectedOrder = orders.find(o => o.id === selectedOrderId);
   
@@ -550,7 +555,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                   <button onClick={() => setSelectedOrderId(null)} className="px-6 py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:brightness-110 transition-all">
                     Close
                   </button>
-                  <button onClick={() => showToast("Print functionality coming soon", "info")} className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center gap-2">
+                  <button onClick={handlePrint} className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center gap-2">
                     <span className="material-symbols-outlined text-sm">print</span> Print Invoice
                   </button>
                </div>
@@ -606,6 +611,103 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
               <span className="material-symbols-outlined text-slate-400 text-xs">info</span>
               <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Action cannot be undone</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden Print Invoice Template */}
+      {selectedOrder && (
+        <div id="printable-invoice" className="hidden print:block p-10 bg-white text-black font-sans">
+          {/* Invoice Header */}
+          <div className="flex justify-between items-start border-b-2 border-slate-100 pb-8 mb-8">
+            <div>
+              <Logo size={120} forceFull />
+              <div className="mt-4 text-xs text-slate-500 leading-relaxed text-left">
+                <p className="font-bold text-slate-900">The Embroidery's Lab</p>
+                <p>123 Atelier Street, Design District</p>
+                <p>Casablanca, Morocco</p>
+                <p>contact@embroiderylab.com</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter mb-2">Invoice</h1>
+              <p className="text-sm font-bold text-primary">#{selectedOrder.id.slice(0, 8).toUpperCase()}</p>
+              <div className="mt-4 text-xs text-slate-500">
+                <p>Date: {new Date(selectedOrder.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <p>Status: <span className="uppercase font-bold">{selectedOrder.status}</span></p>
+              </div>
+            </div>
+          </div>
+
+          {/* Billing & Shipping */}
+          <div className="grid grid-cols-2 gap-12 mb-10 text-left">
+            <div>
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 text-left">Bill To</h4>
+              <p className="font-bold text-slate-900">{selectedOrder.shipping_address?.firstName} {selectedOrder.shipping_address?.lastName}</p>
+              <p className="text-sm text-slate-600 leading-relaxed mt-1">
+                {selectedOrder.profiles?.email || selectedOrder.shipping_address?.email}<br />
+                {selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone}
+              </p>
+            </div>
+            <div>
+              <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 text-left">Ship To</h4>
+              <p className="font-bold text-slate-900">{selectedOrder.shipping_address?.firstName} {selectedOrder.shipping_address?.lastName}</p>
+              <p className="text-sm text-slate-600 leading-relaxed mt-1">
+                {selectedOrder.shipping_address?.address1}<br />
+                {selectedOrder.shipping_address?.address2 ? `${selectedOrder.shipping_address.address2}, ` : ''}
+                {selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.province} {selectedOrder.shipping_address?.zip}<br />
+                Morocco
+              </p>
+            </div>
+          </div>
+
+          {/* Order Items Table */}
+          <table className="w-full mb-10">
+            <thead>
+              <tr className="border-b-2 border-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                <th className="pb-3 px-2 text-left">Item Description</th>
+                <th className="pb-3 px-2 text-center">Qty</th>
+                <th className="pb-3 px-2 text-right">Unit Price</th>
+                <th className="pb-3 px-2 text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody className="text-sm text-slate-700">
+              {selectedOrder.order_items?.map((item: any, idx: number) => (
+                <tr key={idx} className="border-b border-slate-50">
+                  <td className="py-4 px-2 text-left">
+                    <p className="font-bold text-slate-900 text-left">{item.products?.name}</p>
+                    {item.variant && <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium mt-0.5 text-left">{item.variant}</p>}
+                  </td>
+                  <td className="py-4 px-2 text-center font-medium">{item.quantity}</td>
+                  <td className="py-4 px-2 text-right font-medium">{formatCurrency(item.unit_price)}</td>
+                  <td className="py-4 px-2 text-right font-bold text-slate-900">{formatCurrency(item.quantity * item.unit_price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Financial Summary */}
+          <div className="flex justify-end border-t-2 border-slate-100 pt-8">
+            <div className="w-1/3 space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Subtotal</span>
+                <span className="font-bold text-slate-900">{formatCurrency(selectedOrder.total_amount)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Shipping</span>
+                <span className="font-bold text-emerald-600">Free</span>
+              </div>
+              <div className="flex justify-between border-t border-slate-100 pt-3">
+                <span className="text-lg font-bold text-slate-900">Total</span>
+                <span className="text-2xl font-black text-primary">{formatCurrency(selectedOrder.total_amount)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="mt-20 pt-8 border-t border-slate-100 text-center">
+            <p className="text-sm font-bold text-slate-900 mb-1">Thank you for choosing The Embroidery&apos;s Lab!</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-[0.2em]">Crafted with passion in Morocco</p>
           </div>
         </div>
       )}

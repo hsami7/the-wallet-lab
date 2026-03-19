@@ -39,4 +39,42 @@
   .show-dark { display: none !important; }
   :is(.dark *) .show-light { display: none !important; }
   :is(.dark *) .show-dark { display: block !important; }
+
+  @media print {
+    body {
+      background: white !important;
+      color: black !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    .no-print {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block !important;
+    }
+
+    #printable-invoice {
+      display: block !important;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: white !important;
+      color: black !important;
+    }
+
+    /* Force background visibility for specific elements like color circles if needed */
+    .print-bg-force {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Hide background elements during print */
+    .bg-slate-900\/60, .backdrop-blur-sm, .backdrop-blur-md {
+      display: none !important;
+    }
+  }
 }
