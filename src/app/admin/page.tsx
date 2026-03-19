@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/server";
+import { AdminOverview } from "./AdminOverview";
 
 const statusColors: Record<string, string> = {
   delivered: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
@@ -9,15 +10,63 @@ const statusColors: Record<string, string> = {
   cancelled: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
 };
 
-export default async function AdminDashboard() {
+export default async function AdminPage() {
   const supabase = await createClient();
 
   // 1. Fetch Stats
-  const { data: ordersData } = await supabase.from("orders").select("total_amount");
+  const { data: allOrders } = await supabase.from("orders").select("total_amount, created_at, status");
   const { count: visitorCount } = await supabase.from("traffic_logs").select("*", { count: "exact", head: true });
 
-  const totalRevenue = ordersData?.reduce((acc, order) => acc + Number(order.total_amount), 0) || 0;
-  const totalOrders = ordersData?.length || 0;
+  const validOrders = allOrders?.filter(o => !['cancelled', 'refunded'].includes((o.status || '').toLowerCase())) || [];
+  
+  const totalRevenue = validOrders.reduce((acc, order) => acc + Number(order.total_amount), 0);
+  const totalOrders = validOrders.length;
+
+  // 1.2 Calculate Unique Customers (Profiles + Guests) from ALL orders
+  const { data: allOrderEmails } = await supabase.from("orders").select("shipping_address");
+  const { data: profileData } = await supabase.from("profiles").select("email, role");
+  
+  const uniqueEmails = new Set<string>();
+  profileData?.forEach(p => {
+    // Exclude admins from customer count
+    if (p.role === 'admin' || p.role === 'Administrator') return;
+    if (p.email) uniqueEmails.add(p.email.toLowerCase());
+  });
+  
+  allOrderEmails?.forEach(o => {
+    const email = o.shipping_address?.email;
+    if (email) uniqueEmails.add(email.toLowerCase());
+  });
+  const totalCustomers = uniqueEmails.size;
+
+  // 1.1 Calculate 7-day stats for charts
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+
+  const dailyRevenue = new Array(7).fill(0);
+  const dailyOrders = new Array(7).fill(0);
+
+  allOrders?.forEach(o => {
+    const orderDate = new Date(o.created_at);
+    orderDate.setHours(0, 0, 0, 0);
+    const dayIndex = last7Days.findIndex(d => d.getTime() === orderDate.getTime());
+    if (dayIndex !== -1) {
+      dailyRevenue[dayIndex] += Number(o.total_amount);
+      dailyOrders[dayIndex] += 1;
+    }
+  });
+
+  // Calculate trends (simple vs previous 7 days)
+  const calculateTrend = (current: number[], previous: number) => {
+    if (previous === 0) return "+0%";
+    const currentSum = current.reduce((a, b) => a + b, 0);
+    const diff = ((currentSum - previous) / previous) * 100;
+    return `${diff > 0 ? "+" : ""}${diff.toFixed(0)}%`;
+  };
 
   // 2. Fetch Recent Orders
   const { data: rawRecentOrders } = await supabase
@@ -44,6 +93,7 @@ export default async function AdminDashboard() {
     return {
       id: `#ORD-${order.id.slice(0, 4).toUpperCase()}`,
       customer: customerName,
+      email: order.customer?.email || shipping?.email || "Guest",
       product: order.items?.[0]?.product?.name + (order.items?.length > 1 ? ` (+${order.items.length - 1} more)` : ""),
       amount: `${Number(order.total_amount).toLocaleString()} MAD`,
       status: order.status,
@@ -51,11 +101,12 @@ export default async function AdminDashboard() {
     };
   }) || [];
 
-  // 3. Fetch Top Sellers (simplified for now: just based on total units in order_items)
+  // 3. Fetch Top Sellers from order_items
   const { data: topSellersData } = await supabase
     .from("order_items")
     .select(`
       quantity,
+      unit_price,
       product:products(name, category)
     `);
 
@@ -73,9 +124,10 @@ export default async function AdminDashboard() {
       };
     }
     productStats[pName].units += item.quantity;
-    // Note: In a real app we'd fetch price or store it in items. For now we use units.
+    productStats[pName].revenue += (item.unit_price * item.quantity);
   });
 
+  const totalSold = topSellersData?.reduce((acc, i) => acc + i.quantity, 0) || 1;
   const topSellers = Object.values(productStats)
     .sort((a, b) => b.units - a.units)
     .slice(0, 5)
@@ -84,8 +136,8 @@ export default async function AdminDashboard() {
       name: p.name,
       category: p.category,
       units: p.units,
-      revenue: "Real-time sync", // Placeholder as we don't store historical price per item easily without a join
-      share: Math.round((p.units / (topSellersData?.reduce((acc, i) => acc + i.quantity, 0) || 1)) * 100)
+      revenue: `${p.revenue.toLocaleString()} MAD`,
+      share: Math.round((p.units / totalSold) * 100)
     }));
 
   const stats = [
@@ -93,21 +145,21 @@ export default async function AdminDashboard() {
       label: "Total Revenue",
       value: `${totalRevenue.toLocaleString()} MAD`,
       icon: "payments",
-      trend: "+--%", // Trends require historical data comparisons (future work)
+      trend: "Overall",
       trendUp: true,
     },
     {
       label: "Total Orders",
       value: totalOrders.toString(),
       icon: "shopping_cart",
-      trend: "+--%",
+      trend: "Overall",
       trendUp: true,
     },
     {
-      label: "Total Visitors",
-      value: (visitorCount || 0).toLocaleString(),
+      label: "Total Customers",
+      value: totalCustomers.toLocaleString(),
       icon: "group",
-      trend: "+--%",
+      trend: "Unified Base",
       trendUp: true,
     },
   ];
@@ -155,49 +207,53 @@ export default async function AdminDashboard() {
         <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
           <div className="flex justify-between items-start">
             <div>
-              <h4 className="text-lg font-bold">Revenue Over Time</h4>
+              <h4 className="text-lg font-bold">Revenue Last 7 Days</h4>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-2xl font-bold">{totalRevenue.toLocaleString()} MAD</span>
-                <span className="text-sm text-emerald-500 font-bold">+10% vs last week</span>
+                <span className="text-2xl font-bold">{dailyRevenue.reduce((a, b) => a + b, 0).toLocaleString()} MAD</span>
+                <span className={`text-sm font-bold ${calculateTrend(dailyRevenue, 0).startsWith('+') ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {calculateTrend(dailyRevenue, 0)} vs overall avg
+                </span>
               </div>
             </div>
-            <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-bold py-2 px-4 focus:ring-primary/30">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-            </select>
+            <div className="bg-slate-100 dark:bg-slate-800 rounded-xl text-[10px] font-black uppercase tracking-widest py-2 px-4">
+              Real-time
+            </div>
           </div>
           
           <div className="relative pt-4 flex gap-4">
-            {/* Y-axis Labels */}
             <div className="flex flex-col justify-between h-48 grow-0 shrink-0 min-w-[50px] text-[10px] font-bold text-slate-400 py-1">
-              <span>{Math.round(totalRevenue * 1.2).toLocaleString()}</span>
-              <span>{Math.round(totalRevenue * 0.8).toLocaleString()}</span>
-              <span>{Math.round(totalRevenue * 0.4).toLocaleString()}</span>
+              <span>{(Math.max(...dailyRevenue) * 1.2).toLocaleString()}</span>
+              <span>{(Math.max(...dailyRevenue) * 0.6).toLocaleString()}</span>
               <span className="text-primary font-black uppercase tracking-tight">0 MAD</span>
             </div>
             
             <div className="flex-1">
-              {/* Line Chart Simulation */}
               <div className="relative h-48 w-full">
-                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 400 100">
+                <svg className="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 600 100">
                   <defs>
                     <linearGradient id="neonGradient" x1="0" x2="0" y1="0" y2="1">
                       <stop offset="0%" stopColor="#0d59f2" stopOpacity="0.4"></stop>
                       <stop offset="100%" stopColor="#0d59f2" stopOpacity="0"></stop>
                     </linearGradient>
                   </defs>
-                  <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10 V100 H0 Z" fill="url(#neonGradient)"></path>
-                  <path d="M0,80 Q50,20 100,50 T200,30 T300,70 T400,10" fill="none" stroke="#0d59f2" strokeLinecap="round" strokeWidth="3"></path>
+                  {/* Dynamic Path Logic */}
+                  <path 
+                    d={`M ${dailyRevenue.map((val, i) => `${(i * 100)},${100 - (val / (Math.max(...dailyRevenue, 1) * 1.2) * 100)}`).join(' L ')} V 100 H 0 Z`} 
+                    fill="url(#neonGradient)"
+                  />
+                  <path 
+                    d={`M ${dailyRevenue.map((val, i) => `${(i * 100)},${100 - (val / (Math.max(...dailyRevenue, 1) * 1.2) * 100)}`).join(' L ')}`} 
+                    fill="none" 
+                    stroke="#0d59f2" 
+                    strokeLinecap="round" 
+                    strokeWidth="3"
+                  />
                 </svg>
               </div>
               <div className="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2">
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
-                <span>Sun</span>
+                {last7Days.map(d => (
+                  <span key={d.getTime()}>{d.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                ))}
               </div>
             </div>
           </div>
@@ -209,57 +265,38 @@ export default async function AdminDashboard() {
             <div>
               <h4 className="text-lg font-bold">Order Volume</h4>
               <div className="flex items-center gap-2 mt-1">
-                <span className="text-2xl font-bold">{totalOrders.toLocaleString()}</span>
-                <span className="text-sm text-emerald-500 font-bold">+4% vs last week</span>
+                <span className="text-2xl font-bold">{dailyOrders.reduce((a, b) => a + b, 0).toLocaleString()}</span>
+                <span className="text-sm text-emerald-500 font-bold">Last 7 Days</span>
               </div>
             </div>
-            <select className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl text-xs font-bold py-2 px-4 focus:ring-primary/30">
-              <option>Last 7 Days</option>
-              <option>Last 30 Days</option>
-            </select>
           </div>
           
           <div className="relative pt-4 flex gap-4">
-            {/* Y-axis Labels for Order Volume */}
             <div className="flex flex-col justify-between h-48 grow-0 shrink-0 min-w-[30px] text-[10px] font-bold text-slate-400 py-1 text-right">
-              <span>1.5k</span>
-              <span>1k</span>
-              <span>500</span>
+              <span>{Math.max(...dailyOrders, 5)}</span>
+              <span>{Math.round(Math.max(...dailyOrders, 5)/2)}</span>
               <span className="text-primary font-black uppercase tracking-tight">0</span>
             </div>
             
             <div className="flex-1">
-              {/* Bar Chart Simulation */}
               <div className="flex items-end justify-between h-48 w-full px-2">
-                {[
-                  { day: "Mon", height: "45%" },
-                  { day: "Tue", height: "75%" },
-                  { day: "Wed", height: "90%", active: true },
-                  { day: "Thu", height: "55%" },
-                  { day: "Fri", height: "65%" },
-                  { day: "Sat", height: "80%" },
-                  { day: "Sun", height: "40%" },
-                ].map((bar) => (
-                  <div key={bar.day} className="flex flex-col items-center w-full h-full justify-end">
+                {dailyOrders.map((count, i) => (
+                  <div key={i} className="flex flex-col items-center w-full h-full justify-end">
                     <div 
                       className={`w-6 sm:w-8 rounded-full transition-all duration-500 ${
-                        bar.active 
+                        count === Math.max(...dailyOrders) && count > 0
                           ? "bg-[#6366f1] shadow-[0_0_15px_rgba(99,102,241,0.6)]" 
                           : "bg-slate-200 dark:bg-slate-700/50"
                       }`}
-                      style={{ height: bar.height }}
+                      style={{ height: `${(count / Math.max(...dailyOrders, 1)) * 100}%` }}
                     />
                   </div>
                 ))}
               </div>
               <div className="flex justify-between mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4">
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
-                <span>Sun</span>
+                {last7Days.map(d => (
+                  <span key={d.getTime()}>{d.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                ))}
               </div>
             </div>
           </div>
@@ -318,7 +355,10 @@ export default async function AdminDashboard() {
                     } hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors`}
                   >
                     <td className="px-6 py-4 font-bold text-primary">{order.id}</td>
-                    <td className="px-6 py-4 text-slate-900 dark:text-white font-medium">{order.customer}</td>
+                    <td className="px-6 py-4">
+                      <p className="text-slate-900 dark:text-white font-medium">{order.customer}</p>
+                      <p className="text-[10px] text-slate-400 font-normal uppercase tracking-wider leading-none mt-1">{order.email}</p>
+                    </td>
                     <td className="px-6 py-4 text-slate-600 dark:text-slate-400 italic line-clamp-1">{order.product}</td>
                     <td className="px-6 py-4 font-black text-slate-900 dark:text-white">{order.amount}</td>
                     <td className="px-6 py-4">
