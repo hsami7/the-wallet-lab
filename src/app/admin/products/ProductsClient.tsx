@@ -65,12 +65,27 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
     console.log("Attempting to delete product ID:", id);
 
     try {
-      // 1. Delete highlights first
-      const { error: hError } = await supabase.from("product_highlights").delete().eq("product_id", id);
-      if (hError) throw hError;
+      // 1. Verify Authentication
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("Your session has expired. Please refresh the page and log in again.");
+      }
 
-      // 2. Try to delete the product
-      const { error } = await supabase.from("products").delete().eq("id", id);
+      // 2. Delete highlights first
+      const { error: hError } = await supabase.from("product_highlights").delete().eq("product_id", id);
+      if (hError) {
+        console.error("Highlight deletion failed:", hError);
+        // We don't throw if highlights fail to delete (might not exist), 
+        // but we should log it. If it's a real error (like RLS), the next step will likely fail too.
+      }
+
+      // 3. Try to delete the product and VERIFY it happened
+      const { data, error, status } = await supabase
+        .from("products")
+        .delete()
+        .eq("id", id)
+        .select()
+        .single();
 
       if (error) {
         // Handle specific foreign key error (usually Error Code 23503 in PG)
@@ -78,6 +93,11 @@ export function ProductsClient({ initialProducts }: { initialProducts: Record<st
           throw new Error("This product is linked to existing orders and cannot be deleted. Try setting it to 'Draft' or 'Out of Stock' instead.");
         }
         throw error;
+      }
+
+      // If no data is returned, it means no row was deleted (likely RLS blocked it)
+      if (!data) {
+        throw new Error("Deletion failed: You may not have permission to delete this product, or it has already been removed.");
       }
 
       setProducts((prev) => prev.filter((p) => p.id !== id));
