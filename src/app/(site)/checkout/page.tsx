@@ -114,14 +114,6 @@ export default function CheckoutPage() {
           city: formData.city,
           zip: formData.zip,
         });
-
-        // Other fields direct sync
-        await supabase.from("profiles").update({
-          address: formData.address,
-          city: formData.city,
-          zip: formData.zip,
-          updated_at: new Date().toISOString(),
-        }).eq("id", user.id);
       }
 
       const result = await createOrder({
@@ -149,7 +141,8 @@ export default function CheckoutPage() {
         setIsSubmitting(false);
       }
     } catch (err: any) {
-      setError("An unexpected error occurred. Please try again.");
+      console.error("Checkout submission failed:", err);
+      setError(err.message || "An unexpected error occurred. Please try again.");
       setIsSubmitting(false);
     }
   };
