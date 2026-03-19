@@ -672,17 +672,23 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
               </tr>
             </thead>
             <tbody className="text-sm text-slate-700">
-              {selectedOrder.order_items?.map((item: any, idx: number) => (
-                <tr key={idx} className="border-b border-slate-50">
-                  <td className="py-4 px-2 text-left">
-                    <p className="font-bold text-slate-900 text-left">{item.products?.name}</p>
-                    {item.variant && <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium mt-0.5 text-left">{item.variant}</p>}
-                  </td>
-                  <td className="py-4 px-2 text-center font-medium">{item.quantity}</td>
-                  <td className="py-4 px-2 text-right font-medium">{formatCurrency(item.unit_price)}</td>
-                  <td className="py-4 px-2 text-right font-bold text-slate-900">{formatCurrency(item.quantity * item.unit_price)}</td>
-                </tr>
-              ))}
+              {selectedOrder.order_items?.map((item: any, idx: number) => {
+                const variantName = (item.variant && typeof item.variant === 'object') 
+                  ? item.variant.name 
+                  : (typeof item.variant === 'string' ? item.variant : null);
+                
+                return (
+                  <tr key={idx} className="border-b border-slate-50">
+                    <td className="py-4 px-2 text-left">
+                      <p className="font-bold text-slate-900 text-left">{item.products?.name}</p>
+                      {variantName && <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium mt-0.5 text-left">{variantName}</p>}
+                    </td>
+                    <td className="py-4 px-2 text-center font-medium">{item.quantity}</td>
+                    <td className="py-4 px-2 text-right font-medium">{formatCurrency(item.unit_price)}</td>
+                    <td className="py-4 px-2 text-right font-bold text-slate-900">{formatCurrency(item.quantity * item.unit_price)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
