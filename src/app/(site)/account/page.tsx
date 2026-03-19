@@ -24,6 +24,8 @@ export default function AccountPage() {
   const [isPendingPhone, setIsPendingPhone] = useState(false);
   const [isPendingEmail, setIsPendingEmail] = useState(false);
   const [isPendingAddress, setIsPendingAddress] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isPendingName, setIsPendingName] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [stats, setStats] = useState({ orders: 0, address: "Add your address", twoFa: "2FA is currently active" });
   const [orders, setOrders] = useState<any[]>([]);
@@ -32,6 +34,27 @@ export default function AccountPage() {
   // Validation Patterns
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const moroccanPhoneRegex = /^[5-9]\d{8}$/;
+
+  const handleNameEdit = async () => {
+    if (isEditingName) {
+      if (!fullName || fullName.trim() === "") {
+        setIsEditingName(false);
+        return;
+      }
+      setIsPendingName(true);
+      try {
+        await updateProfile({ full_name: fullName.trim() });
+        showToast("Name updated successfully!", "success");
+        setIsEditingName(false);
+      } catch (err: any) {
+        console.error("Failed to update name", err);
+        showToast(err.message || "Failed to update name.", "error");
+      }
+      setIsPendingName(false);
+    } else {
+      setIsEditingName(true);
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -236,10 +259,42 @@ export default function AccountPage() {
         <section className="flex-1 p-6 md:p-10 transition-all duration-300">
           {activeTab === "account" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+              <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-6">
-                  <div>
-                    <h1 className="text-3xl font-bold tracking-tight">{fullName}</h1>
+                  <div className="flex-1">
+                    {isEditingName ? (
+                      <div className="flex items-center gap-3">
+                        <input 
+                          type="text" 
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleNameEdit()}
+                          disabled={isPendingName}
+                          autoFocus
+                          className="text-2xl md:text-3xl font-bold tracking-tight bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-1 outline-none focus:ring-2 focus:ring-primary w-full max-w-md"
+                        />
+                        <button 
+                          onClick={handleNameEdit}
+                          disabled={isPendingName}
+                          className="bg-primary text-white p-2 rounded-full hover:bg-blue-600 shadow-lg shadow-primary/20 transition-all flex items-center justify-center shrink-0"
+                        >
+                          <span className="material-symbols-outlined text-xl">
+                            {isPendingName ? "cached" : "check"}
+                          </span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-4 group">
+                        <h1 className="text-3xl font-bold tracking-tight">{fullName || "Your Name"}</h1>
+                        <button 
+                          onClick={() => setIsEditingName(true)}
+                          className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary flex items-center gap-1 text-[10px] font-black uppercase tracking-widest"
+                        >
+                          <span className="material-symbols-outlined text-lg">edit</span>
+                          Edit
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
