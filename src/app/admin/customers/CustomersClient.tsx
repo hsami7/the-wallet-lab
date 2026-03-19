@@ -26,6 +26,9 @@ interface Customer {
   joinedFormatted: string;
   lastActiveFormatted: string;
   lastIp: string;
+  fraudScore: number;
+  lastCheckoutEmail?: string;
+  lastCheckoutPhone?: string;
   status: string;
   isRegistered: boolean;
   itemsCount: number;
@@ -369,18 +372,31 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                   </h4>
                   <div className="space-y-6">
                     <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-6">
-                      <div>
-                        <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">Email Address</p>
+                      <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
                           <span className="material-symbols-outlined text-slate-400 text-lg">mail</span>
                           {selectedCustomer.email}
                         </div>
+                        {selectedCustomer.lastCheckoutEmail && selectedCustomer.lastCheckoutEmail.toLowerCase() !== selectedCustomer.email.toLowerCase() && (
+                          <div className="flex items-center gap-2 ml-8">
+                            <span className="text-[8px] font-bold uppercase py-0.5 px-1.5 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded">Last Checkout</span>
+                            <p className="text-[10px] text-slate-400 font-medium italic truncate">{selectedCustomer.lastCheckoutEmail}</p>
+                          </div>
+                        )}
                       </div>
                       <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
                         <p className="text-[8px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2">Phone Number</p>
-                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
-                          <span className="material-symbols-outlined text-slate-400 text-lg">call</span>
-                          {selectedCustomer.phone || "No phone recorded"}
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                            <span className="material-symbols-outlined text-slate-400 text-lg">call</span>
+                            {selectedCustomer.phone || "No phone recorded"}
+                          </div>
+                          {selectedCustomer.lastCheckoutPhone && selectedCustomer.lastCheckoutPhone !== selectedCustomer.phone && (
+                            <div className="flex items-center gap-2 ml-8">
+                              <span className="text-[8px] font-bold uppercase py-0.5 px-1.5 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded">Last Checkout</span>
+                              <p className="text-[10px] text-slate-400 font-medium italic truncate">{selectedCustomer.lastCheckoutPhone}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

@@ -346,16 +346,36 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                   <div className="bg-slate-50 dark:bg-slate-800/40 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 group hover:border-primary/20 transition-all space-y-6">
                     <div>
                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">Email Address</p>
-                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
-                        <span className="material-symbols-outlined text-slate-400 text-lg">mail</span>
-                        {selectedOrder.profiles?.email || selectedOrder.shipping_address?.email || "Guest Checkout"}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                          <span className="material-symbols-outlined text-slate-400 text-lg">mail</span>
+                          {selectedOrder.shipping_address?.email || selectedOrder.profiles?.email || "Guest Checkout"}
+                        </div>
+                        {selectedOrder.profiles?.email && 
+                          selectedOrder.shipping_address?.email && 
+                          selectedOrder.profiles.email !== selectedOrder.shipping_address.email && (
+                          <div className="flex items-center gap-2 ml-8">
+                            <span className="text-[8px] font-bold uppercase py-0.5 px-1.5 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded">Supabase</span>
+                            <p className="text-[10px] text-slate-400 font-medium italic truncate">{selectedOrder.profiles.email}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
                       <p className="text-[8px] font-black uppercase text-slate-400 tracking-[0.2em] mb-2">Phone Number</p>
-                      <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
-                        <span className="material-symbols-outlined text-slate-400 text-lg">call</span>
-                        {selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone || "No phone recorded"}
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-3 text-sm font-bold text-slate-900 dark:text-white">
+                          <span className="material-symbols-outlined text-slate-400 text-lg">call</span>
+                          {selectedOrder.shipping_address?.phone || selectedOrder.profiles?.phone || "No phone recorded"}
+                        </div>
+                        {selectedOrder.profiles?.phone && 
+                          selectedOrder.shipping_address?.phone && 
+                          selectedOrder.profiles.phone !== selectedOrder.shipping_address.phone && (
+                          <div className="flex items-center gap-2 ml-8">
+                            <span className="text-[8px] font-bold uppercase py-0.5 px-1.5 bg-slate-200 dark:bg-slate-700 text-slate-500 rounded">Supabase</span>
+                            <p className="text-[10px] text-slate-400 font-medium italic truncate">{selectedOrder.profiles.phone}</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>

@@ -83,6 +83,8 @@ export default async function AdminCustomers() {
         lastActive: o.created_at,
         lastIp: o.ip_address || "Unknown",
         fraudScore: o.fraud_score || 0,
+        lastCheckoutEmail: o.shipping_address?.email || "",
+        lastCheckoutPhone: o.shipping_address?.phone || "",
         status: o.customer_id ? "Active" : "Guest",
         isRegistered: !!o.customer_id,
         itemsBought: [],
@@ -157,6 +159,8 @@ export default async function AdminCustomers() {
       ...c,
       ltv: c.spent,
       fraudScore: c.fraudScore,
+      lastCheckoutEmail: c.lastCheckoutEmail,
+      lastCheckoutPhone: c.lastCheckoutPhone,
       spent: `${c.spent.toLocaleString()} MAD`,
       itemsCount: c.rawItems.reduce((acc: number, i: any) => acc + i.quantity, 0),
       itemsList: c.rawItems.map((i: any) => {
