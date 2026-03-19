@@ -248,7 +248,7 @@ export default function AccountPage() {
                 {[
                   { id: 'personal', icon: 'account_circle', title: 'Personal Info', desc: 'Update profile details' },
                   { id: 'orders', icon: 'local_shipping', title: 'Order Tracking', desc: `Check status of ${stats.orders} orders` },
-                  { id: 'location', icon: 'location_on', title: 'Saved Addresses', desc: stats.address },
+                  { id: 'location', icon: 'location_on', title: 'Delivery Info', desc: stats.address },
                   { id: 'security', icon: 'lock', title: 'Security', desc: stats.twoFa }
                 ].map((card, i) => (
                   <div 
@@ -257,7 +257,7 @@ export default function AccountPage() {
                         if (card.id === 'orders') setActiveTab('orders');
                         else if (card.id === 'security') setActiveTab('privacy');
                         else if (card.id === 'personal') document.getElementById('contact-info')?.scrollIntoView({ behavior: 'smooth' });
-                        else if (card.id === 'location') document.getElementById('primary-location')?.scrollIntoView({ behavior: 'smooth' });
+                        else if (card.id === 'location') document.getElementById('delivery-info')?.scrollIntoView({ behavior: 'smooth' });
                     }}
                     className="flex flex-col gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 hover:border-primary transition-colors group cursor-pointer shadow-sm"
                   >
@@ -349,11 +349,11 @@ export default function AccountPage() {
                   </div>
                 </div>
 
-                <div id="primary-location" className="scroll-mt-8">
+                <div id="delivery-info" className="scroll-mt-8">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold flex items-center gap-2">
-                      <span className="material-symbols-outlined text-primary">location_on</span>
-                      Primary Location
+                      <span className="material-symbols-outlined text-primary">local_shipping</span>
+                      Delivery Information
                     </h2>
                     <button onClick={handleAddressEdit} className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">
                       {isEditingAddress ? "Save" : "Edit"}

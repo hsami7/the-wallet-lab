@@ -33,6 +33,7 @@ export async function updateProfile(data: {
       .from('profiles')
       .upsert({
         id: user.id,
+        email: user.email, // Ensure email is included for NOT NULL constraint on insert
         ...profileData,
         updated_at: new Date().toISOString()
       })
