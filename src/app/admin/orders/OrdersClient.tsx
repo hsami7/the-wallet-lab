@@ -57,8 +57,12 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
     }
   }
 
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
+
   async function handleDeleteOrder(orderId: string) {
-    if (!confirm("Are you sure you want to delete this order permanently? This action cannot be undone.")) return;
+    if (isDeleting) return;
+    setIsDeleting(true);
     
     try {
       const { error: itemsError } = await supabase.from("order_items").delete().eq("order_id", orderId);
@@ -69,9 +73,12 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
 
       setOrders(orders.filter(o => o.id !== orderId));
       showToast("Order deleted successfully", "success");
+      setOrderToDelete(null);
       setSelectedOrderId(null);
     } catch (err: any) {
       showToast(err.message, "error");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -250,7 +257,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                           <option value="delivered">Delivered</option>
                           <option value="refunded">Refunded</option>
                         </select>
-                        <button onClick={() => handleDeleteOrder(order.id)} className="text-slate-400 hover:text-red-500 transition-all active:scale-90" title="Delete">
+                        <button onClick={() => setOrderToDelete(order.id)} className="text-slate-400 hover:text-red-500 transition-all active:scale-90" title="Delete">
                            <span className="material-symbols-outlined text-lg">delete</span>
                         </button>
                       </div>
@@ -455,7 +462,7 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
             </div>
 
             <div className="p-6 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-               <button onClick={() => handleDeleteOrder(selectedOrder.id)} className="px-6 py-2.5 bg-red-500/10 text-red-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+               <button onClick={() => setOrderToDelete(selectedOrder.id)} className="px-6 py-2.5 bg-red-500/10 text-red-500 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
                   Delete Order
                </button>
                <div className="flex gap-3">
@@ -466,6 +473,57 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
                     <span className="material-symbols-outlined text-sm">print</span> Print Invoice
                   </button>
                </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Redesigned Delete Confirmation Modal */}
+      {orderToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl shadow-red-500/10 max-w-md w-full border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-8 duration-500 ease-out">
+            <div className="p-8 text-center">
+              <div className="size-20 rounded-full bg-red-50 dark:bg-red-500/10 flex items-center justify-center mx-auto mb-6 relative">
+                <div className="absolute inset-0 rounded-full bg-red-500/20 animate-ping opacity-20" />
+                <span className="material-symbols-outlined text-red-600 dark:text-red-500 text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
+              </div>
+
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3 tracking-tight leading-tight">
+                Wait! Danger Zone
+              </h3>
+
+              <p className="text-slate-500 dark:text-slate-400 text-sm mb-8 leading-relaxed max-w-[280px] mx-auto">
+                Are you absolutely sure? This will permanently delete this order and all its history.
+              </p>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteOrder(orderToDelete)}
+                  disabled={isDeleting}
+                  className="w-full py-4 px-6 text-sm font-black text-white bg-red-600 hover:bg-red-500 rounded-2xl transition-all shadow-lg shadow-red-600/20 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isDeleting ? (
+                    <>
+                      <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                      Deleting Order...
+                    </>
+                  ) : (
+                    'Yes, Delete Permanently'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOrderToDelete(null)}
+                  disabled={isDeleting}
+                  className="w-full py-4 px-6 text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50"
+                >
+                  Nevermind, Go Back
+                </button>
+              </div>
+            </div>
+            <div className="bg-slate-50 dark:bg-slate-800/30 px-8 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-2">
+              <span className="material-symbols-outlined text-slate-400 text-xs">info</span>
+              <p className="text-[10px] uppercase font-black tracking-widest text-slate-400">Action cannot be undone</p>
             </div>
           </div>
         </div>
