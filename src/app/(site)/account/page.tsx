@@ -30,6 +30,7 @@ export default function AccountPage() {
   const [stats, setStats] = useState({ orders: 0, address: "Add your address", twoFa: "2FA is currently active" });
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
   
   // Validation Patterns
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -80,6 +81,9 @@ export default function AccountPage() {
             status,
             total_amount,
             shipping_address,
+            shipping_amount,
+            discount_amount,
+            promo_code,
             order_items (
               quantity,
               unit_price,
@@ -581,7 +585,11 @@ export default function AccountPage() {
                     });
                     
                     return (
-                      <div key={order.id} className="bg-white dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-center justify-between hover:border-primary transition-all cursor-pointer group shadow-sm">
+                      <div 
+                        key={order.id} 
+                        onClick={() => setSelectedOrder(order)}
+                        className="bg-white dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 flex items-center justify-between hover:border-primary transition-all cursor-pointer group shadow-sm"
+                      >
                         <div className="flex items-center gap-6">
                           <div className="size-14 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative overflow-hidden">
                             {order.order_items?.[0]?.products?.image_url ? (
@@ -672,6 +680,130 @@ export default function AccountPage() {
           )}
         </section>
       </main>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-950 w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
+            {/* Modal Header */}
+            <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/20">
+                <div className="flex items-center gap-4">
+                  <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                    <span className="material-symbols-outlined">receipt_long</span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Order #{selectedOrder.id.slice(0, 8)}</h2>
+                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">
+                        {new Date(selectedOrder.created_at).toLocaleDateString("en-US", { month: 'long', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setSelectedOrder(null)}
+                  className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all group"
+                >
+                  <span className="material-symbols-outlined group-hover:rotate-90 transition-transform">close</span>
+                </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-8">
+              {/* Order Status */}
+              <div className="flex items-center justify-between p-4 rounded-2xl bg-primary/5 border border-primary/10">
+                <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-primary">inventory_2</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-widest">Shipment Status</span>
+                </div>
+                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border ${
+                  selectedOrder.status === 'delivered' ? 'bg-green-500/10 text-green-500 border-green-500/20' :
+                  selectedOrder.status === 'processing' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+                  'bg-orange-500/10 text-orange-500 border-orange-500/20'
+                }`}>
+                  {selectedOrder.status}
+                </span>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-400 px-1">Laboratory Contents</h3>
+                <div className="space-y-3">
+                  {selectedOrder.order_items?.map((item: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 transition-all hover:bg-white dark:hover:bg-slate-900 shadow-sm hover:shadow-md">
+                      <div className="flex items-center gap-4">
+                        <div className="size-16 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-white">
+                          <img src={item.products?.image_url} alt="" className="size-full object-cover" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-900 dark:text-white line-clamp-1">{item.products?.name}</p>
+                          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
+                            {item.quantity} × {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(item.unit_price)}
+                          </p>
+                          {item.variant && (
+                            <p className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1 bg-primary/5 w-fit px-2 py-0.5 rounded-full">{item.variant}</p>
+                          )}
+                        </div>
+                      </div>
+                      <p className="font-black text-slate-900 dark:text-white text-lg">
+                        {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(item.quantity * item.unit_price)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Shipping Information */}
+              <div className="p-6 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="size-10 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-primary">
+                    <span className="material-symbols-outlined">local_shipping</span>
+                  </div>
+                  <h3 className="text-sm font-black uppercase tracking-[0.2em] text-slate-900 dark:text-white">Shipping Destination</h3>
+                </div>
+                <div className="space-y-1 pl-13">
+                  <p className="font-bold text-slate-900 dark:text-white">{selectedOrder.shipping_address?.full_name}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{selectedOrder.shipping_address?.address1}</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    {selectedOrder.shipping_address?.city}, {selectedOrder.shipping_address?.zip}
+                  </p>
+                  <p className="text-sm text-primary font-bold mt-2 flex items-center gap-2">
+                    <span className="material-symbols-outlined text-sm">phone_iphone</span>
+                    {selectedOrder.shipping_address?.phone}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer (Summary) */}
+            <div className="p-8 bg-slate-50 dark:bg-slate-900/40 border-t border-slate-100 dark:border-slate-800">
+               <div className="space-y-3 max-w-sm ml-auto">
+                 <div className="flex justify-between text-sm">
+                   <span className="text-slate-500 font-semibold">Subtotal</span>
+                   <span className="text-slate-900 dark:text-white font-black">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(selectedOrder.total_amount - (selectedOrder.shipping_amount || 0) + (selectedOrder.discount_amount || 0))}</span>
+                 </div>
+                 {selectedOrder.shipping_amount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-500 font-semibold">Standard Shipping</span>
+                      <span className="text-slate-900 dark:text-white font-black">+{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(selectedOrder.shipping_amount)}</span>
+                    </div>
+                 )}
+                 {selectedOrder.discount_amount > 0 && (
+                    <div className="flex justify-between text-sm px-3 py-2 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20">
+                      <span className="text-red-500 font-bold flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-sm">sell</span>
+                        Promo Code ({selectedOrder.promo_code || 'LAB20'})
+                      </span>
+                      <span className="text-red-500 font-black">-{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(selectedOrder.discount_amount)}</span>
+                    </div>
+                 )}
+                 <div className="flex justify-between text-xl pt-3 border-t border-slate-200 dark:border-slate-700">
+                   <span className="text-slate-900 dark:text-white font-black uppercase tracking-tight">Final Total</span>
+                   <span className="text-primary font-black">{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'MAD' }).format(selectedOrder.total_amount)}</span>
+                 </div>
+               </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
