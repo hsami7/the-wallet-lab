@@ -289,7 +289,7 @@ export default function AdminAnalytics() {
 
       {/* ── Charts Grid ── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        {/* Sales Trends — 2025 */}
+        {/* Sales Trends — 2026 */}
         <div className="p-8 rounded-3xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-6">
           <div className="flex justify-between items-start">
             <div>
@@ -356,7 +356,7 @@ export default function AdminAnalytics() {
              ))}
           </div>
           
-          <div className="flex gap-6 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex gap-6 mt-4 pt-4 border-t border-t-slate-100 dark:border-t-slate-800">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6]/30" />
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Unique Visitors</span>
@@ -369,7 +369,7 @@ export default function AdminAnalytics() {
         </div>
       </div>
 
-      {/* ── Traffic Sources + Global Reach side-by-side ── */}
+      {/* ── Main Grids side-by-side ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
 
         {/* Traffic Sources */}
@@ -392,6 +392,34 @@ export default function AdminAnalytics() {
                   </div>
                   <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                     <div className={`h-full bg-gradient-to-r ${src.color} rounded-full`} style={{ width: `${src.share}%` }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Global Reach */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Global Reach</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">Top countries by visitor count</p>
+          <div className="flex flex-col gap-3">
+            {countries.map((c, i) => (
+              <div key={c.name} className="flex items-center gap-3">
+                <span className="text-xl w-7 shrink-0">{c.flag}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-slate-900 dark:text-white">{c.name}</span>
+                    <div className="flex items-center gap-3 text-xs shrink-0 ml-2">
+                       <span className="text-slate-500 dark:text-slate-400">{c.visitors.toLocaleString()}</span>
+                       <span className="font-semibold text-slate-900 dark:text-white w-10 text-right">{c.share}%</span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${i === 0 ? "bg-primary" : "bg-primary/40"}`}
+                      style={{ width: `${c.share * 1.7}%` }}
+                    />
                   </div>
                 </div>
               </div>
@@ -432,34 +460,6 @@ export default function AdminAnalytics() {
           </div>
         </div>
 
-        {/* Global Reach */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
-          <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Global Reach</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">Top countries by visitor count</p>
-          <div className="flex flex-col gap-3">
-            {countries.map((c, i) => (
-              <div key={c.name} className="flex items-center gap-3">
-                <span className="text-xl w-7 shrink-0">{c.flag}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-slate-900 dark:text-white">{c.name}</span>
-                    <div className="flex items-center gap-3 text-xs shrink-0 ml-2">
-                      <span className="text-slate-500 dark:text-slate-400">{c.visitors.toLocaleString()}</span>
-                      <span className="font-semibold text-slate-900 dark:text-white w-10 text-right">{c.share}%</span>
-                    </div>
-                  </div>
-                  <div className="h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${i === 0 ? "bg-primary" : "bg-primary/40"}`}
-                      style={{ width: `${c.share * 1.7}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
         {/* Cart Trends */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6">
           <h2 className="text-base font-bold text-slate-900 dark:text-white mb-1">Cart Trends</h2>
@@ -492,6 +492,7 @@ export default function AdminAnalytics() {
             )}
           </div>
         </div>
+
       </div>
 
       {/* ── UTM Link Generator (NEW) ── */}
