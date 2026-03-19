@@ -18,7 +18,7 @@ export default async function AdminCustomers() {
         quantity,
         unit_price,
         variant,
-        products(name, image_url)
+        products(name, image_url, colors)
       )
     `)
     .order("created_at", { ascending: false });
@@ -161,6 +161,7 @@ export default async function AdminCustomers() {
           quantity: i.quantity,
           unit_price: i.unit_price,
           variant: i.variant,
+          productColors: i.products?.colors,
           image: variantImageUrl || i.products?.image_url
         };
       }),

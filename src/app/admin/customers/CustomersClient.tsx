@@ -424,36 +424,46 @@ export function CustomersClient({ initialCustomers }: { initialCustomers: Custom
                    
                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-4 custom-scrollbar">
                       {selectedCustomer.itemsList.length > 0 ? (
-                        selectedCustomer.itemsList.map((item, idx) => (
-                           <div key={idx} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm group hover:border-primary/30 transition-all">
-                              <div className="size-16 rounded-xl bg-slate-50 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-100 dark:border-slate-800 flex items-center justify-center">
-                                 {item.image ? (
-                                    <img src={item.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                 ) : (
-                                    <span className="material-symbols-outlined text-slate-300">image</span>
-                                 )}
-                              </div>
-                               <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight truncate mb-2">{item.name}</p>
-                                  <div className="flex items-center gap-3 mt-auto">
-                                     <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.quantity} × {formatCurrency(item.unit_price)}</span>
-                                     {item.variant && (
-                                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/5 rounded-full border border-primary/10">
-                                           <div 
-                                             className="size-2 rounded-full border border-white/20" 
-                                             style={{ 
-                                               backgroundColor: (item.variant && typeof item.variant === 'object') 
-                                                 ? (item.variant.hex || item.variant.color || '#000000') 
-                                                 : (typeof item.variant === 'string' ? item.variant : '#000000')
-                                             }} 
-                                           />
-                                           <span className="text-[9px] font-black text-primary uppercase tracking-widest">{typeof item.variant === 'object' ? item.variant.name : 'Custom'}</span>
-                                        </div>
-                                     )}
-                                  </div>
+                        selectedCustomer.itemsList.map((item, idx) => {
+                           const productDefaultColor = item.productColors?.[0];
+                           const fallbackName = typeof productDefaultColor === 'object' ? productDefaultColor.name : productDefaultColor;
+                           const variantName = (item.variant && typeof item.variant === 'object') 
+                             ? item.variant.name 
+                             : (typeof item.variant === 'string' ? item.variant : null);
+                           
+                           const displayVariant = (variantName && variantName !== 'Default') ? variantName : (fallbackName !== 'Default' ? fallbackName : null);
+
+                           return (
+                            <div key={idx} className="flex items-center gap-4 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm group hover:border-primary/30 transition-all">
+                               <div className="size-16 rounded-xl bg-slate-50 dark:bg-slate-800 overflow-hidden shrink-0 border border-slate-100 dark:border-slate-800 flex items-center justify-center">
+                                  {item.image ? (
+                                     <img src={item.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                  ) : (
+                                     <span className="material-symbols-outlined text-slate-300">image</span>
+                                  )}
                                </div>
-                           </div>
-                        ))
+                                <div className="flex-1 min-w-0">
+                                   <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight truncate mb-2">{item.name}</p>
+                                   <div className="flex items-center gap-3 mt-auto">
+                                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{item.quantity} × {formatCurrency(item.unit_price)}</span>
+                                      {displayVariant && (
+                                         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/5 rounded-full border border-primary/10">
+                                            <div 
+                                              className="size-2 rounded-full border border-white/20" 
+                                              style={{ 
+                                                backgroundColor: (item.variant && typeof item.variant === 'object') 
+                                                  ? (item.variant.hex || item.variant.color || '#000000') 
+                                                  : (typeof item.variant === 'string' ? item.variant : (typeof productDefaultColor === 'object' ? productDefaultColor.hex : '#000000'))
+                                              }} 
+                                            />
+                                            <span className="text-[9px] font-black text-primary uppercase tracking-widest">{displayVariant}</span>
+                                         </div>
+                                      )}
+                                   </div>
+                                </div>
+                            </div>
+                           );
+                        })
                       ) : (
                         <div className="py-20 border-3 border-dashed border-slate-100 dark:border-slate-800 rounded-[3rem] flex flex-col items-center gap-6 opacity-30 text-center px-10">
                            <span className="material-symbols-outlined text-6xl">shopping_cart</span>
