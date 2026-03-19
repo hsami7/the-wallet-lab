@@ -97,6 +97,16 @@ export function ProductDetailsClient({
     }
   };
 
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - left) / width) * 100;
+    const y = ((e.clientY - top) / height) * 100;
+    setZoomPos({ x, y });
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-20 pt-4 md:pt-8 pb-24">
       <div className="flex items-center gap-2 text-sm text-slate-500 mb-8">
@@ -112,13 +122,26 @@ export function ProductDetailsClient({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
         {/* Left: Images */}
         <div className="space-y-6">
-          <div className={`${product.is_wide ? 'aspect-[2.4/1] bg-slate-200/5 dark:bg-white/5 p-4 md:p-6' : 'aspect-square bg-slate-200/5 dark:bg-white/5'} rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-primary/10 flex items-center justify-center`}>
+          <div 
+            className={`${product.is_wide ? 'aspect-[2.4/1] bg-slate-200/5 dark:bg-white/5 p-4 md:p-6' : 'aspect-square bg-slate-200/5 dark:bg-white/5'} rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-primary/10 flex items-center justify-center cursor-zoom-in relative group/zoom`}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={() => setIsZooming(true)}
+            onMouseLeave={() => setIsZooming(false)}
+          >
             <img
               src={mainImage}
               alt={`${product.name} - Premium Embroidery Art`}
-              className={`${product.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} transition-all duration-500`}
+              style={{
+                transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
+                transform: isZooming ? "scale(2)" : "scale(1)",
+              }}
+              className={`${product.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} transition-transform duration-300 ease-out pointer-events-none`}
               loading="lazy"
             />
+            {/* Zoom Indicator Hint */}
+            <div className="absolute bottom-6 right-6 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-300 pointer-events-none">
+              <span className="material-symbols-outlined text-white text-xl">zoom_in</span>
+            </div>
           </div>
 
           {allImages.length > 1 && (
