@@ -360,7 +360,7 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
         if (error) throw error;
         productId = data.id;
         setCurrentId(productId);
-        
+
         // Update URL to the edit page so refreshes/further auto-saves work correctly
         if (typeof window !== 'undefined') {
           window.history.replaceState(null, '', `/admin/products/${productId}`);
@@ -387,10 +387,10 @@ export default function ProductForm({ initialData, isEditing = false }: ProductF
       }
 
       if (!silent) {
-        const successMsg = status === 'active' 
+        const successMsg = status === 'active'
           ? (isEditing ? "Changes published successfully!" : "Product published successfully!")
           : "Draft saved successfully!";
-        
+
         showToast(successMsg, "success");
         router.push("/admin/products");
         router.refresh();

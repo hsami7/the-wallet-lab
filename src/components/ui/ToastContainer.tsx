@@ -9,7 +9,7 @@ export function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-3 pointer-events-none">
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 sm:top-24 sm:right-8 sm:left-auto sm:translate-x-0 z-[100] flex flex-col gap-3 pointer-events-none w-[calc(100%-2rem)] sm:w-auto max-w-md">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} onRemove={() => removeToast(toast.id)} />
       ))}
@@ -49,7 +49,7 @@ function ToastItem({ toast, onRemove }: { toast: Toast, onRemove: () => void }) 
 
   return (
     <div 
-      className={`pointer-events-auto min-w-[320px] max-w-md animate-in fade-in zoom-in slide-in-from-top-4 duration-300`}
+      className={`pointer-events-auto w-full sm:min-w-[320px] animate-in fade-in zoom-in slide-in-from-top-4 duration-300`}
       onClick={onRemove}
     >
       <div className={`${config.bg} text-white px-6 py-4 rounded-2xl shadow-2xl ${config.shadow} flex items-center gap-3 border border-white/20 cursor-pointer hover:scale-[1.02] transition-transform`}>

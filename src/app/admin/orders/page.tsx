@@ -15,9 +15,7 @@ export default async function AdminOrders() {
         phone,
         address,
         city,
-        zip,
-        address1,
-        address2
+        zip
       ),
       order_items (
         quantity,

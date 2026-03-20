@@ -91,7 +91,7 @@ export function ProductDetailsClient({
       slug: product.slug,
       category: product.category,
     });
-    
+
     if (!wishlisted) {
       trackEvent("wishlist_add", { product_id: product.id, product_name: product.name });
     }
@@ -122,7 +122,7 @@ export function ProductDetailsClient({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
         {/* Left: Images */}
         <div className="space-y-6">
-          <div 
+          <div
             className={`${product.is_wide ? 'aspect-[2.4/1] bg-slate-200/5 dark:bg-white/5 p-4 md:p-6' : 'aspect-square bg-slate-200/5 dark:bg-white/5'} rounded-[2rem] overflow-hidden border border-slate-200/50 dark:border-primary/10 flex items-center justify-center cursor-zoom-in relative group/zoom`}
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsZooming(true)}

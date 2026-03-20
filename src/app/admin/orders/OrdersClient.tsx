@@ -290,30 +290,30 @@ export function OrdersClient({ initialOrders }: { initialOrders: Record<string, 
 
       {/* Bulk Action Bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-8 animate-in slide-in-from-bottom-4">
-          <div className="flex items-center gap-2 border-r border-slate-700 dark:border-slate-200 pr-8">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 sm:px-8 py-4 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center gap-4 sm:gap-8 animate-in slide-in-from-bottom-4 w-[calc(100%-2rem)] sm:w-auto">
+          <div className="flex items-center gap-2 border-b sm:border-b-0 sm:border-r border-slate-700 dark:border-slate-200 pb-2 sm:pb-0 sm:pr-8 w-full sm:w-auto justify-center">
             <span className="text-xl font-bold">{selectedIds.size}</span>
             <span className="text-xs uppercase font-black tracking-widest text-slate-400">Selected</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Bulk Status:</span>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Bulk:</span>
             <div className="flex gap-2">
               <button 
                 onClick={() => handleStatusUpdate([...selectedIds], "processing")}
-                className="px-4 py-2 bg-yellow-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110"
+                className="px-3 sm:px-4 py-2 bg-yellow-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110 whitespace-nowrap"
               >
                 Processing
               </button>
               <button 
                 onClick={() => handleStatusUpdate([...selectedIds], "shipped")}
-                className="px-4 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110"
+                className="px-3 sm:px-4 py-2 bg-blue-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:brightness-110 whitespace-nowrap"
               >
                 Shipped
               </button>
             </div>
             <button 
                onClick={() => setSelectedIds(new Set())}
-               className="ml-4 text-xs font-bold text-slate-400 hover:text-white"
+               className="text-xs font-bold text-slate-400 hover:text-white"
             >
               Cancel
             </button>

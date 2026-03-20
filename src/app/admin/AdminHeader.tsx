@@ -193,7 +193,7 @@ export default function AdminHeader({
             {notifOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setNotifOpen(false)} />
-                <div className="absolute right-0 top-12 z-20 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                <div className="fixed sm:absolute right-4 sm:right-0 top-16 sm:top-12 z-[110] w-[calc(100vw-2rem)] sm:w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                   <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                     <span className="text-sm font-bold text-slate-900 dark:text-white">Notifications</span>
                     <button className="text-xs text-primary font-medium hover:underline">Mark all read</button>
@@ -241,6 +241,66 @@ export default function AdminHeader({
                 >
                   <span className="material-symbols-outlined">close</span>
                 </button>
+              </div>
+
+              {/* Mobile Search */}
+              <div className="relative mb-8 admin-search-container">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                <input
+                  className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:ring-2 focus:ring-primary/20 border-0 transition-all font-medium"
+                  placeholder="Navigate to..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowResults(true);
+                  }}
+                  onFocus={() => setShowResults(true)}
+                />
+                
+                {/* Search Results for Mobile */}
+                {showResults && (filteredNavItems.length > 0 || filteredPageResults.length > 0) && (
+                  <div className="absolute top-14 left-0 w-full bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-[110] max-h-[60vh] overflow-y-auto">
+                    <div className="p-2 flex flex-col gap-1">
+                      {filteredPageResults.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={item.href}
+                          onClick={() => {
+                            setShowResults(false);
+                            setSearchQuery("");
+                            setIsMenuOpen(false);
+                          }}
+                          className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          <div className="size-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
+                            <span className="material-symbols-outlined text-[18px]">{item.icon || "receipt_long"}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm font-semibold text-slate-900 dark:text-white block">{item.title}</span>
+                            {item.subtitle && <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5">{item.subtitle}</span>}
+                          </div>
+                        </Link>
+                      ))}
+                      {filteredNavItems.map((item) => (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => {
+                            setShowResults(false);
+                            setSearchQuery("");
+                            setIsMenuOpen(false);
+                          }}
+                          className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          <div className="size-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-500">
+                            <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                          </div>
+                          <span className="text-sm font-semibold text-slate-900 dark:text-white">{item.label}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <nav className="flex flex-col gap-2">
