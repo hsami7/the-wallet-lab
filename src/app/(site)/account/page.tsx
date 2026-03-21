@@ -46,6 +46,7 @@ export default function AccountPage() {
     is_default: false
   });
   const [isSavingCard, setIsSavingCard] = useState(false);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   
   // Validation Patterns
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -194,12 +195,22 @@ export default function AccountPage() {
     }
   };
 
-  const handleDeleteCard = async (id: string) => {
-    if (!confirm("Are you sure you want to remove this card?")) return;
+  const handleDeleteCard = async (id: string | null) => {
+    if (!id) {
+      setConfirmingDeleteId(null);
+      return;
+    }
+
+    if (confirmingDeleteId !== id) {
+      setConfirmingDeleteId(id);
+      return;
+    }
+
     try {
       await deleteCard(id);
       showToast("Card removed successfully", "success");
       setCards(cards.filter(c => c.id !== id));
+      setConfirmingDeleteId(null);
     } catch (err: any) {
       showToast(err.message, "error");
     }
@@ -664,22 +675,42 @@ export default function AccountPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                           {!card.is_default && (
-                             <button 
-                               onClick={() => setDefaultCard(card.id).then(() => getCards().then(setCards))} 
-                               title="Set as Default"
-                               className="size-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center backdrop-blur-md transition-all"
-                             >
-                               <span className="material-symbols-outlined text-sm">emergency_home</span>
-                             </button>
+                        <div className={`absolute top-4 right-4 ${confirmingDeleteId === card.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity flex gap-2`}>
+                           {confirmingDeleteId === card.id ? (
+                             <div className="flex gap-2 items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-full px-4 py-1.5 shadow-xl border border-white/20 animate-in fade-in slide-in-from-right-4 duration-300">
+                               <p className="text-[10px] font-black uppercase text-slate-500 tracking-tighter mr-1">Confirm?</p>
+                               <button 
+                                 onClick={() => handleDeleteCard(card.id)}
+                                 className="size-7 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-all shadow-lg shadow-red-500/20"
+                               >
+                                 <span className="material-symbols-outlined text-sm">check</span>
+                               </button>
+                               <button 
+                                 onClick={() => setConfirmingDeleteId(null)}
+                                 className="size-7 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 flex items-center justify-center hover:bg-slate-300 transition-all"
+                               >
+                                 <span className="material-symbols-outlined text-sm">close</span>
+                               </button>
+                             </div>
+                           ) : (
+                             <>
+                               {!card.is_default && (
+                                 <button 
+                                   onClick={() => setDefaultCard(card.id).then(() => getCards().then(setCards))} 
+                                   title="Set as Default"
+                                   className="size-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center backdrop-blur-md transition-all"
+                                 >
+                                   <span className="material-symbols-outlined text-sm">emergency_home</span>
+                                 </button>
+                               )}
+                               <button 
+                                 onClick={() => setConfirmingDeleteId(card.id)}
+                                 className="size-8 rounded-full bg-red-500/20 hover:bg-red-500/40 flex items-center justify-center backdrop-blur-md transition-all text-red-200"
+                               >
+                                 <span className="material-symbols-outlined text-sm">delete</span>
+                               </button>
+                             </>
                            )}
-                           <button 
-                             onClick={() => handleDeleteCard(card.id)}
-                             className="size-8 rounded-full bg-red-500/20 hover:bg-red-500/40 flex items-center justify-center backdrop-blur-md transition-all text-red-200"
-                           >
-                             <span className="material-symbols-outlined text-sm">delete</span>
-                           </button>
                         </div>
                       </div>
                     ))

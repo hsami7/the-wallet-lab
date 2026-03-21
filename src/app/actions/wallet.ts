@@ -80,9 +80,9 @@ export async function deleteCard(cardId: string) {
 
   if (!user) throw new Error("Unauthorized");
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from("user_cards")
-    .delete()
+    .delete({ count: 'exact' })
     .eq("id", cardId)
     .eq("user_id", user.id);
 
