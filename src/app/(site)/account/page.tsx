@@ -675,7 +675,7 @@ export default function AccountPage() {
                             </div>
                           </div>
                         </div>
-                        <div className={`absolute top-4 right-4 ${confirmingDeleteId === card.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity flex gap-2`}>
+                        <div className="absolute top-4 right-4 flex gap-2 transition-all">
                            {confirmingDeleteId === card.id ? (
                              <div className="flex gap-2 items-center bg-white/90 dark:bg-slate-900/90 backdrop-blur-md rounded-full px-4 py-1.5 shadow-xl border border-white/20 animate-in fade-in slide-in-from-right-4 duration-300">
                                <p className="text-[10px] font-black uppercase text-slate-500 tracking-tighter mr-1">Confirm?</p>
