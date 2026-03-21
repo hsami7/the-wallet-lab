@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { createOrder } from "@/app/actions/orders";
 import { useToast } from "@/context/ToastContext";
 import { updateProfile } from "@/app/actions/profile";
+import { getCards, saveCard, type UserCard } from "@/app/actions/wallet";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -61,6 +62,18 @@ export default function CheckoutPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [paymentMethod, setPaymentMethod] = useState("card");
+  
+  // Wallet Integration
+  const [savedCards, setSavedCards] = useState<UserCard[]>([]);
+  const [selectedCardId, setSelectedCardId] = useState<string | 'new'>('new');
+  const [saveToWallet, setSaveToWallet] = useState(false);
+  const [cardDetails, setCardDetails] = useState({
+    card_holder: "",
+    card_number: "",
+    expiry: "",
+    cvc: ""
+  });
+
   const [promoInput, setPromoInput] = useState("");
   const [promoStatus, setPromoStatus] = useState<"idle" | "success" | "error">("idle");
   const [user, setUser] = useState<any>(null);
@@ -105,6 +118,26 @@ export default function CheckoutPage() {
     setFieldErrors({});
 
     try {
+      // Handle Card Saving if needed
+      if (paymentMethod === 'card' && selectedCardId === 'new') {
+        if (!cardDetails.card_number || cardDetails.card_number.length < 15) {
+          throw new Error("Please enter a valid card number.");
+        }
+        if (saveToWallet && user) {
+          const brand = cardDetails.card_number.startsWith('4') ? 'visa' : 'mastercard';
+          const [expMonth, expYear] = cardDetails.expiry.split('/');
+          await saveCard({
+            card_holder: cardDetails.card_holder,
+            last_four: cardDetails.card_number.slice(-4),
+            brand: brand,
+            exp_month: parseInt(expMonth),
+            exp_year: parseInt('20' + expYear),
+            is_default: savedCards.length === 0
+          });
+          showToast("Card saved to your vault.", "success");
+        }
+      }
+
       // Sync profile - Always update phone if logged in
       if (user) {
         await updateProfile({
@@ -176,12 +209,19 @@ export default function CheckoutPage() {
         } else {
           setFormData(prev => ({ ...prev, email: currentUser.email || "" }));
         }
+
+        // Load cards
+        const cards = await getCards();
+        setSavedCards(cards);
+        if (cards.length > 0) {
+          const defaultCard = cards.find(c => c.is_default) || cards[0];
+          setSelectedCardId(defaultCard.id);
+        }
       }
 
       setLoading(false);
 
       if (!loading && cart.length === 0 && !isSubmitting && !isSuccess) {
-        // Only redirect if we ARE NOT currently submitting or just finished
         router.push("/shop");
       }
     }
@@ -403,24 +443,117 @@ export default function CheckoutPage() {
 
             <div className="mt-8">
               {paymentMethod === 'card' ? (
-                <ScrollReveal animation="fade-up" className="p-6 bg-slate-100 dark:bg-slate-900/40 rounded-2xl space-y-6 border border-slate-200 dark:border-slate-800">
-                  <label className="flex flex-col gap-2">
-                    <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Card Number</span>
-                    <div className="relative">
-                      <input required className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pl-12 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="0000 0000 0000 0000" type="text" />
-                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">credit_card</span>
+                <ScrollReveal animation="fade-up" className="space-y-6">
+                  {savedCards.length > 0 && (
+                    <div className="space-y-4">
+                      <p className="text-[10px] font-bold uppercase text-slate-400 tracking-widest pl-1">Saved Cards</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {savedCards.map(card => (
+                          <div 
+                            key={card.id}
+                            onClick={() => setSelectedCardId(card.id)}
+                            className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center gap-4 ${selectedCardId === card.id ? 'border-primary bg-primary/5' : 'border-slate-100 dark:border-slate-800 hover:border-slate-200'}`}
+                          >
+                            <div className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                              <span className="material-symbols-outlined text-primary">credit_card</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold truncate uppercase">{card.brand} **** {card.last_four}</p>
+                              <p className="text-[10px] text-slate-500">Expires {card.exp_month.toString().padStart(2, '0')}/{card.exp_year.toString().slice(-2)}</p>
+                            </div>
+                            {selectedCardId === card.id && (
+                              <span className="material-symbols-outlined text-primary text-sm">check_circle</span>
+                            )}
+                          </div>
+                        ))}
+                        <div 
+                          onClick={() => setSelectedCardId('new')}
+                          className={`p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${selectedCardId === 'new' ? 'border-primary bg-primary/5' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'}`}
+                        >
+                          <div className="size-10 rounded-full bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-slate-400">add</span>
+                          </div>
+                          <p className="text-sm font-bold text-slate-500">Use another card</p>
+                        </div>
+                      </div>
                     </div>
-                  </label>
-                  <div className="grid grid-cols-2 gap-6">
-                    <label className="flex flex-col gap-2">
-                      <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Expiry Date</span>
-                      <input required className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="MM/YY" type="text" />
-                    </label>
-                    <label className="flex flex-col gap-2">
-                      <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">CVC</span>
-                      <input required className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="123" type="text" />
-                    </label>
-                  </div>
+                  )}
+
+                  {selectedCardId === 'new' && (
+                    <div className="p-6 bg-slate-100 dark:bg-slate-900/40 rounded-2xl space-y-6 border border-slate-200 dark:border-slate-800 animate-in fade-in slide-in-from-top-4 duration-300">
+                      <label className="flex flex-col gap-2">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Card Holder Name</span>
+                        <div className="relative">
+                          <input 
+                            required 
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pl-12 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-xs" 
+                            placeholder="AS SEEN ON THE CARD" 
+                            type="text" 
+                            value={cardDetails.card_holder}
+                            onChange={(e) => setCardDetails({ ...cardDetails, card_holder: e.target.value.toUpperCase() })}
+                          />
+                          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">person</span>
+                        </div>
+                      </label>
+                      <label className="flex flex-col gap-2">
+                        <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Card Number</span>
+                        <div className="relative">
+                          <input 
+                            required 
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pl-12 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                            placeholder="0000 0000 0000 0000" 
+                            type="text" 
+                            maxLength={16}
+                            value={cardDetails.card_number}
+                            onChange={(e) => setCardDetails({ ...cardDetails, card_number: e.target.value.replace(/\D/g, '') })}
+                          />
+                          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">credit_card</span>
+                        </div>
+                      </label>
+                      <div className="grid grid-cols-2 gap-6">
+                        <label className="flex flex-col gap-2">
+                          <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Expiry Date</span>
+                          <input 
+                            required 
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                            placeholder="MM/YY" 
+                            type="text" 
+                            maxLength={5}
+                            value={cardDetails.expiry}
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/\D/g, '');
+                              if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2, 4);
+                              setCardDetails({ ...cardDetails, expiry: val });
+                            }}
+                          />
+                        </label>
+                        <label className="flex flex-col gap-2">
+                          <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">CVC</span>
+                          <input 
+                            required 
+                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                            placeholder="123" 
+                            type="password" 
+                            maxLength={3}
+                            value={cardDetails.cvc}
+                            onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value.replace(/\D/g, '') })}
+                          />
+                        </label>
+                      </div>
+                      
+                      {user && (
+                        <label className="flex items-center gap-2 cursor-pointer select-none pl-1">
+                          <input 
+                            type="checkbox" 
+                            className="size-4 rounded border-slate-300 text-primary focus:ring-primary"
+                            checked={saveToWallet}
+                            onChange={e => setSaveToWallet(e.target.checked)}
+                          />
+                          <span className="text-xs font-bold text-slate-500">Save card to my vault for future experiments</span>
+                        </label>
+                      )}
+                    </div>
+                  )}
                 </ScrollReveal>
               ) : (
                 <ScrollReveal animation="fade-up" className="p-10 rounded-2xl border-2 border-dashed border-emerald-500/30 bg-emerald-500/5 flex flex-col items-center justify-center gap-4 text-center">

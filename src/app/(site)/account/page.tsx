@@ -6,6 +6,7 @@ import { logout } from "@/app/actions/auth";
 import { updateProfile } from "@/app/actions/profile";
 import { createClient } from "@/utils/supabase/client";
 import { useToast } from "@/context/ToastContext";
+import { getCards, saveCard, deleteCard, setDefaultCard, type UserCard } from "@/app/actions/wallet";
 
 type TabType = "account" | "wallet" | "orders" | "privacy";
 
@@ -31,6 +32,20 @@ export default function AccountPage() {
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  
+  // Wallet State
+  const [cards, setCards] = useState<UserCard[]>([]);
+  const [isLoadingCards, setIsLoadingCards] = useState(true);
+  const [isAddingCard, setIsAddingCard] = useState(false);
+  const [newCard, setNewCard] = useState({
+    card_holder: "",
+    card_number: "", // Only for input
+    exp_month: "",
+    exp_year: "",
+    cvc: "", // Only for input
+    is_default: false
+  });
+  const [isSavingCard, setIsSavingCard] = useState(false);
   
   // Validation Patterns
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -133,6 +148,62 @@ export default function AccountPage() {
     }
     loadData();
   }, []);
+
+  useEffect(() => {
+    async function loadCards() {
+      setIsLoadingCards(true);
+      const data = await getCards();
+      setCards(data);
+      setIsLoadingCards(false);
+    }
+    if (activeTab === "wallet") {
+      loadCards();
+    }
+  }, [activeTab]);
+
+  const handleAddCard = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingCard(true);
+    try {
+      // Basic validation
+      if (!newCard.card_number || newCard.card_number.length < 15) throw new Error("Invalid card number");
+      
+      const brand = newCard.card_number.startsWith('4') ? 'visa' : 'mastercard';
+      const lastFour = newCard.card_number.slice(-4);
+
+      await saveCard({
+        card_holder: newCard.card_holder,
+        last_four: lastFour,
+        brand: brand,
+        exp_month: parseInt(newCard.exp_month),
+        exp_year: parseInt('20' + newCard.exp_year),
+        is_default: newCard.is_default
+      });
+
+      showToast("Card saved to your wallet!", "success");
+      setIsAddingCard(false);
+      setNewCard({ card_holder: "", card_number: "", exp_month: "", exp_year: "", cvc: "", is_default: false });
+      
+      // Refresh cards
+      const updatedCards = await getCards();
+      setCards(updatedCards);
+    } catch (err: any) {
+      showToast(err.message, "error");
+    } finally {
+      setIsSavingCard(false);
+    }
+  };
+
+  const handleDeleteCard = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this card?")) return;
+    try {
+      await deleteCard(id);
+      showToast("Card removed successfully", "success");
+      setCards(cards.filter(c => c.id !== id));
+    } catch (err: any) {
+      showToast(err.message, "error");
+    }
+  };
 
   const handlePhoneEdit = async () => {
     setErrorMessage("");
@@ -529,73 +600,210 @@ export default function AccountPage() {
 
           {activeTab === "wallet" && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <h1 className="text-3xl font-bold tracking-tight mb-8">My Wallet</h1>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* Real Credit Card UI */}
-                <div className="lg:col-span-2 space-y-8">
-                  <div className="relative h-64 w-full max-w-md perspective-1000 group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-primary rounded-3xl p-8 text-white shadow-2xl flex flex-col justify-between overflow-hidden">
-                      {/* Card Patterns/Texture */}
-                      <div className="absolute top-0 right-0 size-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
-                      <div className="absolute bottom-0 left-0 size-64 bg-primary/20 rounded-full -ml-32 -mb-32 blur-3xl"></div>
-                      
-                      <div className="flex justify-between items-start relative z-10">
-                        <div className="flex flex-col gap-1">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Premium Card</p>
-                          <span className="material-symbols-outlined text-4xl text-white/90">contactless</span>
-                        </div>
-                        <div className="size-16 flex items-end justify-end">
-                            <svg className="h-8" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="30" cy="30" r="30" fill="#EB001B" fillOpacity="0.8"/>
-                                <circle cx="70" cy="30" r="30" fill="#F79E1B" fillOpacity="0.8"/>
-                            </svg>
-                        </div>
-                      </div>
+              <div className="flex items-center justify-between mb-8">
+                <h1 className="text-3xl font-bold tracking-tight">My Wallet</h1>
+                <button 
+                  onClick={() => setIsAddingCard(true)}
+                  className="px-6 py-2.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-lg">add_card</span>
+                  Add New Card
+                </button>
+              </div>
 
-                      <div className="space-y-6 relative z-10">
-                        <div className="flex gap-4">
-                            {['****', '****', '****', '4242'].map((set, i) => (
-                                <span key={i} className="text-2xl font-mono tracking-widest">{set}</span>
-                            ))}
-                        </div>
-                        
-                        <div className="flex justify-between items-end">
-                          <div>
-                            <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Card Holder</p>
-                            <p className="text-sm font-bold tracking-wider uppercase">{fullName || "MEMBER"}</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Expires</p>
-                            <p className="text-sm font-bold">12/26</p>
-                          </div>
-                        </div>
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                  {isLoadingCards ? (
+                    <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                      <span className="material-symbols-outlined animate-spin text-primary">cached</span>
+                      <p className="text-sm text-slate-500 mt-2">Loading your vault...</p>
                     </div>
-                  </div>
+                  ) : cards.length === 0 ? (
+                    <div className="p-12 text-center bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                      <span className="material-symbols-outlined text-4xl text-slate-300 mb-4">wallet</span>
+                      <p className="text-sm text-slate-500">Your wallet is empty.</p>
+                      <p className="text-xs text-slate-400 mt-1">Save cards for faster checkout.</p>
+                    </div>
+                  ) : (
+                    cards.map((card) => (
+                      <div key={card.id} className="relative group">
+                        <div className={`h-56 w-full max-w-md perspective-1000 bg-gradient-to-br transition-all duration-500 ${card.brand === 'visa' ? 'from-blue-600 to-primary' : 'from-slate-900 to-slate-800'} rounded-3xl p-8 text-white shadow-2xl flex flex-col justify-between overflow-hidden border border-white/10`}>
+                          <div className="absolute top-0 right-0 size-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+                          <div className="absolute bottom-0 left-0 size-64 bg-primary/20 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+                          
+                          <div className="flex justify-between items-start relative z-10">
+                            <div className="flex flex-col gap-1">
+                              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">{card.brand} {card.is_default ? '(Default)' : ''}</p>
+                              <span className="material-symbols-outlined text-4xl text-white/90">contactless</span>
+                            </div>
+                            <div className="size-16 flex items-end justify-end">
+                              {card.brand === 'visa' ? (
+                                <svg className="h-6" viewBox="0 0 100 32" fill="white"><path d="M40.2 2L32.2 21.8H25.4L18.8 6C18.2 4.4 17 3.4 15.6 2.6L8 2L15.4 30H22.8L34 2L40.2 2ZM59.6 2.4L55 21.6 C55 21.6 54.8 22.8 53.6 22.8H48.4C46.8 22.8 45.8 22 45.4 20.8L40.6 2.4H47.4L49.4 13.8L53 2.4H59.6ZM78 9.6 C78 5.6 74 2.4 69 2.4L64 2.4C62.4 2.4 61.4 3.2 61 4.4L60 6.4H66.6C67.4 6.4 68 6.8 68 7.4C68 8 67.4 8.4 66.6 8.4H61.6 L61 10.4C61 10.4 61 11.2 61.6 11.2H66.4C67.2 11.2 67.8 11.6 67.8 12.2C67.8 12.8 67.2 13.2 66.4 13.2H60.4L59.8 15.2 C59.8 15.2 59.6 16.4 60.8 16.4H65.8C66.6 16.4 67.2 16.8 67.2 17.4C67.2 18 66.6 18.4 65.8 18.4H59.8L59 21.6C59 21.6 58.8 22.8 60 22.8H65C70 22.8 74 19.6 74 15.6C74 13.4 73 11.4 71.4 10.2C71.2 10 70.8 9.8 70.6 9.6M92 2.4L88.6 22.8H82.4L85.8 2.4H92Z" /></svg>
+                              ) : (
+                                <svg className="h-8" viewBox="0 0 100 60" fill="none"><circle cx="30" cy="30" r="30" fill="#EB001B" fillOpacity="0.8"/><circle cx="70" cy="30" r="30" fill="#F79E1B" fillOpacity="0.8"/></svg>
+                              )}
+                            </div>
+                          </div>
 
-                  <div className="space-y-4">
-                    <button className="flex items-center justify-center gap-3 p-4 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 text-slate-400 font-bold hover:border-primary hover:text-primary transition-all group w-full max-w-md">
-                        <span className="material-symbols-outlined group-hover:rotate-90 transition-transform">add</span>
-                        <span className="text-sm">Add New Card</span>
-                    </button>
-                  </div>
+                          <div className="space-y-6 relative z-10">
+                            <div className="flex gap-4">
+                              {['****', '****', '****', card.last_four].map((set, idx) => (
+                                <span key={idx} className="text-xl md:text-2xl font-mono tracking-widest">{set}</span>
+                              ))}
+                            </div>
+                            
+                            <div className="flex justify-between items-end">
+                              <div>
+                                <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Card Holder</p>
+                                <p className="text-sm font-bold tracking-wider uppercase line-clamp-1">{card.card_holder}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Expires</p>
+                                <p className="text-sm font-bold">{card.exp_month.toString().padStart(2, '0')}/{card.exp_year.toString().slice(-2)}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                           {!card.is_default && (
+                             <button 
+                               onClick={() => setDefaultCard(card.id).then(() => getCards().then(setCards))} 
+                               title="Set as Default"
+                               className="size-8 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center backdrop-blur-md transition-all"
+                             >
+                               <span className="material-symbols-outlined text-sm">emergency_home</span>
+                             </button>
+                           )}
+                           <button 
+                             onClick={() => handleDeleteCard(card.id)}
+                             className="size-8 rounded-full bg-red-500/20 hover:bg-red-500/40 flex items-center justify-center backdrop-blur-md transition-all text-red-200"
+                           >
+                             <span className="material-symbols-outlined text-sm">delete</span>
+                           </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
 
-                {/* Account Benefits / Quick Info */}
                 <div className="space-y-6">
                     <div className="bg-primary/5 rounded-3xl p-6 border border-primary/20">
                         <div className="flex items-center gap-3 mb-3">
                             <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white">
                                 <span className="material-symbols-outlined text-xl">verified</span>
                             </div>
-                            <h3 className="font-bold text-primary">Secure Wallet</h3>
+                            <h3 className="font-bold text-primary">Secure Vault</h3>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                            Your payment information is stored securely using AES-256 bit encryption and is never shared directly with merchants.
+                            Your payment information is stored securely using AES-256 bit encryption.
                         </p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-900/50 rounded-3xl p-6 border border-slate-200 dark:border-slate-800">
+                      <h4 className="font-bold text-sm mb-4">Laboratory Benefits</h4>
+                      <ul className="space-y-3">
+                        {[
+                          { icon: 'bolt', text: '1-Click Checkout enabled' },
+                          { icon: 'shield_check', text: 'Anti-fraud protection active' },
+                          { icon: 'history', text: 'Seamless refunds management' }
+                        ].map((b, i) => (
+                          <li key={i} className="flex items-center gap-3 text-xs text-slate-500">
+                            <span className="material-symbols-outlined text-primary text-sm">{b.icon}</span>
+                            {b.text}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Add Card Modal */}
+          {isAddingCard && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+               <div className="bg-white dark:bg-slate-950 w-full max-w-md rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                  <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between">
+                    <h2 className="text-xl font-black uppercase tracking-tight">Add New Card</h2>
+                    <button onClick={() => setIsAddingCard(false)} className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 transition-all">
+                      <span className="material-symbols-outlined">close</span>
+                    </button>
+                  </div>
+                  <form onSubmit={handleAddCard} className="p-8 space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Card Holder Name</label>
+                        <input 
+                          required 
+                          placeholder="AS SEEN ON CARD"
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm uppercase"
+                          value={newCard.card_holder}
+                          onChange={e => setNewCard({...newCard, card_holder: e.target.value})}
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Card Number</label>
+                        <input 
+                          required 
+                          placeholder="0000 0000 0000 0000"
+                          maxLength={16}
+                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm font-mono"
+                          value={newCard.card_number}
+                          onChange={e => setNewCard({...newCard, card_number: e.target.value.replace(/\D/g, '')})}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Expiry (MM/YY)</label>
+                          <div className="flex gap-2">
+                            <input 
+                              required 
+                              placeholder="MM"
+                              maxLength={2}
+                              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center"
+                              value={newCard.exp_month}
+                              onChange={e => setNewCard({...newCard, exp_month: e.target.value.replace(/\D/g, '')})}
+                            />
+                            <input 
+                              required 
+                              placeholder="YY"
+                              maxLength={2}
+                              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center"
+                              value={newCard.exp_year}
+                              onChange={e => setNewCard({...newCard, exp_year: e.target.value.replace(/\D/g, '')})}
+                            />
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">CVC</label>
+                          <input 
+                            required 
+                            placeholder="***"
+                            maxLength={3}
+                            type="password"
+                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center"
+                          />
+                        </div>
+                      </div>
+                      <label className="flex items-center gap-2 pt-2 cursor-pointer select-none">
+                        <input 
+                          type="checkbox" 
+                          className="size-4 rounded border-slate-300 text-primary focus:ring-primary"
+                          checked={newCard.is_default}
+                          onChange={e => setNewCard({...newCard, is_default: e.target.checked})}
+                        />
+                        <span className="text-xs font-bold text-slate-500">Set as default card</span>
+                      </label>
+                    </div>
+                    <button 
+                      type="submit"
+                      disabled={isSavingCard}
+                      className="w-full bg-primary text-white font-black py-4 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 shadow-xl shadow-primary/20 disabled:opacity-50"
+                    >
+                      {isSavingCard ? "Adding to Vault..." : "Save Card Details"}
+                    </button>
+                  </form>
+               </div>
             </div>
           )}
 
