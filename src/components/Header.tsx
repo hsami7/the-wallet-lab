@@ -10,6 +10,8 @@ import { logout } from "@/app/actions/auth";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/utils/translations";
 
 export default function Header() {
   const pathname = usePathname();
@@ -21,6 +23,9 @@ export default function Header() {
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userInitials, setUserInitials] = useState<string | null>(null);
+  
+  const { language } = useLanguage();
+  const t = translations[language]?.nav || translations['en'].nav;
 
   useEffect(() => {
     setMounted(true);
@@ -173,7 +178,7 @@ export default function Header() {
                 pathname === '/shop' ? "text-primary font-bold" : "text-slate-500 dark:text-slate-400 hover:text-primary"
               }`}
             >
-              Shop
+              {t.shop}
               {pathname === '/shop' && (
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full transition-all" />
               )}
@@ -184,7 +189,7 @@ export default function Header() {
                 pathname === '/about' ? "text-primary font-bold" : "text-slate-500 dark:text-slate-400 hover:text-primary"
               }`}
             >
-              About Us
+              {t.about}
               {pathname === '/about' && (
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full transition-all" />
               )}
@@ -195,7 +200,7 @@ export default function Header() {
                 pathname === '/contact' ? "text-primary font-bold" : "text-slate-500 dark:text-slate-400 hover:text-primary"
               }`}
             >
-              Contact Us
+              {t.contact}
               {pathname === '/contact' && (
                 <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-primary rounded-full transition-all" />
               )}
@@ -273,11 +278,11 @@ export default function Header() {
 
               <nav className="flex flex-col gap-6">
                 {[
-                  { label: "Shop", href: "/shop", icon: "shopping_basket" },
-                  { label: "About Us", href: "/about", icon: "help" },
-                  { label: "Contact Us", href: "/contact", icon: "mail" },
+                  { label: t.shop, href: "/shop", icon: "shopping_basket" },
+                  { label: t.about, href: "/about", icon: "help" },
+                  { label: t.contact, href: "/contact", icon: "mail" },
                   { label: "My Account", href: "/account", icon: "person" },
-                  { label: "Whishlist", href: "/wishlist", icon: "favorite" },
+                  { label: "Wishlist", href: "/wishlist", icon: "favorite" },
                 ].map((item) => (
                   <Link
                     key={item.label}

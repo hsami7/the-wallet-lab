@@ -8,6 +8,8 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { flyToCart } from "@/utils/animations";
 import { trackEvent } from "@/components/analytics/TrackingProvider";
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/utils/translations";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "newest" | "name-asc";
 
@@ -23,6 +25,9 @@ function ShopContent({ products }: { products: any[] }) {
     const cats = Array.from(new Set(products.map((p) => p.category).filter(Boolean))) as string[];
     return cats.sort();
   }, [products]);
+
+  const { language } = useLanguage();
+  const t = translations[language]?.shop || translations['en'].shop;
 
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
@@ -68,10 +73,10 @@ function ShopContent({ products }: { products: any[] }) {
   };
 
   const sortLabels: Record<SortOption, string> = {
-    featured: "Featured",
-    "price-asc": "Price: Low to High",
-    "price-desc": "Price: High to Low",
-    newest: "Newest",
+    featured: t.featured || "Featured",
+    "price-asc": t.priceLow || "Price: Low to High",
+    "price-desc": t.priceHigh || "Price: High to Low",
+    newest: t.newest || "Newest",
     "name-asc": "Name A–Z",
   };
 
@@ -146,7 +151,7 @@ function ShopContent({ products }: { products: any[] }) {
     <div className="max-w-7xl mx-auto px-6 md:px-20 pt-0 pb-24 w-full">
       <div className="mb-12 mt-12">
         <h1 className="text-5xl md:text-6xl font-black mb-4 tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-500 dark:from-white dark:to-primary/60">
-          THREADED EXPERIMENTS
+          {t.title || "THREADED EXPERIMENTS"}
         </h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 max-w-xl">
           Wearable art crafted with surgical precision. Elevate your style with intricate, meticulously calculated embroidery.
@@ -165,7 +170,7 @@ function ShopContent({ products }: { products: any[] }) {
               : "bg-slate-100 dark:bg-primary/10 text-slate-600 dark:text-slate-300 hover:bg-primary/20"
               }`}
           >
-            All
+            {t.all || "All"}
           </button>
           {categories.map((cat) => (
             <button
@@ -193,7 +198,7 @@ function ShopContent({ products }: { products: any[] }) {
               onClick={() => setSortOpen((o) => !o)}
               className="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-primary/20 rounded-xl text-sm font-medium hover:border-primary transition-all"
             >
-              Sort: {sortLabels[sortBy]}
+              {t.sortBy || "Sort"}: {sortLabels[sortBy]}
               <span className={`material-symbols-outlined text-sm transition-transform ${sortOpen ? "rotate-180" : ""}`}>
                 keyboard_arrow_down
               </span>
@@ -229,7 +234,7 @@ function ShopContent({ products }: { products: any[] }) {
         {filteredAndSorted.length === 0 ? (
           <div className="col-span-full py-24 flex flex-col items-center text-center">
             <span className="material-symbols-outlined text-5xl text-slate-300 dark:text-slate-600 mb-4">inventory_2</span>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">No products in this category yet.</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium">{t.noProducts || 'No products in this category yet.'}</p>
           </div>
         ) : (
           filteredAndSorted.map((product) => (
