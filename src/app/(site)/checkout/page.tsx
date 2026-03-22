@@ -9,6 +9,7 @@ import { ScrollReveal } from "@/components/ScrollReveal";
 import { createOrder } from "@/app/actions/orders";
 import { useToast } from "@/context/ToastContext";
 import { updateProfile } from "@/app/actions/profile";
+import { signUpUser } from "@/app/actions/auth";
 import { getCards, saveCard, type UserCard } from "@/app/actions/wallet";
 
 export default function CheckoutPage() {
@@ -79,6 +80,11 @@ export default function CheckoutPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Guest Account Creation Modal
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [guestPassword, setGuestPassword] = useState("");
+  const [isSigningUp, setIsSigningUp] = useState(false);
+
   const handleApplyPromo = async () => {
     if (!promoInput) return;
     const success = await applyPromoCode(promoInput);
@@ -116,7 +122,18 @@ export default function CheckoutPage() {
     setIsSubmitting(true);
     setError(null);
     setFieldErrors({});
+    
+    // If not logged in, prompt to create an account
+    if (!user) {
+      setIsSubmitting(false);
+      setShowSignupModal(true);
+      return;
+    }
 
+    await executeOrderCheckout(user.id);
+  };
+
+  const executeOrderCheckout = async (userId: string) => {
     try {
       // Handle Card Saving if needed
       if (paymentMethod === 'card' && selectedCardId === 'new') {
@@ -139,7 +156,7 @@ export default function CheckoutPage() {
       }
 
       // Sync profile - Always update phone if logged in
-      if (user) {
+      try {
         await updateProfile({
           full_name: `${formData.firstName} ${formData.lastName}`,
           phone: `+212${formData.phone}`,
@@ -147,10 +164,12 @@ export default function CheckoutPage() {
           city: formData.city,
           zip: formData.zip,
         });
+      } catch (err) {
+        console.warn("Could not update profile, proceeding with order.", err);
       }
 
       const result = await createOrder({
-        customer_id: user.id,
+        customer_id: userId,
         total_amount: total,
         shipping_rate_id: selectedRateId,
         shipping_address: { ...formData, phone: `+212${formData.phone}` },
@@ -177,6 +196,43 @@ export default function CheckoutPage() {
       console.error("Checkout submission failed:", err);
       setError(err.message || "An unexpected error occurred. Please try again.");
       setIsSubmitting(false);
+    }
+  };
+
+  const handleGuestSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!guestPassword || guestPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    
+    setIsSigningUp(true);
+    setError(null);
+    
+    try {
+      // Create the account using server action
+      const result = await signUpUser(formData.email, guestPassword, `${formData.firstName} ${formData.lastName}`);
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      
+      // Successfully created and logged in
+      showToast("Account created successfully. Processing order...", "success");
+      setShowSignupModal(false);
+      setIsSubmitting(true);
+      
+      // Make sure we have the new session
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) throw new Error("Authentication failed after signup.");
+      
+      // Proceed to checkout with the new user ID
+      await executeOrderCheckout(session.user.id);
+
+    } catch (err: any) {
+       console.error("Signup failed:", err);
+       setError(err.message || "Failed to create account. Please try again.");
+       setIsSigningUp(false);
     }
   };
 
@@ -236,28 +292,6 @@ export default function CheckoutPage() {
     );
   }
 
-  if (!user) {
-    return (
-      <div className="max-w-7xl mx-auto px-6 md:px-20 py-24 text-center">
-        <ScrollReveal animation="fade-up">
-          <div className="size-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-8">
-            <span className="material-symbols-outlined text-4xl">lock</span>
-          </div>
-          <h1 className="text-3xl font-black mb-4">Sign in to Checkout</h1>
-          <p className="text-slate-500 mb-10 max-w-md mx-auto">Please log in to your account to complete your purchase securely and track your order in the lab.</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login?redirect=/checkout" className="px-10 py-4 bg-primary text-white font-bold rounded-full shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">
-              Sign In Now
-            </Link>
-            <Link href="/cart" className="px-10 py-4 bg-slate-100 dark:bg-slate-800 font-bold rounded-full hover:bg-slate-200 transition-all">
-              Back to Cart
-            </Link>
-          </div>
-        </ScrollReveal>
-      </div>
-    );
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-6 md:px-20 py-8 md:py-12 w-full">
       <ScrollReveal className="flex items-center gap-2 mb-8 text-sm font-medium">
@@ -281,6 +315,19 @@ export default function CheckoutPage() {
               <h2 className="text-xl font-bold">Delivery Information</h2>
             </ScrollReveal>
             <ScrollReveal animation="fade-up" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {!user && (
+                <label className="flex flex-col gap-1 md:col-span-2">
+                  <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Email Address</span>
+                  <input 
+                    required 
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                    placeholder="john@example.com" 
+                    type="email" 
+                  />
+                </label>
+              )}
               <label className="flex flex-col gap-1">
                 <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">First Name</span>
                 <input 
@@ -700,6 +747,77 @@ export default function CheckoutPage() {
           © 2026 The embroidery&apos;s Lab. Engineered for those who know better. build by <a href="https://github.com/hsami7" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline decoration-dotted">github.com/hsami7</a>
         </p>
       </div>
+
+      {/* Guest Signup Modal */}
+      {showSignupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-black tracking-tight">Create Account</h3>
+              <button 
+                onClick={() => setShowSignupModal(false)}
+                className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+              >
+                <span className="material-symbols-outlined text-xl">close</span>
+              </button>
+            </div>
+            <p className="text-slate-500 mb-8 font-medium">Almost there! Set a password to create your account. This lets you track your order and saves your details for next time.</p>
+            
+            <form onSubmit={handleGuestSignup} className="space-y-6">
+              <label className="flex flex-col gap-2">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider pl-1">Email (from checkout)</span>
+                <input 
+                  disabled
+                  value={formData.email}
+                  className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl p-4 text-slate-500 cursor-not-allowed opacity-70" 
+                  type="email" 
+                />
+              </label>
+              
+              <label className="flex flex-col gap-2">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider pl-1">Choose Password</span>
+                <div className="relative">
+                  <input 
+                    required 
+                    value={guestPassword}
+                    onChange={(e) => setGuestPassword(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pl-12 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
+                    placeholder="Minimum 6 characters" 
+                    type="password"
+                    minLength={6} 
+                  />
+                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</span>
+                </div>
+              </label>
+
+              {error && (
+                <div className="p-4 rounded-xl bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm font-bold flex items-start gap-3">
+                  <span className="material-symbols-outlined text-lg">error</span>
+                  <p>{error}</p>
+                </div>
+              )}
+
+              <button 
+                type="submit" 
+                disabled={isSigningUp}
+                className="w-full bg-primary text-white font-bold py-4 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all shadow-xl shadow-primary/20 disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSigningUp ? (
+                  <>
+                    <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    Create Account & Buy
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -120,3 +120,39 @@ export async function updatePassword(formData: FormData) {
 
   redirect('/login?message=Password updated successfully! Please sign in.')
 }
+
+export async function signUpUser(email: string, password: string, fullName: string) {
+  const supabase = await createClient()
+
+  const { error, data: authData } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: fullName,
+      }
+    }
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  // Manually ensure profile is created if trigger is missing
+  if (authData.user) {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert({
+        id: authData.user.id,
+        email: authData.user.email,
+        full_name: fullName,
+        role: 'customer' // Default role
+      })
+    
+    if (profileError) {
+      console.warn("Manual profile creation failed:", profileError.message)
+    }
+  }
+
+  return { success: true }
+}

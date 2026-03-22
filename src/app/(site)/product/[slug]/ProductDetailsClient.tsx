@@ -3,11 +3,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
+import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { flyToCart } from "@/utils/animations";
 import { trackEvent } from "@/components/analytics/TrackingProvider";
 import { submitReview } from "@/app/actions/reviews";
+import { useLanguage } from "@/context/LanguageContext";
 
 export function ProductDetailsClient({
   product,
@@ -28,6 +30,67 @@ export function ProductDetailsClient({
   const { addItem } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(product.id);
+  const { language } = useLanguage();
+
+  const t = {
+    en: {
+      addToCart: "Add to Cart",
+      itemAdded: "Item Added",
+      selectFinish: "Select Finish",
+      completeCollection: "Complete Your Collection",
+      recommendInfo: "Curated recommendations to complement your",
+      labFeedback: "Client Reviews", 
+      verifiedArtisan: "Verified Customer", 
+      writeReview: "Write a Review",
+      yourRating: "Your Rating",
+      yourName: "Your Name",
+      yourReview: "Your Review",
+      submitReview: "Submit Review",
+      submitting: "Submitting...",
+      noReviews: "No reviews yet",
+      beFirst: "Be the first to share your thoughts on the",
+      thankYou: "Thank you!",
+      feedbackHelps: "Your feedback helps us improve.",
+    },
+    fr: {
+      addToCart: "Ajouter au Panier",
+      itemAdded: "Ajouté",
+      selectFinish: "Choisir la Finition",
+      completeCollection: "Complétez Votre Collection",
+      recommendInfo: "Des recommandations pour accompagner votre",
+      labFeedback: "Avis Clients",
+      verifiedArtisan: "Client Vérifié",
+      writeReview: "Écrire un Avis",
+      yourRating: "Votre Note",
+      yourName: "Votre Nom",
+      yourReview: "Votre Avis",
+      submitReview: "Envoyer l'Avis",
+      submitting: "En cours...",
+      noReviews: "Aucun avis",
+      beFirst: "Soyez le premier à partager votre avis sur",
+      thankYou: "Merci !",
+      feedbackHelps: "Votre avis nous aide à nous améliorer.",
+    },
+    ar: {
+      addToCart: "أضف إلى السلة",
+      itemAdded: "تمت الإضافة",
+      selectFinish: "اختر اللون",
+      completeCollection: "أكمل مجموعتك",
+      recommendInfo: "توصيات مميزة لتناسب",
+      labFeedback: "آراء العملاء",
+      verifiedArtisan: "زبون مؤكد",
+      writeReview: "اكتب تقييم",
+      yourRating: "تقييمك",
+      yourName: "الاسم",
+      yourReview: "رأيك",
+      submitReview: "إرسال",
+      submitting: "جاري الإرسال...",
+      noReviews: "لا توجد تقييمات",
+      beFirst: "كن أول من يشاركنا رأيه حول",
+      thankYou: "شكراً لك!",
+      feedbackHelps: "رأيك يساعدنا على العمل بشكل أفضل.",
+    }
+  }[language];
 
   // Check for active free shipping promotions
   const activePromo = shippingRules.find(r => r.active);
@@ -104,7 +167,7 @@ export function ProductDetailsClient({
     });
 
     // Trigger fly to cart animation
-    if (e.currentTarget instanceof HTMLElement) {
+    if (e.currentTarget instanceof HTMLElement && window.innerWidth > 768) {
       flyToCart(e.currentTarget);
     }
 
@@ -158,15 +221,17 @@ export function ProductDetailsClient({
             onMouseEnter={() => setIsZooming(true)}
             onMouseLeave={() => setIsZooming(false)}
           >
-            <img
+            <Image
               src={mainImage}
               alt={`${product.name} - Premium Embroidery Art`}
               style={{
                 transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                 transform: isZooming ? "scale(2)" : "scale(1)",
               }}
-              className={`${product.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} transition-transform duration-300 ease-out pointer-events-none`}
-              loading="lazy"
+              className={`${product.is_wide ? 'object-contain' : 'object-cover'} transition-transform duration-300 ease-out pointer-events-none`}
+              priority={true}
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
             />
             {/* Zoom Indicator Hint */}
             <div className="absolute bottom-6 right-6 size-12 rounded-full bg-white/10 backdrop-blur-md border border-white/20 opacity-0 group-hover/zoom:opacity-100 transition-opacity duration-300 pointer-events-none flex items-center justify-center">
@@ -185,7 +250,7 @@ export function ProductDetailsClient({
                     : "border-slate-200 dark:border-white/5 hover:border-primary/50"
                     }`}
                 >
-                  <img src={img} alt={`${product.name} - Embroidery Detail View ${idx + 1}`} className={`${product.is_wide ? 'w-full h-full object-contain' : 'w-full h-full object-cover'}`} />
+                  <Image src={img} alt={`${product.name} - Embroidery Detail View ${idx + 1}`} fill sizes="80px" className={`${product.is_wide ? 'object-contain' : 'object-cover'}`} />
                 </button>
               ))}
             </div>
@@ -233,7 +298,7 @@ export function ProductDetailsClient({
           {/* Color Selection */}
           {product.colors && product.colors.length > 0 && (
             <div className="space-y-4">
-              <p className="text-sm font-bold uppercase tracking-widest text-slate-400">Select Finish</p>
+              <p className="text-sm font-bold uppercase tracking-widest text-slate-400">{t.selectFinish}</p>
               <div className="flex gap-4">
                 {product.colors.map((variant: any, idx: number) => {
                   const colorHex = variant.hex || variant.color;
@@ -291,12 +356,12 @@ export function ProductDetailsClient({
               >
                 {added ? (
                   <>
-                    Item Added
+                    {t.itemAdded}
                     <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   </>
                 ) : (
                   <>
-                    Add to Cart <span className="material-symbols-outlined">add_shopping_cart</span>
+                    {t.addToCart} <span className="material-symbols-outlined">add_shopping_cart</span>
                   </>
                 )}
               </button>
@@ -363,14 +428,14 @@ export function ProductDetailsClient({
       {relatedProducts && relatedProducts.length > 0 && (
         <div className="mt-32 pt-16 border-t border-slate-100 dark:border-slate-800">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-black uppercase tracking-tight mb-4">Complete Your Collection</h2>
-            <p className="text-slate-500">Curated recommendations from the lab to complement your {product.name}.</p>
+            <h2 className="text-3xl font-black uppercase tracking-tight mb-4">{t.completeCollection}</h2>
+            <p className="text-slate-500">{t.recommendInfo} {product.name}.</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {relatedProducts.map((rp) => (
               <Link key={rp.id} href={`/product/${rp.slug}`} className="group block">
                 <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl overflow-hidden aspect-square relative mb-6">
-                  <img src={rp.image_url} alt={rp.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <Image src={rp.image_url} alt={rp.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-110" />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
                 </div>
                 <div>
@@ -392,7 +457,7 @@ export function ProductDetailsClient({
           <div className="lg:col-span-8">
             <div className="flex items-end gap-6 mb-12">
               <div>
-                <h2 className="text-3xl font-black uppercase tracking-tight mb-2">Laboratory Feedback</h2>
+                <h2 className="text-3xl font-black uppercase tracking-tight mb-2">{t.labFeedback}</h2>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-1 text-amber-400">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -418,7 +483,7 @@ export function ProductDetailsClient({
                         </div>
                         <div>
                           <p className="font-bold">{r.customer_name}</p>
-                          <p className="text-xs text-slate-500 uppercase tracking-widest">Verified Artisan</p>
+                          <p className="text-xs text-slate-500 uppercase tracking-widest">{t.verifiedArtisan}</p>
                         </div>
                       </div>
                       <div className="text-xs text-slate-400 font-mono">
@@ -441,8 +506,8 @@ export function ProductDetailsClient({
             ) : (
               <div className="text-center py-16 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
                 <span className="material-symbols-outlined text-4xl text-slate-400 mb-4">rate_review</span>
-                <h3 className="text-lg font-bold mb-2">No reviews yet</h3>
-                <p className="text-slate-500">Be the first to share your thoughts on the {product.name}.</p>
+                <h3 className="text-lg font-bold mb-2">{t.noReviews}</h3>
+                <p className="text-slate-500">{t.beFirst} {product.name}.</p>
               </div>
             )}
           </div>
@@ -450,17 +515,17 @@ export function ProductDetailsClient({
           {/* Review Submission Form */}
           <div className="lg:col-span-4">
             <div className="bg-slate-50 dark:bg-slate-900 p-8 rounded-[32px] sticky top-32">
-              <h3 className="text-xl font-black uppercase tracking-tight mb-6">Write a Review</h3>
+              <h3 className="text-xl font-black uppercase tracking-tight mb-6">{t.writeReview}</h3>
               {reviewSuccess ? (
                 <div className="bg-emerald-500/10 text-emerald-600 p-6 rounded-2xl text-center">
                   <span className="material-symbols-outlined text-4xl mb-2">check_circle</span>
-                  <p className="font-bold mb-1">Thank you!</p>
-                  <p className="text-sm">Your feedback helps refine the lab.</p>
+                  <p className="font-bold mb-1">{t.thankYou}</p>
+                  <p className="text-sm">{t.feedbackHelps}</p>
                 </div>
               ) : (
                 <form onSubmit={handleReviewSubmit} className="space-y-6">
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">Your Rating</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">{t.yourRating}</label>
                     <div className="flex items-center gap-2">
                       {[1, 2, 3, 4, 5].map((star) => (
                         <button
@@ -475,18 +540,17 @@ export function ProductDetailsClient({
                     </div>
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">Your Name</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">{t.yourName}</label>
                     <input 
                       required
                       type="text"
                       className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors text-sm"
-                      placeholder="Jane Doe"
                       value={reviewName}
                       onChange={e => setReviewName(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">Your Review</label>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">{t.yourReview}</label>
                     <textarea 
                       required
                       rows={4}
@@ -501,7 +565,7 @@ export function ProductDetailsClient({
                     disabled={isSubmittingReview}
                     className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-xl hover:scale-[1.02] transition-all disabled:opacity-50 uppercase tracking-widest text-sm"
                   >
-                    {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                    {isSubmittingReview ? t.submitting : t.submitReview}
                   </button>
                 </form>
               )}

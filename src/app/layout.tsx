@@ -66,6 +66,7 @@ import { ToastProvider } from "@/context/ToastContext";
 import { ToastContainer } from "@/components/ui/ToastContainer";
 import JsonLd from "@/components/seo/JsonLd";
 import TrackingProvider from "@/components/analytics/TrackingProvider";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export default function RootLayout({
   children,
@@ -93,14 +94,16 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <JsonLd />
           <TrackingProvider />
-          <ToastProvider>
-            <CartProvider>
-              <WishlistProvider>
-                {children}
-                <ToastContainer />
-              </WishlistProvider>
-            </CartProvider>
-          </ToastProvider>
+          <LanguageProvider>
+            <ToastProvider>
+              <CartProvider>
+                <WishlistProvider>
+                  {children}
+                  <ToastContainer />
+                </WishlistProvider>
+              </CartProvider>
+            </ToastProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

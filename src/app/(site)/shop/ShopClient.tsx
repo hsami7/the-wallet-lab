@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
@@ -238,11 +239,12 @@ function ShopContent({ products }: { products: any[] }) {
               className="group relative flex flex-col bg-white dark:bg-slate-900/50 rounded-xl overflow-hidden border border-slate-200 dark:border-primary/10 hover:border-primary transition-all duration-300"
             >
               <div className={`relative aspect-square overflow-hidden ${product.is_wide ? 'p-3 bg-slate-200/5 dark:bg-white/5 border border-slate-200/50 dark:border-primary/10 rounded-lg' : 'bg-slate-200/5 dark:bg-white/5'} flex items-center justify-center`}>
-                <img
+                <Image
                   alt={`${product.name} - Premium Embroidery Art`}
-                  className={`${product.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} group-hover:scale-110 transition-transform duration-500`}
+                  className={`${product.is_wide ? 'object-contain' : 'object-cover'} group-hover:scale-110 transition-transform duration-500`}
                   src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"}
-                  loading="lazy"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 {product.track_inventory && product.inventory_count <= 0 && (
                   <div className="absolute top-4 left-4">

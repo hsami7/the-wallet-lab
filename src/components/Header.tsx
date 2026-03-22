@@ -9,6 +9,7 @@ import { useWishlist } from "@/context/WishlistContext";
 import { logout } from "@/app/actions/auth";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 export default function Header() {
   const pathname = usePathname();
@@ -203,6 +204,8 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2 lg:gap-4">
+          <LanguageSwitcher />
+
           {/* Theme toggle - optimized for instant display */}
           <button
             onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
