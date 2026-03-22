@@ -13,6 +13,7 @@ export type UserCard = {
   exp_year: number;
   is_default: boolean;
   created_at: string;
+  cvc?: string;
 };
 
 export async function getCards(): Promise<UserCard[]> {
@@ -37,16 +38,33 @@ export async function getCards(): Promise<UserCard[]> {
 
 export async function saveCard(cardData: {
   card_holder: string;
-  last_four: string;
-  brand: string;
+  card_number: string;
   exp_month: number;
   exp_year: number;
   is_default?: boolean;
+  cvc?: string;
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Unauthorized");
+
+  const lastFour = cardData.card_number.slice(-4);
+  const brand = cardData.card_number.startsWith('4') ? 'visa' : 'mastercard';
+
+  // Duplicate Check
+  const { data: existing } = await supabase
+    .from("user_cards")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("last_four", lastFour)
+    .eq("exp_month", cardData.exp_month)
+    .eq("exp_year", cardData.exp_year)
+    .maybeSingle();
+
+  if (existing) {
+    throw new Error("This card is already in your wallet.");
+  }
 
   // If setting as default, unset others first
   if (cardData.is_default) {
@@ -59,8 +77,14 @@ export async function saveCard(cardData: {
   const { data, error } = await supabase
     .from("user_cards")
     .insert({
-      ...cardData,
       user_id: user.id,
+      card_holder: cardData.card_holder,
+      last_four: lastFour,
+      brand: brand,
+      exp_month: cardData.exp_month,
+      exp_year: cardData.exp_year,
+      is_default: cardData.is_default || false,
+      cvc: cardData.cvc
     })
     .select()
     .single();

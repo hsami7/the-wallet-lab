@@ -47,6 +47,8 @@ export default function AccountPage() {
   });
   const [isSavingCard, setIsSavingCard] = useState(false);
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const [walletFieldErrors, setWalletFieldErrors] = useState<Record<string, string>>({});
   
   // Validation Patterns
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -165,20 +167,42 @@ export default function AccountPage() {
   const handleAddCard = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingCard(true);
+    setWalletError(null);
+    setWalletFieldErrors({});
+    
     try {
-      // Basic validation
-      if (!newCard.card_number || newCard.card_number.length < 15) throw new Error("Invalid card number");
+      // Client-side validation
+      const errors: Record<string, string> = {};
       
-      const brand = newCard.card_number.startsWith('4') ? 'visa' : 'mastercard';
-      const lastFour = newCard.card_number.slice(-4);
+      if (!newCard.card_holder) errors.card_holder = "Card holder name is required";
+      if (!newCard.card_number || newCard.card_number.replace(/\s/g, '').length < 15) errors.card_number = "Invalid card number";
+      
+      const month = parseInt(newCard.exp_month);
+      if (isNaN(month) || month < 1 || month > 12) {
+        errors.exp_month = "Invalid month (01-12)";
+      }
+      
+      if (!newCard.exp_year || newCard.exp_year.length !== 2) {
+        errors.exp_year = "Invalid year (YY)";
+      }
+      
+      if (!newCard.cvc || newCard.cvc.length < 3) {
+        errors.cvc = "Invalid CVC";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setWalletFieldErrors(errors);
+        setIsSavingCard(false);
+        return;
+      }
 
       await saveCard({
         card_holder: newCard.card_holder,
-        last_four: lastFour,
-        brand: brand,
-        exp_month: parseInt(newCard.exp_month),
+        card_number: newCard.card_number,
+        exp_month: month,
         exp_year: parseInt('20' + newCard.exp_year),
-        is_default: newCard.is_default
+        is_default: newCard.is_default,
+        cvc: newCard.cvc
       });
 
       showToast("Card saved to your wallet!", "success");
@@ -189,6 +213,7 @@ export default function AccountPage() {
       const updatedCards = await getCards();
       setCards(updatedCards);
     } catch (err: any) {
+      setWalletError(err.message);
       showToast(err.message, "error");
     } finally {
       setIsSavingCard(false);
@@ -668,9 +693,17 @@ export default function AccountPage() {
                                 <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Card Holder</p>
                                 <p className="text-sm font-bold tracking-wider uppercase line-clamp-1">{card.card_holder}</p>
                               </div>
-                              <div className="text-right">
-                                <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Expires</p>
-                                <p className="text-sm font-bold">{card.exp_month.toString().padStart(2, '0')}/{card.exp_year.toString().slice(-2)}</p>
+                              <div className="text-right flex gap-4">
+                                <div>
+                                  <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">Expires</p>
+                                  <p className="text-sm font-bold">{card.exp_month.toString().padStart(2, '0')}/{card.exp_year.toString().slice(-2)}</p>
+                                </div>
+                                {card.cvc && (
+                                  <div>
+                                    <p className="text-[8px] font-bold uppercase tracking-widest text-white/40 mb-1">CVC</p>
+                                    <p className="text-sm font-bold">{card.cvc}</p>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -756,21 +789,30 @@ export default function AccountPage() {
                <div className="bg-white dark:bg-slate-950 w-full max-w-md rounded-[32px] border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                   <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex items-center justify-between">
                     <h2 className="text-xl font-black uppercase tracking-tight">Add New Card</h2>
-                    <button onClick={() => setIsAddingCard(false)} className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 transition-all">
+                    <button onClick={() => { setIsAddingCard(false); setWalletError(null); }} className="size-10 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-slate-100 transition-all">
                       <span className="material-symbols-outlined">close</span>
                     </button>
                   </div>
                   <form onSubmit={handleAddCard} className="p-8 space-y-6">
+                    {walletError && (
+                      <div className="bg-red-500/10 border border-red-500/20 text-red-500 p-4 rounded-xl text-xs font-bold animate-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-sm">error</span>
+                          {walletError}
+                        </div>
+                      </div>
+                    )}
                     <div className="space-y-4">
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Card Holder Name</label>
                         <input 
                           required 
                           placeholder="AS SEEN ON CARD"
-                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm uppercase"
+                          className={`w-full bg-slate-50 dark:bg-slate-900 border ${walletFieldErrors.card_holder ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm uppercase`}
                           value={newCard.card_holder}
                           onChange={e => setNewCard({...newCard, card_holder: e.target.value})}
                         />
+                        {walletFieldErrors.card_holder && <p className="text-[10px] text-red-500 font-bold ml-1">{walletFieldErrors.card_holder}</p>}
                       </div>
                       <div className="flex flex-col gap-1.5">
                         <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">Card Number</label>
@@ -778,10 +820,11 @@ export default function AccountPage() {
                           required 
                           placeholder="0000 0000 0000 0000"
                           maxLength={16}
-                          className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm font-mono"
+                          className={`w-full bg-slate-50 dark:bg-slate-900 border ${walletFieldErrors.card_number ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm font-mono`}
                           value={newCard.card_number}
                           onChange={e => setNewCard({...newCard, card_number: e.target.value.replace(/\D/g, '')})}
                         />
+                        {walletFieldErrors.card_number && <p className="text-[10px] text-red-500 font-bold ml-1">{walletFieldErrors.card_number}</p>}
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex flex-col gap-1.5">
@@ -791,7 +834,7 @@ export default function AccountPage() {
                               required 
                               placeholder="MM"
                               maxLength={2}
-                              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center"
+                              className={`w-full bg-slate-50 dark:bg-slate-900 border ${walletFieldErrors.exp_month ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center`}
                               value={newCard.exp_month}
                               onChange={e => setNewCard({...newCard, exp_month: e.target.value.replace(/\D/g, '')})}
                             />
@@ -799,11 +842,14 @@ export default function AccountPage() {
                               required 
                               placeholder="YY"
                               maxLength={2}
-                              className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center"
+                              className={`w-full bg-slate-50 dark:bg-slate-900 border ${walletFieldErrors.exp_year ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center`}
                               value={newCard.exp_year}
                               onChange={e => setNewCard({...newCard, exp_year: e.target.value.replace(/\D/g, '')})}
                             />
                           </div>
+                          {(walletFieldErrors.exp_month || walletFieldErrors.exp_year) && (
+                            <p className="text-[10px] text-red-500 font-bold ml-1">{walletFieldErrors.exp_month || walletFieldErrors.exp_year}</p>
+                          )}
                         </div>
                         <div className="flex flex-col gap-1.5">
                           <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1">CVC</label>
@@ -811,9 +857,12 @@ export default function AccountPage() {
                             required 
                             placeholder="***"
                             maxLength={3}
-                            type="password"
-                            className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center"
+                            type="text"
+                            className={`w-full bg-slate-50 dark:bg-slate-900 border ${walletFieldErrors.cvc ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'} rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-primary transition-all text-sm text-center`}
+                            value={newCard.cvc}
+                            onChange={e => setNewCard({...newCard, cvc: e.target.value.replace(/\D/g, '')})}
                           />
+                          {walletFieldErrors.cvc && <p className="text-[10px] text-red-500 font-bold ml-1">{walletFieldErrors.cvc}</p>}
                         </div>
                       </div>
                       <label className="flex items-center gap-2 pt-2 cursor-pointer select-none">

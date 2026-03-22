@@ -128,11 +128,11 @@ export default function CheckoutPage() {
           const [expMonth, expYear] = cardDetails.expiry.split('/');
           await saveCard({
             card_holder: cardDetails.card_holder,
-            last_four: cardDetails.card_number.slice(-4),
-            brand: brand,
+            card_number: cardDetails.card_number,
             exp_month: parseInt(expMonth),
             exp_year: parseInt('20' + expYear),
-            is_default: savedCards.length === 0
+            is_default: savedCards.length === 0,
+            cvc: cardDetails.cvc
           });
           showToast("Card saved to your vault.", "success");
         }
@@ -458,7 +458,7 @@ export default function CheckoutPage() {
                               <span className="material-symbols-outlined text-primary">credit_card</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-bold truncate uppercase">{card.brand} **** {card.last_four}</p>
+                              <p className="text-sm font-bold truncate uppercase">{card.brand} **** {card.last_four} {card.cvc ? `• CVC: ${card.cvc}` : ''}</p>
                               <p className="text-[10px] text-slate-500">Expires {card.exp_month.toString().padStart(2, '0')}/{card.exp_year.toString().slice(-2)}</p>
                             </div>
                             {selectedCardId === card.id && (
@@ -533,7 +533,7 @@ export default function CheckoutPage() {
                             required 
                             className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" 
                             placeholder="123" 
-                            type="password" 
+                            type="text" 
                             maxLength={3}
                             value={cardDetails.cvc}
                             onChange={(e) => setCardDetails({ ...cardDetails, cvc: e.target.value.replace(/\D/g, '') })}
