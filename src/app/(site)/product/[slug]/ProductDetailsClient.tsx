@@ -7,15 +7,22 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { flyToCart } from "@/utils/animations";
 import { trackEvent } from "@/components/analytics/TrackingProvider";
+import { submitReview } from "@/app/actions/reviews";
 
 export function ProductDetailsClient({
   product,
   highlights = [],
-  shippingRules = []
+  shippingRules = [],
+  reviews = [],
+  reviewStats = { averageRating: 0, totalReviews: 0 },
+  relatedProducts = []
 }: {
   product: any;
   highlights?: any[];
   shippingRules?: any[];
+  reviews?: any[];
+  reviewStats?: { averageRating: number, totalReviews: number };
+  relatedProducts?: any[];
 }) {
   const router = useRouter();
   const { addItem } = useCart();
@@ -41,6 +48,29 @@ export function ProductDetailsClient({
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [added, setAdded] = useState(false);
+
+  // Review Form State
+  const [reviewName, setReviewName] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewName.trim() || !reviewComment.trim()) return;
+    
+    setIsSubmittingReview(true);
+    const result = await submitReview(product.id, reviewName, reviewRating, reviewComment);
+    
+    if (result.success) {
+      setReviewSuccess(true);
+      setReviewName("");
+      setReviewComment("");
+      setReviewRating(5);
+    }
+    setIsSubmittingReview(false);
+  };
 
   const [mainImage, setMainImage] = useState(product.image_url || "https://placehold.co/800x800/1e293b/ffffff?text=No+Image");
 
@@ -328,6 +358,159 @@ export function ProductDetailsClient({
           )}
         </div>
       </div>
+
+      {/* Frequently Bought Together / Complete the Look */}
+      {relatedProducts && relatedProducts.length > 0 && (
+        <div className="mt-32 pt-16 border-t border-slate-100 dark:border-slate-800">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-black uppercase tracking-tight mb-4">Complete Your Collection</h2>
+            <p className="text-slate-500">Curated recommendations from the lab to complement your {product.name}.</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {relatedProducts.map((rp) => (
+              <Link key={rp.id} href={`/product/${rp.slug}`} className="group block">
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl overflow-hidden aspect-square relative mb-6">
+                  <img src={rp.image_url} alt={rp.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">{rp.category}</p>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white capitalize truncate">{rp.name}</h3>
+                  <p className="font-mono text-slate-500 mt-1">{rp.price.toFixed(2)} MAD</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Product Reviews */}
+      <div className="mt-32 pt-16 border-t border-slate-100 dark:border-slate-800">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          
+          {/* Reviews List & Stats */}
+          <div className="lg:col-span-8">
+            <div className="flex items-end gap-6 mb-12">
+              <div>
+                <h2 className="text-3xl font-black uppercase tracking-tight mb-2">Laboratory Feedback</h2>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1 text-amber-400">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <span key={star} className="material-symbols-outlined" style={{ fontVariationSettings: star <= Math.round(reviewStats?.averageRating || 0) ? "'FILL' 1" : "'FILL' 0" }}>
+                        star
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-xl font-bold">{reviewStats?.averageRating || 0} / 5</p>
+                  <p className="text-slate-500 font-medium">({reviewStats?.totalReviews || 0} Reviews)</p>
+                </div>
+              </div>
+            </div>
+
+            {reviews && reviews.length > 0 ? (
+              <div className="space-y-8">
+                {reviews.map((r) => (
+                  <div key={r.id} className="pb-8 border-b border-slate-100 dark:border-slate-800 last:border-0">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-lg uppercase">
+                          {r.customer_name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-bold">{r.customer_name}</p>
+                          <p className="text-xs text-slate-500 uppercase tracking-widest">Verified Artisan</p>
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-400 font-mono">
+                        {new Date(r.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1 text-amber-400 text-sm mb-3">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span key={star} className="material-symbols-outlined text-sm" style={{ fontVariationSettings: star <= r.rating ? "'FILL' 1" : "'FILL' 0" }}>
+                            star
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{r.comment}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                <span className="material-symbols-outlined text-4xl text-slate-400 mb-4">rate_review</span>
+                <h3 className="text-lg font-bold mb-2">No reviews yet</h3>
+                <p className="text-slate-500">Be the first to share your thoughts on the {product.name}.</p>
+              </div>
+            )}
+          </div>
+
+          {/* Review Submission Form */}
+          <div className="lg:col-span-4">
+            <div className="bg-slate-50 dark:bg-slate-900 p-8 rounded-[32px] sticky top-32">
+              <h3 className="text-xl font-black uppercase tracking-tight mb-6">Write a Review</h3>
+              {reviewSuccess ? (
+                <div className="bg-emerald-500/10 text-emerald-600 p-6 rounded-2xl text-center">
+                  <span className="material-symbols-outlined text-4xl mb-2">check_circle</span>
+                  <p className="font-bold mb-1">Thank you!</p>
+                  <p className="text-sm">Your feedback helps refine the lab.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleReviewSubmit} className="space-y-6">
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">Your Rating</label>
+                    <div className="flex items-center gap-2">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setReviewRating(star)}
+                          className={`text-2xl transition-colors ${reviewRating >= star ? 'text-amber-400' : 'text-slate-300 dark:text-slate-700'}`}
+                        >
+                          <span className="material-symbols-outlined" style={{ fontVariationSettings: reviewRating >= star ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">Your Name</label>
+                    <input 
+                      required
+                      type="text"
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors text-sm"
+                      placeholder="Jane Doe"
+                      value={reviewName}
+                      onChange={e => setReviewName(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] uppercase font-bold text-slate-400 tracking-widest pl-1 mb-2 block">Your Review</label>
+                    <textarea 
+                      required
+                      rows={4}
+                      className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 outline-none focus:border-primary transition-colors text-sm resize-none"
+                      placeholder="What do you think about this piece?"
+                      value={reviewComment}
+                      onChange={e => setReviewComment(e.target.value)}
+                    />
+                  </div>
+                  <button 
+                    type="submit" 
+                    disabled={isSubmittingReview}
+                    className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold py-4 rounded-xl hover:scale-[1.02] transition-all disabled:opacity-50 uppercase tracking-widest text-sm"
+                  >
+                    {isSubmittingReview ? "Submitting..." : "Submit Review"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+          
+        </div>
+      </div>
+
     </div>
   );
 }

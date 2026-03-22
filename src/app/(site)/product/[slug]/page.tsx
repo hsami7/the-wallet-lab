@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ProductDetailsClient } from "./ProductDetailsClient";
 import type { Metadata } from "next";
 import JsonLd from "@/components/seo/JsonLd";
+import { getProductReviews } from "@/app/actions/reviews";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -65,6 +66,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .select("*")
     .eq("active", true);
 
+  // Fetch Reviews
+  const { reviews, stats } = await getProductReviews(product.id);
+
+  // Fetch Related Products (Limit 3)
+  const { data: relatedProducts } = await supabase
+    .from("products")
+    .select("id, name, slug, price, image_url, category")
+    .neq("id", product.id)
+    .eq("status", "active")
+    .limit(3);
+
   return (
     <>
       <JsonLd 
@@ -82,6 +94,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         product={product} 
         highlights={highlights || []} 
         shippingRules={shippingRules || []}
+        reviews={reviews}
+        reviewStats={stats}
+        relatedProducts={relatedProducts || []}
       />
     </>
   );

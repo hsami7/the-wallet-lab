@@ -21,6 +21,15 @@ export default async function AdminPage() {
   const totalRevenue = validOrders.reduce((acc, order) => acc + Number(order.total_amount), 0);
   const totalOrders = validOrders.length;
 
+  // Fetch Low Stock Alerts (Stock < 5)
+  const { data: lowStockProducts } = await supabase
+    .from("products")
+    .select("id, name, inventory_count, sku")
+    .eq("track_inventory", true)
+    .lt("inventory_count", 5)
+    .eq("status", "active")
+    .order("inventory_count", { ascending: true });
+
   // 1.2 Calculate Unique Customers (Profiles + Guests) from ALL orders
   const { data: allOrderEmails } = await supabase.from("orders").select("shipping_address");
   const { data: profileData } = await supabase.from("profiles").select("email, role");
@@ -174,6 +183,29 @@ export default async function AdminPage() {
           Welcome back, here&apos;s what&apos;s happening in the lab.
         </p>
       </div>
+
+      {/* Low Stock Alerts */}
+      {lowStockProducts && lowStockProducts.length > 0 && (
+        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/50 rounded-2xl p-6 mb-8 shadow-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="material-symbols-outlined text-amber-500 text-xl animate-pulse">warning</span>
+            <h2 className="text-sm font-black uppercase tracking-widest text-amber-700 dark:text-amber-500">Low Inventory Alerts</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {lowStockProducts.map(product => (
+              <Link key={product.id} href={`/admin/products/${product.id}/edit`} className="bg-white dark:bg-slate-900/50 rounded-xl p-4 border border-amber-100 dark:border-amber-800/30 hover:border-amber-300 dark:hover:border-amber-600 transition-colors group">
+                <div className="flex justify-between items-start mb-2">
+                  <p className="font-bold text-slate-900 dark:text-white truncate pr-2 group-hover:text-amber-600 transition-colors">{product.name}</p>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest shrink-0 ${product.inventory_count === 0 ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-700'}`}>
+                    {product.inventory_count} Left
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-mono">{product.sku || 'No SKU'}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
