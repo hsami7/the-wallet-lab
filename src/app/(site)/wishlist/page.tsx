@@ -7,6 +7,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
+import { createSharedWishlist } from "@/app/actions/wishlist";
 
 function WishlistContent() {
   const { wishlist: localWishlist, removeFromWishlist, clearWishlist, addToWishlist } = useWishlist();
@@ -98,32 +99,25 @@ function WishlistContent() {
     const productIds = localWishlist.map(item => item.id);
     const sid = sessionStorage.getItem("tracking_session_id") || "anon";
     
-    const { data: newShare, error } = await supabase
-      .from("shared_wishlists")
-      .insert({
-        product_ids: productIds,
-        session_id: sid
-      })
-      .select("id")
-      .single();
+    const { success, id, error } = await createSharedWishlist(productIds, sid);
 
     setIsGenerating(false);
 
-    if (error) {
+    if (!success) {
       console.error("Error creating shared wishlist:", error);
       return;
     }
 
     // 2. Generate short URL
     const baseUrl = window.location.origin + window.location.pathname;
-    const shareUrl = `${baseUrl}?s=${newShare.id}`;
+    const shareUrl = `${baseUrl}?s=${id}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
       
-      trackEvent("wishlist_share_created", { share_id: newShare.id });
+      trackEvent("wishlist_share_created", { share_id: id });
     } catch {
       window.prompt("Copy this link to share your wishlist:", shareUrl);
     }

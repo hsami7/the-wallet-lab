@@ -1,10 +1,10 @@
 "use server";
 
-import { createClient } from "@/utils/supabase/server";
+import { createClient, createAdminClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function submitReview(productId: string, customerName: string, rating: number, comment: string) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   try {
     const { error } = await supabase

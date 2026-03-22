@@ -3,6 +3,7 @@
 import { useEffect, Suspense } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { logTrafficEvent } from "@/app/actions/analytics";
 
 function TrackingHandler() {
   const searchParams = useSearchParams();
@@ -46,7 +47,7 @@ export const trackEvent = async (eventType: string, metadata: any = {}) => {
   const active_campaign = sessionStorage.getItem("utm_campaign");
   const ref_user = sessionStorage.getItem("ref_user");
 
-  await supabase.from("traffic_logs").insert({
+  await logTrafficEvent({
     url: window.location.href,
     referrer: document.referrer || "direct",
     utm_source: active_source,
