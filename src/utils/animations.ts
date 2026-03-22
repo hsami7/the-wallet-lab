@@ -7,13 +7,17 @@ export const flyToCart = (sourceElement: HTMLElement, color: string = '#0d59f2')
   const cartTarget = document.getElementById('cart-icon-target');
   if (!cartTarget) return;
 
-  // Subtle "ping" animation on the cart icon
+  // Check for prefers-reduced-motion or low-performance devices
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (prefersReducedMotion) return;
+
+  // Subtle "ping" animation on the cart icon using hardware-accelerated transforms
   cartTarget.animate([
-    { transform: 'scale(1)' },
-    { transform: 'scale(1.3)', backgroundColor: `${color}20` },
-    { transform: 'scale(1)' }
+    { transform: 'scale(1)', opacity: 1 },
+    { transform: 'scale(1.3)', opacity: 0.8 },
+    { transform: 'scale(1)', opacity: 1 }
   ], {
     duration: 300,
-    easing: 'ease-out'
+    easing: 'cubic-bezier(0.22, 1, 0.36, 1)'
   });
 };

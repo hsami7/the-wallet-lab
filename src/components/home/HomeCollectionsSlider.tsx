@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Collection {
   label: ReactNode;
@@ -41,11 +42,14 @@ export function HomeCollectionsSlider({ data }: { data: Collection[] }) {
       >
         {data.map((col, idx) => (
           <div key={idx} className="relative min-w-full h-full">
-            <img
+            <Image
               src={col.image_url}
               alt={`${col.label} - ${col.heading}`}
+              fill
+              sizes="100vw"
               className="absolute inset-0 w-full h-full object-cover"
-              loading={idx === 0 ? "eager" : "lazy"}
+              priority={idx === 0}
+              loading={idx === 0 ? undefined : "lazy"}
             />
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/30 to-transparent"></div>
             

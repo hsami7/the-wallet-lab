@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { flyToCart } from "@/utils/animations";
 
@@ -50,9 +51,11 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
       {featuredProducts && featuredProducts.length > 0 ? (
         featuredProducts.map((product) => (
           <Link key={product.id} href={`/product/${product.slug}`} className="group flex flex-col gap-6 p-6 rounded-xl bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 hover:border-primary/50 transition-all">
-            <div className={`overflow-hidden rounded-lg ${product.is_wide ? 'aspect-square p-3 bg-slate-200/5 dark:bg-white/5' : 'aspect-[4/5] bg-slate-200/5 dark:bg-white/5'} border border-slate-200/50 dark:border-primary/10 flex items-center justify-center`}>
-              <img
-                className={`${product.is_wide ? 'max-w-full max-h-full object-contain' : 'w-full h-full object-cover'} transition-transform duration-500 group-hover:scale-110`}
+            <div className={`overflow-hidden rounded-lg ${product.is_wide ? 'aspect-square p-3 bg-slate-200/5 dark:bg-white/5' : 'aspect-[4/5] bg-slate-200/5 dark:bg-white/5'} border border-slate-200/50 dark:border-primary/10 flex items-center justify-center relative`}>
+              <Image
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className={`${product.is_wide ? 'object-contain' : 'object-cover'} transition-transform duration-500 group-hover:scale-110`}
                 alt={`${product.name} - Premium Embroidery Art`}
                 src={product.image_url || "https://placehold.co/600x600/1e293b/ffffff?text=No+Image"}
                 loading="lazy"

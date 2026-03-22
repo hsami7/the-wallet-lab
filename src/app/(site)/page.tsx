@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getCollections } from "@/app/actions/homepage";
 import { createClient } from "@/utils/supabase/server";
 import { FeaturedProductsClient } from "@/components/home/FeaturedProductsClient";
@@ -46,13 +47,16 @@ export default async function Home() {
       ) : (
         <section className="grid grid-cols-1 md:grid-cols-3 w-full h-auto min-h-[600px]">
           {gridData.map((col, idx) => (
-            <div key={idx} className={`relative group overflow-hidden h-[600px] md:h-auto ${idx === 1 ? 'border-y md:border-y-0 md:border-x border-white/10' : ''}`}>
+            <div key={idx} className={`relative group overflow-hidden h-[600px] md:h-auto min-h-[500px] md:aspect-[4/5] ${idx === 1 ? 'border-y md:border-y-0 md:border-x border-white/10' : ''}`}>
               {col.image_url ? (
-                <img
+                <Image
                   src={col.image_url}
                   alt={`${col.label} - ${col.heading}`}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  loading="lazy"
+                  priority={idx === 0}
+                  loading={idx === 0 ? undefined : "lazy"}
                 />
               ) : (
                 <div className="absolute inset-0 w-full h-full bg-slate-900 transition-transform duration-700 group-hover:scale-105"></div>
