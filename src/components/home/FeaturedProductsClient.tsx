@@ -5,8 +5,14 @@ import Link from "next/link";
 import { useCart } from "@/context/CartContext";
 import { flyToCart } from "@/utils/animations";
 
+import { useLanguage } from "@/context/LanguageContext";
+import { translations } from "@/utils/translations";
+
 export function FeaturedProductsClient({ featuredProducts }: { featuredProducts: any[] }) {
   const { addItem } = useCart();
+  const { language } = useLanguage();
+  const t = translations[language]?.common || translations['en']?.common;
+
   const [addedItems, setAddedItems] = useState<Record<string, boolean>>({});
 
   const handleAddToCart = (e: React.MouseEvent, product: any) => {
@@ -105,10 +111,10 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
               >
                 {addedItems[product.id] ? (
                   <>
-                    Item Added <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    {t.itemAdded || "Item Added"} <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                   </>
                 ) : (
-                  "Add to Cart"
+                  t.addToCart || "Add to Cart"
                 )}
               </button>
             </div>
@@ -116,7 +122,7 @@ export function FeaturedProductsClient({ featuredProducts }: { featuredProducts:
         ))
       ) : (
         <div className="col-span-full py-12 text-center text-slate-500">
-          No featured products available.
+          {t.noProducts || "No featured products available."}
         </div>
       )}
     </div>

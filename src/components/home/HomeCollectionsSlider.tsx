@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, ReactNode } from "react";
 import Link from "next/link";
 
 interface Collection {
-  label: string;
-  heading: string;
+  label: ReactNode;
+  heading: ReactNode;
   image_url: string;
-  button_text: string;
+  button_text: ReactNode;
   button_link: string;
 }
 
@@ -56,11 +56,13 @@ export function HomeCollectionsSlider({ data }: { data: Collection[] }) {
                     {col.label}
                   </p>
                   <h2 className="text-white text-5xl lg:text-7xl font-black tracking-tighter leading-[0.9] drop-shadow-2xl">
-                    {col.heading.split(' ').map((word, i) => (
-                      <span key={i} className={i % 2 === 1 ? 'text-primary italic block' : 'block'}>
-                        {word}
-                      </span>
-                    ))}
+                    {typeof col.heading === 'string' ? (
+                      col.heading.split(' ').map((word, i) => (
+                        <span key={i} className={i % 2 === 1 ? 'text-primary italic block' : 'block'}>
+                          {word}
+                        </span>
+                      ))
+                    ) : col.heading}
                   </h2>
                 </div>
                 <Link 

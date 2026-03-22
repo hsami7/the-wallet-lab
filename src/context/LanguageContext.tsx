@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
 type Language = 'en' | 'fr' | 'ar';
 
@@ -14,6 +15,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLang] = useState<Language>('en');
+  const router = useRouter();
 
   useEffect(() => {
     const saved = localStorage.getItem('site_language') as Language;
@@ -30,6 +32,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } else {
       document.documentElement.dir = 'ltr';
     }
+    router.refresh(); // Force Next.js to re-fetch and re-render server components safely
   };
 
   const dir = language === 'ar' ? 'rtl' : 'ltr';

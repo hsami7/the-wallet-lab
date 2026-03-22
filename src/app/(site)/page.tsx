@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCollections } from "@/app/actions/homepage";
 import { createClient } from "@/utils/supabase/server";
 import { FeaturedProductsClient } from "@/components/home/FeaturedProductsClient";
+import { HomeNewsletterClient } from "@/components/home/HomeNewsletterClient";
 import { TranslatedText } from "@/components/ui/TranslatedText";
 import type { Metadata } from "next";
 
@@ -30,9 +31,9 @@ export default async function Home() {
     .limit(3);
 
   const defaultCollections = [
-    { label: 'Everyday Essentials', heading: 'Classic style', image_url: '', button_text: 'Shop Now', button_link: '/shop', is_slider: false },
-    { label: 'Winter Collection', heading: 'Cozy looks for any season', image_url: '', button_text: 'Discover more', button_link: '/shop', is_slider: false },
-    { label: 'Premium Accessories', heading: 'Timeless accessory', image_url: '', button_text: 'Shop Now', button_link: '/shop', is_slider: false },
+    { label: <TranslatedText tKey="home.collections.everyday.label" />, heading: <TranslatedText tKey="home.collections.everyday.heading" />, image_url: '', button_text: <TranslatedText tKey="home.collections.everyday.button" />, button_link: '/shop', is_slider: false },
+    { label: <TranslatedText tKey="home.collections.winter.label" />, heading: <TranslatedText tKey="home.collections.winter.heading" />, image_url: '', button_text: <TranslatedText tKey="home.collections.winter.button" />, button_link: '/shop', is_slider: false },
+    { label: <TranslatedText tKey="home.collections.accessories.label" />, heading: <TranslatedText tKey="home.collections.accessories.heading" />, image_url: '', button_text: <TranslatedText tKey="home.collections.accessories.button" />, button_link: '/shop', is_slider: false },
   ];
 
   const gridData = collections.length > 0 ? collections : defaultCollections;
@@ -137,12 +138,7 @@ export default async function Home() {
               <TranslatedText tKey="home.newsletter.desc" />
             </p>
           </div>
-          <form className="relative z-10 flex flex-col sm:flex-row gap-4 w-full max-w-md">
-            <input className="flex-1 bg-white/10 border-white/20 rounded-full px-6 py-4 focus:border-white focus:ring-1 focus:ring-white text-white outline-none placeholder:text-white/60" placeholder="Enter your email" required type="email" />
-            <button className="bg-white hover:bg-slate-50 text-primary font-bold px-8 py-4 rounded-full transition-all" type="submit">
-              <TranslatedText tKey="home.newsletter.button" />
-            </button>
-          </form>
+          <HomeNewsletterClient />
           <p className="relative z-10 text-xs text-white/60"><TranslatedText tKey="home.newsletter.disclaimer" /></p>
         </div>
       </section>
